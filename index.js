@@ -24,7 +24,45 @@ app.post('/tweet', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Twitter API Service');
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Tweet Creator</title>
+        <style>
+          body { font-family: Arial; max-width: 800px; margin: 20px auto; padding: 20px; }
+          textarea { width: 100%; height: 100px; margin: 10px 0; }
+          button { background: #1DA1F2; color: white; border: none; padding: 10px 20px; cursor: pointer; }
+          #result { margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <h1>Create a Tweet</h1>
+        <textarea id="tweetText" placeholder="Enter your tweet text"></textarea>
+        <button onclick="postTweet()">Post Tweet</button>
+        <div id="result"></div>
+
+        <script>
+          async function postTweet() {
+            const text = document.getElementById('tweetText').value;
+            const result = document.getElementById('result');
+            
+            try {
+              const response = await fetch('/tweet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+              });
+              const data = await response.json();
+              result.innerHTML = 'Tweet posted successfully!';
+            } catch (error) {
+              result.innerHTML = 'Error posting tweet: ' + error.message;
+            }
+          }
+        </script>
+      </body>
+    </html>
+  `);
 });
 
 app.listen(3000, '0.0.0.0', () => {
