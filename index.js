@@ -28,13 +28,28 @@ app.post('/tweet', async (req, res) => {
     
     res.json(tweet);
   } catch (error) {
-    console.error('Twitter API Error:', error.message, error.stack);
-    console.error('Twitter API Credentials:', {
+    const credentials = {
       hasAppKey: !!process.env.TWITTER_API_KEY,
       hasAppSecret: !!process.env.TWITTER_API_SECRET,
       hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
       hasAccessSecret: !!process.env.TWITTER_ACCESS_SECRET
+    };
+    
+    console.error('Twitter API Error Details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      credentials
     });
+    
+    if (!credentials.hasAppKey || !credentials.hasAppSecret || 
+        !credentials.hasAccessToken || !credentials.hasAccessSecret) {
+      return res.status(500).json({
+        error: 'Missing Twitter API credentials',
+        details: 'Please check your environment variables'
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Failed to post tweet',
       details: error.message 
