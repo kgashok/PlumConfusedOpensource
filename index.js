@@ -28,7 +28,13 @@ app.post('/tweet', async (req, res) => {
     
     res.json(tweet);
   } catch (error) {
-    console.error('Twitter API Error:', error);
+    console.error('Twitter API Error:', error.message, error.stack);
+    console.error('Twitter API Credentials:', {
+      hasAppKey: !!process.env.TWITTER_API_KEY,
+      hasAppSecret: !!process.env.TWITTER_API_SECRET,
+      hasAccessToken: !!process.env.TWITTER_ACCESS_TOKEN,
+      hasAccessSecret: !!process.env.TWITTER_ACCESS_SECRET
+    });
     res.status(500).json({ 
       error: 'Failed to post tweet',
       details: error.message 
