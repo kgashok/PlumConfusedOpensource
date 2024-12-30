@@ -54,7 +54,8 @@ app.get('/', (req, res) => {
                 body: JSON.stringify({ text })
               });
               const data = await response.json();
-              result.innerHTML = 'Tweet posted successfully!';
+              const tweetUrl = `https://twitter.com/i/web/status/${data.data.id}`;
+              result.innerHTML = `Tweet posted successfully! <a href="${tweetUrl}" target="_blank">View tweet</a>`;
             } catch (error) {
               result.innerHTML = 'Error posting tweet: ' + error.message;
             }
