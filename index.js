@@ -16,10 +16,23 @@ const client = new TwitterApi({
 app.post('/tweet', async (req, res) => {
   try {
     const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: 'Tweet text is required' });
+    }
+    
     const tweet = await client.v2.tweet(text);
+    
+    if (!tweet || !tweet.data || !tweet.data.id) {
+      return res.status(500).json({ error: 'Invalid response from Twitter API' });
+    }
+    
     res.json(tweet);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Twitter API Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to post tweet',
+      details: error.message 
+    });
   }
 });
 
@@ -52,11 +65,22 @@ app.get('/', (req, res) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text })
               });
+              
               const data = await response.json();
-              const tweetUrl = \`https://twitter.com/i/web/status/\${data.data.id}\`;
-              result.innerHTML = \`Tweet posted successfully! <a href="\${tweetUrl}" target="_blank">View tweet</a>\`;
+              
+              if (!response.ok) {
+                throw new Error(data.error || 'Failed to post tweet');
+              }
+              
+              if (data.data && data.data.id) {
+                const tweetUrl = \`https://twitter.com/i/web/status/\${data.data.id}\`;
+                result.innerHTML = \`Tweet posted successfully! <a href="\${tweetUrl}" target="_blank">View tweet</a>\`;
+              } else {
+                result.innerHTML = 'Error: Invalid response from server';
+              }
             } catch (error) {
-              result.innerHTML = 'Error posting tweet: ' + error.message;
+              result.innerHTML = 'Error: ' + error.message;
+              console.error('Tweet Error:', error);
             }
           }
         </script>
