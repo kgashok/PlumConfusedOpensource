@@ -24,8 +24,7 @@ app.post('/tweet', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
+  const html = `<!DOCTYPE html>
     <html>
       <head>
         <title>Tweet Creator</title>
@@ -54,16 +53,16 @@ app.get('/', (req, res) => {
                 body: JSON.stringify({ text })
               });
               const data = await response.json();
-              const tweetUrl = `https://twitter.com/i/web/status/${data.data.id}`;
-              result.innerHTML = `Tweet posted successfully! <a href="${tweetUrl}" target="_blank">View tweet</a>`;
+              const tweetUrl = \`https://twitter.com/i/web/status/\${data.data.id}\`;
+              result.innerHTML = \`Tweet posted successfully! <a href="\${tweetUrl}" target="_blank">View tweet</a>\`;
             } catch (error) {
               result.innerHTML = 'Error posting tweet: ' + error.message;
             }
           }
         </script>
       </body>
-    </html>
-  `);
+    </html>`;
+  res.send(html);
 });
 
 app.listen(3000, '0.0.0.0', () => {
