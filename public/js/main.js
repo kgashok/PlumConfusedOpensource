@@ -181,6 +181,33 @@ function getErrorHTML(data) {
         </div>`;
 }
 
+// Tweet posting functionality
+async function postTweet() {
+    const tweetText = document.getElementById("tweetText").value.trim();
+    if (!tweetText) return;
+
+    try {
+        const response = await fetch("/tweet", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text: tweetText })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            document.getElementById("tweetText").value = "";
+            document.getElementById("charCount").textContent = "280";
+            refreshHistory();
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error("Error posting tweet:", error);
+    }
+}
+
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
     initCharCounter();
