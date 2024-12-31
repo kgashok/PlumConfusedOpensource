@@ -12,15 +12,22 @@
 <body>
     <h1>Post a Tweet</h1>
     <textarea id="tweetContent" placeholder="What's happening?"></textarea>
-    <button onclick="startAuth()">Post Tweet</button>
+    <button onclick="startAuth()">Start Authorization</button>
+    <div id="pinSection" style="display: none; margin-top: 20px;">
+        <input type="text" id="pinInput" placeholder="Enter PIN from Twitter" style="padding: 8px; margin-right: 10px;">
+        <button onclick="submitPin()">Submit PIN</button>
+    </div>
     <div id="status"></div>
     <script>
+        let currentTweetContent = '';
+
         async function startAuth() {
             const tweetContent = document.getElementById('tweetContent').value;
             if (!tweetContent.trim()) {
                 alert('Please enter some text to tweet');
                 return;
             }
+            currentTweetContent = tweetContent;
             const response = await fetch('/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -28,17 +35,25 @@
             });
             const data = await response.json();
             window.open(data.authUrl, '_blank');
-            document.getElementById('status').innerHTML = 'Please authorize in the new window and come back here with the PIN';
-            const pin = prompt('Enter the PIN from Twitter:');
+            document.getElementById('status').innerHTML = 'Please authorize in the new window and enter the PIN below';
+            document.getElementById('pinSection').style.display = 'block';
+        }
+
+        async function submitPin() {
+            const pin = document.getElementById('pinInput').value;
             if (pin) {
                 const postResponse = await fetch('/complete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pin, text: tweetContent })
+                    body: JSON.stringify({ pin, text: currentTweetContent })
                 });
                 const result = await postResponse.json();
                 document.getElementById('status').innerHTML = result.success ? 
                     'Tweet posted successfully!' : 'Error posting tweet';
+                if (result.success) {
+                    document.getElementById('pinSection').style.display = 'none';
+                    document.getElementById('tweetContent').value = '';
+                }
             }
         }
     </script>
