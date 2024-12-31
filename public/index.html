@@ -326,24 +326,28 @@
 
         async function fetchSearchedTweets() {
             try {
-                const response = await fetch('/api/tweets'); // Assumed endpoint
-                const tweets = await response.json();
+                const response = await fetch('/search/tweets');
+                const data = await response.json();
                 const tweetsDiv = document.getElementById('searchedTweets');
 
-                if (tweets.length === 0) {
-                    tweetsDiv.innerHTML = '<p>No tweets found.</p>';
+                if (!data.data || data.data.length === 0) {
+                    tweetsDiv.innerHTML = '<p class="text-gray-500">No tweets found.</p>';
                     return;
                 }
 
-                tweetsDiv.innerHTML = tweets.map(tweet => `
+                tweetsDiv.innerHTML = data.data.map(tweet => `
                     <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
-                        <p>${tweet.text}</p>
+                        <p class="text-gray-700">${tweet.text}</p>
+                        <div class="text-xs text-gray-500 mt-2">
+                            Posted: ${new Date(tweet.created_at).toLocaleString()}
+                        </div>
                     </div>
                 `).join('');
 
             } catch (error) {
                 console.error('Error fetching tweets:', error);
-                //Handle error appropriately, e.g., display an error message
+                const tweetsDiv = document.getElementById('searchedTweets');
+                tweetsDiv.innerHTML = '<p class="text-red-500">Error loading tweets. Please try again later.</p>';
             }
         }
     </script>
