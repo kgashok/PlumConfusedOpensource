@@ -1,4 +1,3 @@
-
 import express from 'express';
 import got from 'got';
 import crypto from 'crypto';
@@ -11,8 +10,9 @@ app.use(express.static('public'));
 
 const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
+const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback'; // Your callback URL
 
-const requestTokenURL = 'https://api.twitter.com/oauth/request_token?oauth_callback=oob&x_auth_access_type=write';
+const requestTokenURL = 'https://api.twitter.com/oauth/request_token';
 const authorizeURL = new URL('https://api.twitter.com/oauth/authorize');
 const accessTokenURL = 'https://api.twitter.com/oauth/access_token';
 const endpointURL = 'https://api.twitter.com/2/tweets';
@@ -23,7 +23,8 @@ const oauth = OAuth({
     hash_function: (baseString, key) => crypto.createHmac('sha1', key).update(baseString).digest('base64')
 });
 
-let requestTokenStore = {};
+// Store for temporary OAuth tokens
+const sessions = new Map();
 
 async function requestToken() {
     const authHeader = oauth.toHeader(oauth.authorize({
@@ -32,9 +33,15 @@ async function requestToken() {
     }));
 
     const req = await got.post(requestTokenURL, {
-        headers: { Authorization: authHeader["Authorization"] },
+        headers: { 
+            Authorization: authHeader["Authorization"]
+        },
+        searchParams: {
+            oauth_callback: callback_url
+        },
         throwHttpErrors: false
     });
+
     if (req.body) {
         return qs.parse(req.body);
     } else {
@@ -42,16 +49,21 @@ async function requestToken() {
     }
 }
 
-async function accessToken(oauth_token, oauth_token_secret, verifier) {
+async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
     const authHeader = oauth.toHeader(oauth.authorize({
         url: accessTokenURL,
         method: 'POST'
     }));
-    const path = `https://api.twitter.com/oauth/access_token?oauth_verifier=${verifier}&oauth_token=${oauth_token}`;
-    const req = await got.post(path, {
+
+    const req = await got.post(accessTokenURL, {
         headers: { Authorization: authHeader["Authorization"] },
+        searchParams: {
+            oauth_token,
+            oauth_verifier
+        },
         throwHttpErrors: false
     });
+
     if (req.body) {
         return qs.parse(req.body);
     } else {
@@ -84,30 +96,71 @@ async function postTweet(oauth_token, oauth_token_secret, tweetText) {
     return req.body;
 }
 
-app.post('/start', async (req, res) => {
+// Start the OAuth flow
+app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
-        requestTokenStore = oAuthRequestToken;
-        authorizeURL.searchParams.append('oauth_token', oAuthRequestToken.oauth_token);
-        res.json({ authUrl: authorizeURL.href });
+
+        // Store the token secret for later use
+        sessions.set(oAuthRequestToken.oauth_token, oAuthRequestToken.oauth_token_secret);
+
+        // Redirect user to Twitter authorization page
+        authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
+        res.redirect(authorizeURL.href);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
 });
 
-app.post('/complete', async (req, res) => {
+// Handle the callback from Twitter
+app.get('/callback', async (req, res) => {
     try {
-        const { pin, text } = req.body;
+        const { oauth_token, oauth_verifier } = req.query;
+        const oauth_token_secret = sessions.get(oauth_token);
+
+        if (!oauth_token_secret) {
+            throw new Error('OAuth token not found in session');
+        }
+
+        // Exchange the request token for an access token
         const oAuthAccessToken = await accessToken(
-            requestTokenStore.oauth_token,
-            requestTokenStore.oauth_token_secret,
-            pin
+            oauth_token,
+            oauth_token_secret,
+            oauth_verifier
         );
+
+        // Store the access tokens (in a real application, you'd want to store these securely)
+        // You might want to store these in a database or secure session
+        sessions.set('access_token', {
+            token: oAuthAccessToken.oauth_token,
+            token_secret: oAuthAccessToken.oauth_token_secret
+        });
+
+        // Clean up the temporary token
+        sessions.delete(oauth_token);
+
+        res.send('Authentication successful! You can now post tweets.');
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Endpoint to post tweets using stored access tokens
+app.post('/tweet', async (req, res) => {
+    try {
+        const { text } = req.body;
+        const accessTokens = sessions.get('access_token');
+
+        if (!accessTokens) {
+            return res.status(401).json({ error: 'Not authenticated. Please authorize first.' });
+        }
+
         const response = await postTweet(
-            oAuthAccessToken.oauth_token,
-            oAuthAccessToken.oauth_token_secret,
+            accessTokens.token,
+            accessTokens.token_secret,
             text
         );
+
         res.json({ success: true, response });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
@@ -116,4 +169,5 @@ app.post('/complete', async (req, res) => {
 
 app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
+    console.log('Visit http://localhost:3000/auth/twitter to authenticate');
 });
