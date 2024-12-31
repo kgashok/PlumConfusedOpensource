@@ -56,7 +56,8 @@ async function requestToken() {
   const req = await got.post(requestTokenURL, {
     headers: {
       Authorization: authHeader["Authorization"]
-    }
+    },
+    throwHttpErrors: false
   });
   if (req.body) {
     return qs.parse(req.body);
@@ -77,7 +78,8 @@ async function accessToken({
   const req = await got.post(path, {
     headers: {
       Authorization: authHeader["Authorization"]
-    }
+    },
+    throwHttpErrors: false
   });
   if (req.body) {
     return qs.parse(req.body);
@@ -108,7 +110,8 @@ async function getRequest({
       'user-agent': "v2CreateTweetJS",
       'content-type': "application/json",
       'accept': "application/json"
-    }
+    },
+    throwHttpErrors: false
   });
   if (req.body) {
     return req.body;
