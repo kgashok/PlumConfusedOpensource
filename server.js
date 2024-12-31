@@ -366,7 +366,7 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         const query = '(#SaveSoil OR #SaveSoilMovement) -is:retweet';
         const requestData = {
-            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id`,
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username`,
             method: 'GET'
         };
 
@@ -385,7 +385,12 @@ async function searchTweets(oauth_token, oauth_token_secret) {
             return { data: [] };
         }
 
-        return req.body;
+        // Sort tweets by created_at in descending order (most recent first)
+        const sortedTweets = req.body.data.sort((a, b) => 
+            new Date(b.created_at) - new Date(a.created_at)
+        ).slice(0, 10);
+
+        return { data: sortedTweets };
     } catch (error) {
         console.error('Search tweets error:', error);
         return { data: [], error: error.message };

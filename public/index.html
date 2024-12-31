@@ -337,9 +337,14 @@
 
                 tweetsDiv.innerHTML = data.data.map(tweet => `
                     <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
-                        <p class="text-gray-700">${tweet.text}</p>
-                        <div class="text-xs text-gray-500 mt-2">
-                            Posted: ${new Date(tweet.created_at).toLocaleString()}
+                        <div class="flex justify-between items-start">
+                            <p class="text-gray-700 flex-grow">${tweet.text}</p>
+                            <span class="text-xs text-gray-500 ml-4 whitespace-nowrap">
+                                ${new Date(tweet.created_at).toLocaleString()}
+                            </span>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-500">
+                            Tweet ID: ${tweet.id}
                         </div>
                     </div>
                 `).join('');
