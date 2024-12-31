@@ -378,8 +378,27 @@ async function searchTweets(oauth_token, oauth_token_secret) {
                 Authorization: authHeader["Authorization"],
                 'user-agent': "v2TweetSearchJS",
                 'accept': "application/json"
-            }
+            },
+            throwHttpErrors: false // Don't throw on HTTP errors
         });
+
+        // Handle rate limiting
+        if (req.statusCode === 429) {
+            const resetTime = req.headers['x-rate-limit-reset'];
+            const waitSeconds = resetTime ? Math.ceil((new Date(resetTime * 1000) - new Date()) / 1000) : 900;
+            return { 
+                error: 'Rate limit exceeded', 
+                waitSeconds,
+                statusCode: 429
+            };
+        }
+
+        if (req.statusCode !== 200) {
+            return { 
+                error: `Twitter API error: ${req.statusCode}`,
+                statusCode: req.statusCode
+            };
+        }
 
         if (!req.body || !req.body.data) {
             return { data: [] };
@@ -393,7 +412,10 @@ async function searchTweets(oauth_token, oauth_token_secret) {
         return { data: sortedTweets };
     } catch (error) {
         console.error('Search tweets error:', error);
-        return { data: [], error: error.message };
+        return { 
+            error: 'Network or server error occurred',
+            details: error.message
+        };
     }
 }
 

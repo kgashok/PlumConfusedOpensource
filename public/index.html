@@ -330,8 +330,29 @@
                 const data = await response.json();
                 const tweetsDiv = document.getElementById('searchedTweets');
 
+                if (data.error) {
+                    let errorMessage = data.error;
+                    if (data.statusCode === 429) {
+                        const minutes = Math.ceil(data.waitSeconds / 60);
+                        errorMessage = `Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`;
+                    }
+                    tweetsDiv.innerHTML = `
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-red-700">${errorMessage}</p>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
                 if (!data.data || data.data.length === 0) {
-                    tweetsDiv.innerHTML = '<p class="text-gray-500">No tweets found.</p>';
+                    tweetsDiv.innerHTML = `
+                        <div class="text-gray-500 text-center py-8">
+                            <p>No tweets found.</p>
+                        </div>`;
                     return;
                 }
 
@@ -359,7 +380,15 @@
             } catch (error) {
                 console.error('Error fetching tweets:', error);
                 const tweetsDiv = document.getElementById('searchedTweets');
-                tweetsDiv.innerHTML = '<p class="text-red-500">Error loading tweets. Please try again later.</p>';
+                tweetsDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-red-700">Network error occurred. Please try again later.</p>
+                        </div>
+                    </div>`;
             }
         }
     </script>
