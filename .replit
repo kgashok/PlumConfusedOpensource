@@ -6,7 +6,7 @@ hidden = [".config", "package-lock.json"]
 channel = "stable-24_05"
 
 [deployment]
-run = ["node", "index.js"]
+run = ["sh", "-c", "node server.js"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
