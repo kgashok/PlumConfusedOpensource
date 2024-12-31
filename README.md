@@ -59,11 +59,17 @@ npm start
 ```
 twitter-oauth-demo/
 ├── public/
+│   ├── js/
+│   │   └── main.js
+│   ├── styles/
+│   │   └── main.css
 │   └── index.html
+├── .gitignore
+├── .replit
+├── README.md
 ├── server.js
 ├── package.json
-├── .env
-└── README.md
+└── replit.nix
 ```
 
 ## Technical Stack
