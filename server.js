@@ -366,35 +366,27 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         const query = '#SaveSoil';
         const requestData = {
-            url: searchURL,
-            method: 'GET',
-            searchParams: {
-                query: query,
-                max_results: 10,
-                'tweet.fields': 'created_at,author_id,text',
-                'expansions': 'author_id',
-                'user.fields': 'username'
-            }
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username`,
+            method: 'GET'
         };
 
         const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
 
-        const response = await got(requestData.url, {
-            searchParams: requestData.searchParams,
+        const req = await got(requestData.url, {
             responseType: 'json',
             headers: {
                 Authorization: authHeader["Authorization"],
                 'user-agent': "v2TweetSearchJS",
                 'accept': "application/json"
             }
-        }).json();
+        });
 
-        if (!response.data) {
+        if (!req.body || !req.body.data) {
             return { data: [] };
         }
 
         // Sort tweets by created_at in descending order (most recent first)
-        const sortedTweets = response.data.sort((a, b) => 
+        const sortedTweets = req.body.data.sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         ).slice(0, 10);
 
