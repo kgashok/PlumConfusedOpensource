@@ -58,14 +58,47 @@ function updateUserInfo(data) {
     }
 }
 
+// Keep track of error messages
+const errorMessages = [];
+const MAX_ERROR_HISTORY = 5;
+
 function showAuthStatus(isAuthenticated, message) {
     const authStatus = document.getElementById("authStatus");
+    
+    if (!isAuthenticated) {
+        // Add new error to history
+        errorMessages.unshift({
+            message,
+            timestamp: new Date()
+        });
+        // Keep only the latest MAX_ERROR_HISTORY errors
+        if (errorMessages.length > MAX_ERROR_HISTORY) {
+            errorMessages.pop();
+        }
+    }
+
     authStatus.className = `mb-6 p-4 rounded-lg ${isAuthenticated ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`;
-    authStatus.innerHTML = `
-        <div class="flex items-center">
-            <span class="mr-2">${isAuthenticated ? "✓" : "✗"}</span>
-            <span>${message}</span>
-        </div>`;
+    
+    if (isAuthenticated) {
+        authStatus.innerHTML = `
+            <div class="flex items-center">
+                <span class="mr-2">✓</span>
+                <span>${message}</span>
+            </div>`;
+    } else {
+        authStatus.innerHTML = `
+            <div>
+                ${errorMessages.map((error, index) => `
+                    <div class="flex items-center ${index > 0 ? 'mt-2 pt-2 border-t border-red-200' : ''}">
+                        <span class="mr-2">✗</span>
+                        <div>
+                            <span>${error.message}</span>
+                            <div class="text-xs text-red-500">${formatDate(error.timestamp)}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`;
+    }
     authStatus.classList.remove("hidden");
 }
 
