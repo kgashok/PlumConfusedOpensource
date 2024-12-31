@@ -343,6 +343,13 @@
                                 ${new Date(tweet.created_at).toLocaleString()}
                             </span>
                         </div>
+                        <div class="mt-2 text-sm">
+                            <a href="https://twitter.com/i/web/status/${tweet.id}" 
+                               target="_blank" 
+                               class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">
+                                View Tweet
+                            </a>
+                        </div>
                         <div class="mt-2 text-xs text-gray-500">
                             Tweet ID: ${tweet.id}
                         </div>
