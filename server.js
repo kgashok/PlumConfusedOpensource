@@ -358,34 +358,38 @@ app.listen(3000, '0.0.0.0', () => {
     console.log('Visit http://localhost:3000 to start');
 });
 async function searchTweets(oauth_token, oauth_token_secret) {
-    const token = {
-        key: oauth_token,
-        secret: oauth_token_secret
-    };
+    try {
+        const token = {
+            key: oauth_token,
+            secret: oauth_token_secret
+        };
 
-    const query = '(#SaveSoil OR #SaveSoilMovement) -is:retweet';
-    const requestData = {
-        url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at`,
-        method: 'GET'
-    };
+        const query = '(#SaveSoil OR #SaveSoilMovement) -is:retweet';
+        const requestData = {
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id`,
+            method: 'GET'
+        };
 
-    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+        const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
 
-    const req = await got.get(requestData.url, {
-        responseType: 'json',
-        headers: {
-            Authorization: authHeader["Authorization"],
-            'user-agent': "v2TweetSearchJS",
-            'accept': "application/json"
-        },
-        throwHttpErrors: false
-    });
+        const req = await got(requestData.url, {
+            responseType: 'json',
+            headers: {
+                Authorization: authHeader["Authorization"],
+                'user-agent': "v2TweetSearchJS",
+                'accept': "application/json"
+            }
+        });
 
-    if (req.statusCode !== 200) {
-        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+        if (!req.body || !req.body.data) {
+            return { data: [] };
+        }
+
+        return req.body;
+    } catch (error) {
+        console.error('Search tweets error:', error);
+        return { data: [], error: error.message };
     }
-
-    return req.body;
 }
 
 // Add new endpoint to get searched tweets
