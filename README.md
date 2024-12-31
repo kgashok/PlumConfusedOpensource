@@ -9,6 +9,9 @@ A simple web application demonstrating Twitter OAuth integration with real-time 
 4. [Twitter Learning/Teaching](https://dev.to/suhemparack/a-guide-to-teaching-with-the-twitter-api-v2-3n08)
 5. [Python Code for Twitter access](https://replit.com/@ashokb/ClientsideDifferentLicense#create.py)
 6. [Postman demo of API](https://www.postman.com/xapidevelopers/twitter-s-public-workspace/request/cva25a0/create-a-tweet?action=share&source=copy-link&creator=40716226)
+7. [Glitch Twitter Apps](https://glitch.com/search?q=twitter)
+8. [Retrieving tweets using v1](https://glitch.com/edit/#!/knowing-various-limpet?path=script.js%3A1%3A0)
+
 
 ## Features
 
