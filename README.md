@@ -8,6 +8,7 @@ A simple web application demonstrating Twitter OAuth integration with real-time 
 3. [Lookup Tweets](https://github.com/xdevplatform/Twitter-API-v2-sample-code/blob/main/Tweet-Lookup/get_tweets_with_bearer_token.js) - to implement!
 4. [Twitter Learning/Teaching](https://dev.to/suhemparack/a-guide-to-teaching-with-the-twitter-api-v2-3n08)
 5. [Python Code for Twitter access](https://replit.com/@ashokb/ClientsideDifferentLicense#create.py)
+6. [Postman link](https://www.postman.com/xapidevelopers/twitter-s-public-workspace/request/3oyvln9/create-a-tweet)
 
 
 ## Features
