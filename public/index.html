@@ -76,6 +76,25 @@
             <div id="status" class="text-sm"></div>
         </div>
 
+        <!-- Searched Tweets Section -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">#SaveSoil Tweets</h2>
+                <button 
+                    onclick="fetchSearchedTweets()" 
+                    class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition duration-150 ease-in-out flex items-center gap-2"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+            <div id="searchedTweets" class="space-y-4">
+                <!-- Searched tweets will be populated here -->
+            </div>
+        </div>
+
         <!-- Tweet History Section -->
         <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
             <div class="flex items-center justify-between mb-6">
@@ -117,6 +136,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
             refreshHistory();
+            fetchSearchedTweets(); // Added to fetch tweets on load
         });
         
         // Check URL parameters for success/error messages
@@ -301,6 +321,29 @@
                         }
                     }, 100);
                 }
+            }
+        }
+
+        async function fetchSearchedTweets() {
+            try {
+                const response = await fetch('/api/tweets'); // Assumed endpoint
+                const tweets = await response.json();
+                const tweetsDiv = document.getElementById('searchedTweets');
+
+                if (tweets.length === 0) {
+                    tweetsDiv.innerHTML = '<p>No tweets found.</p>';
+                    return;
+                }
+
+                tweetsDiv.innerHTML = tweets.map(tweet => `
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
+                        <p>${tweet.text}</p>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error fetching tweets:', error);
+                //Handle error appropriately, e.g., display an error message
             }
         }
     </script>

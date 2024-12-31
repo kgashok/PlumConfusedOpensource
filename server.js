@@ -35,6 +35,7 @@ const requestTokenURL = 'https://api.twitter.com/oauth/request_token';
 const authorizeURL = new URL('https://api.twitter.com/oauth/authorize');
 const accessTokenURL = 'https://api.twitter.com/oauth/access_token';
 const endpointURL = 'https://api.twitter.com/2/tweets';
+const searchURL = 'https://api.twitter.com/2/tweets/search/recent';
 
 const oauth = OAuth({
     consumer: { 
@@ -355,4 +356,60 @@ app.post('/tweet', async (req, res) => {
 app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
     console.log('Visit http://localhost:3000 to start');
+});
+async function searchTweets(oauth_token, oauth_token_secret) {
+    const token = {
+        key: oauth_token,
+        secret: oauth_token_secret
+    };
+
+    const query = '(#SaveSoil OR #SaveSoilMovement) -is:retweet';
+    const requestData = {
+        url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at`,
+        method: 'GET'
+    };
+
+    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+    const req = await got.get(requestData.url, {
+        responseType: 'json',
+        headers: {
+            Authorization: authHeader["Authorization"],
+            'user-agent': "v2TweetSearchJS",
+            'accept': "application/json"
+        },
+        throwHttpErrors: false
+    });
+
+    if (req.statusCode !== 200) {
+        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+    }
+
+    return req.body;
+}
+
+// Add new endpoint to get searched tweets
+app.get('/search/tweets', async (req, res) => {
+    try {
+        const accessTokens = sessions.get('access_token');
+        if (!accessTokens) {
+            return res.status(401).json({
+                success: false,
+                error: 'Not authenticated'
+            });
+        }
+
+        const tweets = await searchTweets(
+            accessTokens.token,
+            accessTokens.token_secret
+        );
+
+        res.json(tweets);
+    } catch (e) {
+        console.error('Error searching tweets:', e);
+        res.status(500).json({
+            success: false,
+            error: e.message
+        });
+    }
 });
