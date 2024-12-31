@@ -1,68 +1,449 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Twitter OAuth Demo</title>
-    <link rel="stylesheet" href="https://cdn.tailwindcss.com" />
-    <link rel="stylesheet" href="/styles/main.css" />
-</head>
-<body class="bg-gray-100 min-h-screen p-8">
-    <div class="max-w-2xl mx-auto">
-        <!-- Main Content -->
-        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold">Twitter OAuth Demo</h1>
-                    <a href="https://github.com/kgashok/PlumConfusedOpensource/issues" target="_blank" class="text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback?</a>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Twitter OAuth Demo</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="/styles/main.css" />
+    </head>
+    <body class="bg-gray-100 min-h-screen p-8">
+        <div class="max-w-2xl mx-auto">
+            <!-- Main Content -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold">Twitter OAuth Demo</h1>
+                        <a href="https://github.com/kgashok/PlumConfusedOpensource/issues" target="_blank" class="text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback?</a>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        <div id="currentTime"></div>
+                    </div>
                 </div>
-                <div class="text-sm text-gray-500">
-                    <div id="currentTime"></div>
+
+                <!-- Auth Status Banner -->
+                <div id="authStatus" class="mb-6 p-4 rounded-lg hidden">
+                    <!-- Content will be dynamically updated -->
+                </div>
+
+                <!-- User Info Section -->
+                <div id="userInfo" class="mb-6 hidden">
+                    <!-- User info will be dynamically updated -->
+                </div>
+
+                <!-- Auth Section -->
+                <div class="mb-6">
+                    <button
+                        onclick="startAuth()"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                    >
+                        Authenticate with Twitter
+                    </button>
+                </div>
+
+                <!-- Tweet Form -->
+                <div class="mb-6">
+                    <div class="relative">
+                        <textarea
+                            id="tweetText"
+                            class="w-full p-3 border rounded-lg mb-2 pr-16 resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition duration-150 ease-in-out"
+                            rows="3"
+                            placeholder="What's happening?"
+                            maxlength="280"
+                        ></textarea>
+                        <div
+                            class="absolute bottom-5 right-3 text-sm text-gray-500"
+                            id="charCount"
+                        >
+                            280
+                        </div>
+                    </div>
+                    <button
+                        onclick="postTweet()"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                    >
+                        Post Tweet
+                    </button>
+                </div>
+
+                <!-- Status Messages -->
+                <div id="status" class="text-sm"></div>
+            </div>
+
+            <!-- Searched Tweets Section -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold">#SaveSoil Tweets</h2>
+                    <button
+                        onclick="fetchSearchedTweets()"
+                        class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition duration-150 ease-in-out flex items-center gap-2"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <div id="searchedTweets" class="space-y-4">
+                    <!-- Searched tweets will be populated here -->
                 </div>
             </div>
 
-            <div id="authStatus" class="mb-6 p-4 rounded-lg hidden"></div>
-            <div id="userInfo" class="mb-6 hidden"></div>
-
-            <div class="mb-6">
-                <button id="authButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
-                    Authenticate with Twitter
-                </button>
-            </div>
-
-            <div class="mb-6">
-                <div class="relative">
-                    <textarea id="tweetText" class="w-full p-3 border rounded-lg mb-2 pr-16 resize-none" rows="3" placeholder="What's happening?" maxlength="280"></textarea>
-                    <div id="charCount" class="absolute bottom-5 right-3 text-sm text-gray-500">280</div>
+            <!-- Tweet History Section -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold">Tweet History</h2>
+                    <button
+                        onclick="refreshHistory()"
+                        class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition duration-150 ease-in-out flex items-center gap-2"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                        </svg>
+                        Refresh
+                    </button>
                 </div>
-                <button id="postTweetButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
-                    Post Tweet
-                </button>
+                <div id="tweetHistory" class="space-y-4">
+                    <!-- Tweet history will be populated here -->
+                </div>
             </div>
-
-            <div id="status" class="text-sm"></div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold">#SaveSoil Tweets</h2>
-                <button id="refreshTweetsButton" class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition duration-150 ease-in-out flex items-center gap-2">
-                    Refresh
-                </button>
-            </div>
-            <div id="searchedTweets" class="space-y-4"></div>
-        </div>
+        <script>
+            // Initialize character counter
+            document
+                .getElementById("tweetText")
+                .addEventListener("input", function (e) {
+                    const remaining = 280 - e.target.value.length;
+                    const charCount = document.getElementById("charCount");
+                    charCount.textContent = remaining;
+                    charCount.className =
+                        remaining < 20
+                            ? "absolute bottom-5 right-3 text-sm text-red-500"
+                            : "absolute bottom-5 right-3 text-sm text-gray-500";
+                });
 
-        <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold">Tweet History</h2>
-                <button id="refreshHistoryButton" class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition duration-150 ease-in-out flex items-center gap-2">
-                    Refresh
-                </button>
-            </div>
-            <div id="tweetHistory" class="space-y-4"></div>
-        </div>
-    </div>
-    <script src="/scripts/main.js"></script>
-</body>
+            // Update current time
+            function updateCurrentTime() {
+                const now = new Date();
+                document.getElementById("currentTime").textContent =
+                    now.toLocaleString();
+            }
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+
+            // Check authentication status and tweet history on page load
+            document.addEventListener("DOMContentLoaded", () => {
+                checkAuthStatus();
+                refreshHistory();
+                fetchSearchedTweets(); // Added to fetch tweets on load
+            });
+
+            // Check URL parameters for success/error messages
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has("success")) {
+                showAuthStatus(
+                    true,
+                    "Successfully authenticated with Twitter!",
+                );
+            } else if (urlParams.has("error")) {
+                showAuthStatus(
+                    false,
+                    decodeURIComponent(urlParams.get("error")),
+                );
+            }
+
+            function formatDate(dateString) {
+                const options = {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                };
+                return new Date(dateString).toLocaleDateString(
+                    "en-US",
+                    options,
+                );
+            }
+
+            async function checkAuthStatus() {
+                try {
+                    const response = await fetch("/auth/status");
+                    const data = await response.json();
+
+                    showAuthStatus(
+                        data.authenticated,
+                        data.authenticated
+                            ? "Authenticated with Twitter"
+                            : "Not authenticated with Twitter",
+                    );
+
+                    // Update user info section
+                    const userInfoDiv = document.getElementById("userInfo");
+                    if (data.authenticated && data.user) {
+                        userInfoDiv.classList.remove("hidden");
+                        userInfoDiv.innerHTML = `
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <div class="font-medium text-blue-700">
+                                Logged in as: @${data.user.screen_name}
+                            </div>
+                            <div class="text-sm text-blue-600">
+                                Twitter ID: ${data.user.id}
+                            </div>
+                        </div>
+                    `;
+                    } else {
+                        userInfoDiv.classList.add("hidden");
+                    }
+                } catch (error) {
+                    showAuthStatus(
+                        false,
+                        "Unable to check authentication status",
+                    );
+                }
+            }
+
+            async function refreshHistory() {
+                try {
+                    const response = await fetch("/tweet/history");
+                    const history = await response.json();
+
+                    const historyDiv = document.getElementById("tweetHistory");
+                    if (history.length === 0) {
+                        historyDiv.innerHTML = `
+                        <div class="text-gray-500 text-center py-8">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <div class="text-lg font-medium">No tweets posted yet</div>
+                            <div class="text-sm text-gray-400">Your tweet history will appear here</div>
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    historyDiv.innerHTML = history
+                        .map(
+                            (tweet) => `
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="text-sm text-blue-600 mb-1 font-medium">
+                                    @${tweet.screen_name}
+                                </div>
+                                <div class="text-gray-700">${tweet.text}</div>
+                            </div>
+                            <div class="text-xs text-gray-500 ml-4">
+                                ${formatDate(tweet.timestamp)}
+                            </div>
+                        </div>
+                        <div class="text-sm mt-2">
+                            <a href="${tweet.url}" 
+                               target="_blank" 
+                               class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">
+                                ${tweet.url}
+                            </a>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">
+                            Tweet ID: ${tweet.id}
+                        </div>
+                    </div>
+                `,
+                        )
+                        .join("");
+                } catch (error) {
+                    console.error("Error fetching tweet history:", error);
+                }
+            }
+
+            function showAuthStatus(isAuthenticated, message) {
+                const authStatus = document.getElementById("authStatus");
+                authStatus.className = `mb-6 p-4 rounded-lg ${isAuthenticated ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`;
+                authStatus.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">
+                        ${isAuthenticated ? "✓" : "✗"}
+                    </span>
+                    <span>
+                        ${message}
+                    </span>
+                </div>
+            `;
+                authStatus.classList.remove("hidden");
+            }
+
+            function showStatus(message, isError = false, tweetUrl = null) {
+                const statusDiv = document.getElementById("status");
+                let statusHtml = `
+                <div class="p-4 rounded-lg ${isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"} mt-4 transition duration-150 ease-in-out">
+                    ${message}
+                </div>
+            `;
+
+                if (tweetUrl) {
+                    statusHtml += `
+                    <div class="mt-2 p-4 bg-gray-100 rounded-lg transition duration-150 ease-in-out">
+                        <p class="text-sm text-gray-600 mb-2">Tweet URL:</p>
+                        <a href="${tweetUrl}" 
+                           target="_blank" 
+                           class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">
+                            ${tweetUrl}
+                        </a>
+                    </div>
+                `;
+                }
+
+                statusDiv.innerHTML = statusHtml;
+            }
+
+            function startAuth() {
+                window.location.href = "/auth/twitter";
+            }
+
+            async function postTweet() {
+                const tweetText = document.getElementById("tweetText").value;
+
+                if (!tweetText) {
+                    showStatus("Please enter some text for your tweet", true);
+                    return;
+                }
+
+                try {
+                    const response = await fetch("/tweet", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ text: tweetText }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const tweetUrl = `https://twitter.com/i/web/status/${data.response.data.id}`;
+                        showStatus(
+                            "Tweet posted successfully!",
+                            false,
+                            tweetUrl,
+                        );
+                        document.getElementById("tweetText").value = "";
+                        document.getElementById("charCount").textContent =
+                            "280";
+                        // Refresh the tweet history
+                        refreshHistory();
+                    } else {
+                        showStatus(data.error || "Failed to post tweet", true);
+                    }
+                } catch (error) {
+                    showStatus("Error posting tweet: " + error.message, true);
+                    if (error.message.includes("401")) {
+                        setTimeout(() => {
+                            if (
+                                confirm(
+                                    "You need to authenticate first. Would you like to do that now?",
+                                )
+                            ) {
+                                startAuth();
+                            }
+                        }, 100);
+                    }
+                }
+            }
+
+            async function fetchSearchedTweets() {
+                try {
+                    const response = await fetch("/search/tweets");
+                    const data = await response.json();
+                    const tweetsDiv = document.getElementById("searchedTweets");
+
+                    if (data.error) {
+                        let errorMessage = data.error;
+                        if (data.statusCode === 429) {
+                            const minutes = Math.ceil(data.waitSeconds / 60);
+                            errorMessage = `Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? "s" : ""}.`;
+                        }
+                        tweetsDiv.innerHTML = `
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-red-700">${errorMessage}</p>
+                            </div>
+                        </div>`;
+                        return;
+                    }
+
+                    if (!data.data || data.data.length === 0) {
+                        tweetsDiv.innerHTML = `
+                        <div class="text-gray-500 text-center py-8">
+                            <p>No tweets found.</p>
+                        </div>`;
+                        return;
+                    }
+
+                    tweetsDiv.innerHTML = data.data
+                        .map(
+                            (tweet) => `
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
+                        <div class="flex justify-between items-start">
+                            <p class="text-gray-700 flex-grow">${tweet.text}</p>
+                            <span class="text-xs text-gray-500 ml-4 whitespace-nowrap">
+                                ${new Date(tweet.created_at).toLocaleString()}
+                            </span>
+                        </div>
+                        <div class="mt-2 text-sm">
+                            <a href="https://twitter.com/i/web/status/${tweet.id}" 
+                               target="_blank" 
+                               class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">
+                                View Tweet
+                            </a>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-500">
+                            Tweet ID: ${tweet.id}
+                        </div>
+                    </div>
+                `,
+                        )
+                        .join("");
+                } catch (error) {
+                    console.error("Error fetching tweets:", error);
+                    const tweetsDiv = document.getElementById("searchedTweets");
+                    tweetsDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-red-700">Network error occurred. Please try again later.</p>
+                        </div>
+                    </div>`;
+                }
+            }
+        </script>
+    </body>
 </html>
