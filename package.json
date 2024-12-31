@@ -13,7 +13,7 @@
   "dependencies": {
     "@types/node": "^20.9.1",
     "express": "^4.18.2",
-    "got": "^14.4.5",
+    "got": "^12.0.0",
     "node-fetch": "^3.3.2",
     "oauth-1.0a": "^2.2.6",
     "twitter-api-v2": "^1.19.0"
