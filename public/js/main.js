@@ -166,7 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCurrentTime, 1000);
     checkAuthStatus();
     refreshHistory();
-    fetchSearchedTweets();
 
     // Check URL parameters
     const urlParams = new URLSearchParams(window.location.search);
