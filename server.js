@@ -357,6 +357,69 @@ app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
     console.log('Visit http://localhost:3000 to start');
 });
+
+async function deleteTweet(oauth_token, oauth_token_secret, tweet_id) {
+    const token = {
+        key: oauth_token,
+        secret: oauth_token_secret
+    };
+
+    const requestData = {
+        url: `${endpointURL}/${tweet_id}`,
+        method: 'DELETE'
+    };
+
+    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+    const req = await got.delete(`${endpointURL}/${tweet_id}`, {
+        responseType: 'json',
+        headers: {
+            Authorization: authHeader["Authorization"],
+            'user-agent': "v2DeleteTweetJS",
+            'content-type': "application/json",
+            'accept': "application/json"
+        },
+        throwHttpErrors: false
+    });
+
+    if (req.statusCode !== 200) {
+        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+    }
+
+    return req.body;
+}
+
+app.delete('/tweet/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const accessTokens = sessions.get('access_token');
+
+        if (!accessTokens) {
+            return res.status(401).json({
+                success: false,
+                error: 'Not authenticated'
+            });
+        }
+
+        await deleteTweet(
+            accessTokens.token,
+            accessTokens.token_secret,
+            id
+        );
+
+        // Remove from history
+        tweetHistory.delete(id);
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error('Error deleting tweet:', e);
+        res.status(500).json({
+            success: false,
+            error: e.message
+        });
+    }
+});
+
 async function searchTweets(oauth_token, oauth_token_secret) {
     try {
         const token = {

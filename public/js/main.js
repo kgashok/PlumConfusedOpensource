@@ -101,6 +101,22 @@ function getEmptyHistoryHTML() {
         </div>`;
 }
 
+async function deleteTweet(tweetId) {
+    try {
+        const response = await fetch(`/tweet/${tweetId}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        if (data.success) {
+            refreshHistory();
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error("Error deleting tweet:", error);
+    }
+}
+
 function getTweetHTML(tweet) {
     return `
         <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
@@ -109,7 +125,14 @@ function getTweetHTML(tweet) {
                     <div class="text-sm text-blue-600 mb-1 font-medium">@${tweet.screen_name}</div>
                     <div class="text-gray-700">${tweet.text}</div>
                 </div>
-                <div class="text-xs text-gray-500 ml-4">${formatDate(tweet.timestamp)}</div>
+                <div class="flex flex-col items-end gap-2">
+                    <div class="text-xs text-gray-500">${formatDate(tweet.timestamp)}</div>
+                    <button onclick="deleteTweet('${tweet.id}')" class="text-red-500 hover:text-red-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             <div class="text-sm mt-2">
                 <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
@@ -208,3 +231,4 @@ window.startAuth = () => window.location.href = "/auth/twitter";
 window.postTweet = postTweet;
 window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
+window.deleteTweet = deleteTweet;
