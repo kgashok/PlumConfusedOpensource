@@ -2,6 +2,14 @@
 
 A simple web application demonstrating Twitter OAuth integration with real-time tweet posting and history tracking. Built with Node.js, Express, and modern web technologies.
 
+## Developer Links
+1. [Twitter Portal](https://developer.x.com/en/portal/projects/1873036774559367170/apps )
+2. [Sample Github Code](https://github.com/xdevplatform/Twitter-API-v2-sample-code/tree/main/Recent-Search)
+3. [Lookup Tweets](https://github.com/xdevplatform/Twitter-API-v2-sample-code/blob/main/Tweet-Lookup/get_tweets_with_bearer_token.js) - to implement!
+4. [Twitter Learning/Teaching](https://dev.to/suhemparack/a-guide-to-teaching-with-the-twitter-api-v2-3n08)
+5. [Python Code for Twitter access](https://replit.com/@ashokb/ClientsideDifferentLicense#create.py)
+
+
 ## Features
 
 - 🔐 Twitter OAuth Authentication
