@@ -1,4 +1,3 @@
-
 // Time display functionality
 function updateCurrentTime() {
     const now = new Date();
@@ -195,7 +194,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (urlParams.has("success")) {
         showAuthStatus(true, "Successfully authenticated with Twitter!");
     } else if (urlParams.has("error")) {
-        showAuthStatus(false, decodeURIComponent(urlParams.get("error")));
+        const error = decodeURIComponent(urlParams.get("error"));
+        showAuthStatus(false, error);
+        // Prevent the status from being overridden
+        clearTimeout(window.authCheckTimeout);
     }
 });
 
