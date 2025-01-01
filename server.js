@@ -236,7 +236,7 @@ app.get('/callback', async (req, res) => {
 
         const oAuthAccessToken = await accessToken(  
             oauth_token,  
-            oauth_token_secret,  
+            sessionData.oauth_token_secret,  
             oauth_verifier  
         );  
 
