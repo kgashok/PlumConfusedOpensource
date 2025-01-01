@@ -274,33 +274,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Tweet posting functionality
-async function postTweet() {
-    const tweetText = document.getElementById("tweetText").value.trim();
-    if (!tweetText) return;
-
-    try {
-        const response = await fetch("/tweet", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ text: tweetText })
-        });
-
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById("tweetText").value = "";
-            document.getElementById("charCount").textContent = "280";
-            refreshHistory();
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        console.error("Error posting tweet:", error);
-    }
-}
-
 // Export functions needed by HTML
 window.startAuth = () => window.location.href = "/auth/twitter";
 window.postTweet = postTweet;
