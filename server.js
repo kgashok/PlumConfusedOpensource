@@ -13,6 +13,15 @@ app.use(bodyParser.json());
 
 app.use(express.static('public'));
 
+// Auth status endpoint
+app.get('/auth/status', (req, res) => {
+  const authenticated = req.session.oauth && req.session.oauth.accessToken;
+  res.json({
+    authenticated,
+    user: req.session.user || null
+  });
+});
+
 // Setup session middleware
 app.use(
   session({
