@@ -140,7 +140,15 @@ async function deleteTweet(tweetId) {
         });
         const data = await response.json();
         if (data.success) {
-            refreshHistory();
+            const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
+            if (tweetElement) {
+                tweetElement.classList.add('bg-red-50');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'text-red-600 text-sm mt-2';
+                messageDiv.textContent = 'Tweet deleted';
+                tweetElement.appendChild(messageDiv);
+                setTimeout(refreshHistory, 1500);
+            }
         } else {
             throw new Error(data.error);
         }
@@ -154,7 +162,7 @@ function getTweetHTML(tweet) {
     const isCurrentUser = currentUser === tweet.screen_name;
     
     return `
-        <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
+        <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
             <div class="flex justify-between items-start mb-2">
                 <div>
                     <div class="text-sm ${isCurrentUser ? 'text-green-600' : 'text-blue-600'} mb-1 font-medium">

@@ -387,7 +387,10 @@ app.delete('/tweet/:id', async (req, res) => {
             [id]
         );
 
-        res.json({ success: true });
+        res.json({ 
+            success: true,
+            message: "Tweet deleted successfully" 
+        });
     } catch (e) {
         console.error('Error deleting tweet:', e);
         res.status(500).json({
