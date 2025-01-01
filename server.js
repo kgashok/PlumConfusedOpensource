@@ -185,7 +185,8 @@ app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
 
-        sessions.set(oAuthRequestToken.oauth_token, oAuthRequestToken.oauth_token_secret);
+        // Store using regular object
+        sessions[oAuthRequestToken.oauth_token] = oAuthRequestToken.oauth_token_secret;
 
         authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
         res.redirect(authorizeURL.href);
@@ -212,7 +213,7 @@ app.get('/auth/status', (req, res) => {
 app.get('/callback', async (req, res) => {  
     try {  
         const { oauth_token, oauth_verifier } = req.query;  
-        const oauth_token_secret = sessions.get(oauth_token);  
+        const oauth_token_secret = sessions[oauth_token];  
 
         if (!oauth_token_secret) {  
             throw new Error('OAuth token not found in session');  
