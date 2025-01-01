@@ -31,9 +31,12 @@
                 <div id="authStatus" class="mb-6 p-4 rounded-lg hidden"></div>
                 <div id="userInfo" class="mb-6 hidden"></div>
 
-                <div class="mb-6">
+                <div class="mb-6 flex gap-2">
                     <button onclick="startAuth()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
                         Authenticate with Twitter
+                    </button>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out">
+                        Logout
                     </button>
                 </div>
 
