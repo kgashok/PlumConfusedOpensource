@@ -1,123 +1,503 @@
-
 import express from 'express';
-import session from 'express-session';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import axios from 'axios';
-import pkg from 'pg';
-const { Pool } = pkg;
+import got from 'got';
+import crypto from 'crypto';
+import OAuth from 'oauth-1.0a';
+import qs from 'querystring';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-
+app.use(express.json());
 app.use(express.static('public'));
 
-// Auth status endpoint
-app.get('/auth/status', (req, res) => {
-  const authenticated = req.session.oauth && req.session.oauth.accessToken;
-  res.json({
-    authenticated,
-    user: req.session.user || null
-  });
-});
+const consumer_key = process.env.CONSUMER_KEY;
+const consumer_secret = process.env.CONSUMER_SECRET;
+const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
 
-// Setup session middleware
-app.use(
-  session({
-    secret: 'some_secret_key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-  })
-);
+// Add this near the top of your server.js with other initializations  
+const sessions = new Map();
+import pg from 'pg';
+const { Pool } = pg;
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: {
+        rejectUnauthorized: false
+    }
+});  
+
+// Verify environment variables
+console.log('Environment check:');
+console.log('Consumer key length:', consumer_key?.length);
+console.log('Consumer secret length:', consumer_secret?.length);
+console.log('Callback URL:', callback_url);
+
+if (!consumer_key || !consumer_secret) {
+    throw new Error('Missing required environment variables');
+}
+
+const requestTokenURL = 'https://api.twitter.com/oauth/request_token';
+const authorizeURL = new URL('https://api.twitter.com/oauth/authorize');
+const accessTokenURL = 'https://api.twitter.com/oauth/access_token';
+const endpointURL = 'https://api.twitter.com/2/tweets';
+const searchURL = 'https://api.twitter.com/2/tweets/search/recent';
+
+const oauth = OAuth({
+    consumer: { 
+        key: consumer_key, 
+        secret: consumer_secret 
+    },
+    signature_method: 'HMAC-SHA1',
+    hash_function: (baseString, key) => crypto.createHmac('sha1', key).update(baseString).digest('base64'),
+    parameter_separator: ',',
+    nonce_length: 32
 });
 
-// Twitter OAuth routes
-app.get('/auth/twitter', async (req, res) => {
-  try {
-    const requestToken = 'REQUEST_TOKEN_PLACEHOLDER';
-    const requestTokenSecret = 'REQUEST_SECRET_PLACEHOLDER';
+async function requestToken() {
+    try {
+        const requestData = {
+            url: requestTokenURL,
+            method: 'POST',
+            data: { oauth_callback: callback_url }
+        };
 
-    req.session.requestToken = requestToken;
-    req.session.requestTokenSecret = requestTokenSecret;
+        const authHeader = oauth.toHeader(oauth.authorize(requestData));
 
-    res.redirect(`https://api.twitter.com/oauth/authorize?oauth_token=${requestToken}`);
-  } catch (error) {
-    console.error('Error starting auth flow:', error);
-    res.status(500).send('Error starting auth flow');
-  }
-});
+        console.log('Request URL:', requestTokenURL);
+        console.log('Callback URL:', callback_url);
 
-app.get('/callback', async (req, res) => {
-  try {
-    const { requestToken, requestTokenSecret } = req.session;
-    const accessToken = 'FINAL_ACCESS_TOKEN_PLACEHOLDER';
-    const accessSecret = 'FINAL_ACCESS_SECRET_PLACEHOLDER';
+        const req = await got.post(requestTokenURL, {
+            headers: { 
+                Authorization: authHeader["Authorization"]
+            },
+            form: {
+                oauth_callback: callback_url
+            },
+            throwHttpErrors: false
+        });
 
-    req.session.oauth = {
-      accessToken,
-      accessSecret
+        console.log('Response status:', req.statusCode);
+        console.log('Response body:', req.body);
+
+        if (req.statusCode !== 200) {
+            console.error('Twitter API error response:', req.body);
+            throw new Error(`Twitter API error: ${req.body}`);
+        }
+
+        if (req.body) {
+            return qs.parse(req.body);
+        } else {
+            throw new Error('Cannot get OAuth request token');
+        }
+    } catch (error) {
+        console.error('Full error:', error);
+        throw error;
+    }
+}
+
+async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
+    try {
+        const requestData = {
+            url: accessTokenURL,
+            method: 'POST',
+            data: {
+                oauth_token,
+                oauth_verifier
+            }
+        };
+
+        const authHeader = oauth.toHeader(oauth.authorize(requestData));
+
+        const req = await got.post(accessTokenURL, {
+            headers: { Authorization: authHeader["Authorization"] },
+            form: {
+                oauth_token,
+                oauth_verifier
+            },
+            throwHttpErrors: false
+        });
+
+        console.log('Access token response status:', req.statusCode);
+        console.log('Access token response body:', req.body);
+
+        if (req.statusCode !== 200) {
+            throw new Error(`Twitter API error: ${req.body}`);
+        }
+
+        if (req.body) {
+            return qs.parse(req.body);
+        } else {
+            throw new Error('Cannot get OAuth access token');
+        }
+    } catch (error) {
+        console.error('Access token error:', error);
+        throw error;
+    }
+}
+
+async function postTweet(oauth_token, oauth_token_secret, tweetText) {
+    const token = {
+        key: oauth_token,
+        secret: oauth_token_secret
     };
 
-    delete req.session.requestToken;
-    delete req.session.requestTokenSecret;
+    const requestData = {
+        url: endpointURL,
+        method: 'POST'
+    };
 
-    res.redirect('/');
-  } catch (error) {
-    console.error('Error in callback:', error);
-    res.status(500).send('Error completing OAuth callback');
-  }
-});
+    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
 
-app.post('/postTweet', async (req, res) => {
-  try {
-    const { oauth } = req.session;
-    if (!oauth || !oauth.accessToken) {
-      return res.status(401).send('Not authenticated with Twitter');
+    const req = await got.post(endpointURL, {
+        json: { text: tweetText },
+        responseType: 'json',
+        headers: {
+            Authorization: authHeader["Authorization"],
+            'user-agent': "v2CreateTweetJS",
+            'content-type': "application/json",
+            'accept': "application/json"
+        },
+        throwHttpErrors: false
+    });
+
+    if (req.statusCode !== 201) {
+        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
     }
-    res.send('Tweet posted!');
-  } catch (error) {
-    console.error('Error posting tweet:', error);
-    res.status(500).send('Error posting tweet');
-  }
+
+    return req.body;
+}
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/getTweets', async (req, res) => {
-  try {
-    const { oauth } = req.session;
-    if (!oauth || !oauth.accessToken) {
-      return res.status(401).send('Not authenticated with Twitter');
+app.get('/auth/twitter', async (req, res) => {
+    try {
+        const oAuthRequestToken = await requestToken();
+
+        sessions.set(oAuthRequestToken.oauth_token, oAuthRequestToken.oauth_token_secret);
+
+        authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
+        res.redirect(authorizeURL.href);
+    } catch (e) {
+        console.error('Error during Twitter auth:', e);
+        res.redirect('/?error=' + encodeURIComponent(e.message));
     }
-    res.json({ message: 'Fetched tweets (placeholder)' });
-  } catch (error) {
-    console.error('Error fetching tweets:', error);
-    res.status(500).send('Error fetching tweets');
-  }
 });
 
-app.delete('/deleteTweet/:id', async (req, res) => {
-  try {
-    const { oauth } = req.session;
-    if (!oauth || !oauth.accessToken) {
-      return res.status(401).send('Not authenticated with Twitter');
+// Update the auth status endpoint to include user info  
+app.get('/auth/status', (req, res) => {  
+    const accessTokens = sessions.get('access_token');  
+    res.json({  
+        authenticated: !!accessTokens,  
+        user: accessTokens ? {  
+            id: accessTokens.user_id,  
+            screen_name: accessTokens.screen_name  
+        } : null,  
+        timestamp: new Date().toISOString()  
+    });  
+});  
+
+// Update the callback endpoint to store user info  
+app.get('/callback', async (req, res) => {  
+    try {  
+        const { oauth_token, oauth_verifier } = req.query;  
+        const oauth_token_secret = sessions.get(oauth_token);  
+
+        if (!oauth_token_secret) {  
+            throw new Error('OAuth token not found in session');  
+        }  
+
+        const oAuthAccessToken = await accessToken(  
+            oauth_token,  
+            oauth_token_secret,  
+            oauth_verifier  
+        );  
+
+        console.log('OAuth response:', {  
+            ...oAuthAccessToken,  
+            oauth_token: '***hidden***',  
+            oauth_token_secret: '***hidden***'  
+        });  
+
+        // Store the access tokens and user info  
+        sessions.set('access_token', {  
+            token: oAuthAccessToken.oauth_token,  
+            token_secret: oAuthAccessToken.oauth_token_secret,  
+            user_id: oAuthAccessToken.user_id,  
+            screen_name: oAuthAccessToken.screen_name  // Make sure this exists  
+        });  
+
+        sessions.delete(oauth_token);  
+        res.redirect('/?success=true');  
+    } catch (e) {  
+        console.error('Error during callback:', e);  
+        res.redirect('/?error=' + encodeURIComponent(e.message));  
+    }  
+});
+
+// Modify your /tweet endpoint in server.js to store history  
+app.post('/tweet', async (req, res) => {  
+    try {  
+        const { text } = req.body;  
+        const accessTokens = sessions.get('access_token');  
+
+        if (!accessTokens) {  
+            return res.status(401).json({   
+                success: false,   
+                error: 'Not authenticated. Please authorize first.'   
+            });  
+        }  
+
+        const response = await postTweet(  
+            accessTokens.token,  
+            accessTokens.token_secret,  
+            text  
+        );  
+
+        const tweetId = response.data.id;  
+        const timestamp = new Date().toISOString();  
+
+        // Store in database first
+        await pool.query(
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [
+                tweetId,
+                text,
+                timestamp,
+                `https://twitter.com/i/web/status/${tweetId}`,
+                accessTokens.user_id,
+                accessTokens.screen_name,
+                false
+            ]
+        );
+
+        // Then send response
+        res.json({   
+            success: true,   
+            response,  
+            tweet: {  
+                id: tweetId,  
+                text: text,  
+                timestamp: timestamp,  
+                url: `https://twitter.com/i/web/status/${tweetId}`,  
+                user_id: accessTokens.user_id,  
+                screen_name: accessTokens.screen_name  
+            }  
+        });  
+    } catch (e) {  
+        console.error('Error posting tweet:', e);  
+        res.status(500).json({   
+            success: false,   
+            error: e.message   
+        });  
+    }  
+});  
+
+// Add a debug endpoint to check what's stored in sessions  
+app.get('/debug/session', (req, res) => {  
+    const accessTokens = sessions.get('access_token');  
+    res.json({  
+        hasAccessTokens: !!accessTokens,  
+        sessionData: accessTokens ? {  
+            ...accessTokens,  
+            token: '***hidden***',  
+            token_secret: '***hidden***'  
+        } : null  
+    });  
+});  
+
+
+app.get('/tweet/history', async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM tweets ORDER BY timestamp DESC'
+        );
+        res.json(result.rows);
+    } catch (e) {
+        console.error('Database error:', e);
+        res.status(500).json({
+            success: false,
+            error: 'Database error'
+        });
     }
-    res.send('Tweet deleted!');
-  } catch (error) {
-    console.error('Error deleting tweet:', error);
-    res.status(500).send('Error deleting tweet');
-  }
+});  
+
+  
+
+app.listen(3000, '0.0.0.0', () => {
+    console.log('Server running on port 3000');
+    console.log('Visit http://localhost:3000 to start');
 });
 
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/');
-  });
+async function deleteTweet(oauth_token, oauth_token_secret, tweet_id) {
+    const token = {
+        key: oauth_token,
+        secret: oauth_token_secret
+    };
+
+    const requestData = {
+        url: `${endpointURL}/${tweet_id}`,
+        method: 'DELETE'
+    };
+
+    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+    const req = await got.delete(`${endpointURL}/${tweet_id}`, {
+        responseType: 'json',
+        headers: {
+            Authorization: authHeader["Authorization"],
+            'user-agent': "v2DeleteTweetJS",
+            'content-type': "application/json",
+            'accept': "application/json"
+        },
+        throwHttpErrors: false
+    });
+
+    if (req.statusCode !== 200) {
+        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+    }
+
+    return req.body;
+}
+
+app.delete('/tweet/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const accessTokens = sessions.get('access_token');
+
+        if (!accessTokens) {
+            return res.status(401).json({
+                success: false,
+                error: 'Not authenticated'
+            });
+        }
+
+        await deleteTweet(
+            accessTokens.token,
+            accessTokens.token_secret,
+            id
+        );
+
+        await pool.query(
+            'UPDATE tweets SET deleted = true WHERE id = $1',
+            [id]
+        );
+
+        res.json({ 
+            success: true,
+            message: "Tweet deleted successfully" 
+        });
+    } catch (e) {
+        console.error('Error deleting tweet:', e);
+        res.status(500).json({
+            success: false,
+            error: e.message
+        });
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+async function searchTweets(oauth_token, oauth_token_secret) {
+    try {
+        const token = {
+            key: oauth_token,
+            secret: oauth_token_secret
+        };
+
+        const query = '#SaveSoil';
+        const requestData = {
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username`,
+            method: 'GET'
+        };
+
+        const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+        const req = await got(requestData.url, {
+            responseType: 'json',
+            headers: {
+                Authorization: authHeader["Authorization"],
+                'user-agent': "v2TweetSearchJS",
+                'accept': "application/json"
+            },
+            throwHttpErrors: false // Don't throw on HTTP errors
+        });
+
+        // Handle rate limiting
+        if (req.statusCode === 429) {
+            const resetTime = req.headers['x-rate-limit-reset'];
+            const waitSeconds = resetTime ? Math.ceil((new Date(resetTime * 1000) - new Date()) / 1000) : 900;
+            return { 
+                error: 'Rate limit exceeded', 
+                waitSeconds,
+                statusCode: 429
+            };
+        }
+
+        if (req.statusCode !== 200) {
+            return { 
+                error: `Twitter API error: ${req.statusCode}`,
+                statusCode: req.statusCode
+            };
+        }
+
+        if (!req.body || !req.body.data) {
+            return { data: [] };
+        }
+
+        // Store tweets in database
+        for (const tweet of req.body.data) {
+            await pool.query(
+                'INSERT INTO searched_tweets (id, text, created_at, author_id, url) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING',
+                [
+                    tweet.id,
+                    tweet.text,
+                    new Date(tweet.created_at),
+                    tweet.author_id,
+                    `https://twitter.com/i/web/status/${tweet.id}`
+                ]
+            );
+        }
+
+        // Fetch all stored tweets
+        const result = await pool.query(
+            'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
+        );
+
+        return { data: result.rows };
+    } catch (error) {
+        console.error('Search tweets error:', error);
+        return { 
+            error: 'Network or server error occurred',
+            details: error.message
+        };
+    }
+}
+
+// Add new endpoint to get searched tweets
+app.get('/search/tweets', async (req, res) => {
+    try {
+        const accessTokens = sessions.get('access_token');
+        if (!accessTokens) {
+            return res.status(401).json({
+                success: false,
+                error: 'Not authenticated'
+            });
+        }
+
+        const tweets = await searchTweets(
+            accessTokens.token,
+            accessTokens.token_secret
+        );
+
+        res.json(tweets);
+    } catch (e) {
+        console.error('Error searching tweets:', e);
+        res.status(500).json({
+            success: false,
+            error: e.message
+        });
+    }
+});
