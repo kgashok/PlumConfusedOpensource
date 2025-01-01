@@ -17,25 +17,8 @@ const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
 const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
 
-// Session management with browser fingerprinting
+// Add this near the top of your server.js with other initializations  
 const sessions = new Map();
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
-
-function getSessionKey(req) {
-    const userAgent = req.get('user-agent') || 'unknown';
-    const ip = req.ip || req.connection.remoteAddress;
-    return crypto.createHash('sha256').update(`${userAgent}${ip}`).digest('hex');
-}
-
-// Clean expired sessions periodically
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, session] of sessions.entries()) {
-        if (session.expiresAt && session.expiresAt < now) {
-            sessions.delete(key);
-        }
-    }
-}, 60 * 60 * 1000); // Clean every hour
 import pg from 'pg';
 const { Pool } = pg;
 
@@ -194,13 +177,8 @@ app.get('/', (req, res) => {
 app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
-        const browserKey = getSessionKey(req);
-        
-        sessions.set(browserKey, {
-            oauth_token: oAuthRequestToken.oauth_token,
-            oauth_token_secret: oAuthRequestToken.oauth_token_secret,
-            expiresAt: Date.now() + SESSION_TIMEOUT
-        });
+
+        sessions.set(oAuthRequestToken.oauth_token, oAuthRequestToken.oauth_token_secret);
 
         authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
         res.redirect(authorizeURL.href);
@@ -211,33 +189,31 @@ app.get('/auth/twitter', async (req, res) => {
 });
 
 // Update the auth status endpoint to include user info  
-app.get('/auth/status', (req, res) => {
-    const browserKey = getSessionKey(req);
-    const accessTokens = sessions.get(browserKey);
-    res.json({
-        authenticated: !!accessTokens,
-        user: accessTokens ? {
-            id: accessTokens.user_id,
-            screen_name: accessTokens.screen_name
-        } : null,
-        timestamp: new Date().toISOString()
-    });
+app.get('/auth/status', (req, res) => {  
+    const accessTokens = sessions.get('access_token');  
+    res.json({  
+        authenticated: !!accessTokens,  
+        user: accessTokens ? {  
+            id: accessTokens.user_id,  
+            screen_name: accessTokens.screen_name  
+        } : null,  
+        timestamp: new Date().toISOString()  
+    });  
 });  
 
 // Update the callback endpoint to store user info  
 app.get('/callback', async (req, res) => {  
     try {  
-        const { oauth_token, oauth_verifier } = req.query;
-        const browserKey = getSessionKey(req);
-        const sessionData = sessions.get(browserKey);
+        const { oauth_token, oauth_verifier } = req.query;  
+        const oauth_token_secret = sessions.get(oauth_token);  
 
-        if (!sessionData || sessionData.oauth_token !== oauth_token) {
-            throw new Error('Invalid or expired session');
+        if (!oauth_token_secret) {  
+            throw new Error('OAuth token not found in session');  
         }  
 
         const oAuthAccessToken = await accessToken(  
             oauth_token,  
-            sessionData.oauth_token_secret,  
+            oauth_token_secret,  
             oauth_verifier  
         );  
 
@@ -247,14 +223,15 @@ app.get('/callback', async (req, res) => {
             oauth_token_secret: '***hidden***'  
         });  
 
-        // Store the access tokens and user info with browser-specific key
-        sessions.set(browserKey, {
-            token: oAuthAccessToken.oauth_token,
-            token_secret: oAuthAccessToken.oauth_token_secret,
-            user_id: oAuthAccessToken.user_id,
-            screen_name: oAuthAccessToken.screen_name,
-            expiresAt: Date.now() + SESSION_TIMEOUT
+        // Store the access tokens and user info  
+        sessions.set('access_token', {  
+            token: oAuthAccessToken.oauth_token,  
+            token_secret: oAuthAccessToken.oauth_token_secret,  
+            user_id: oAuthAccessToken.user_id,  
+            screen_name: oAuthAccessToken.screen_name  // Make sure this exists  
         });  
+
+        sessions.delete(oauth_token);  
         res.redirect('/?success=true');  
     } catch (e) {  
         console.error('Error during callback:', e);  
@@ -266,8 +243,7 @@ app.get('/callback', async (req, res) => {
 app.post('/tweet', async (req, res) => {  
     try {  
         const { text } = req.body;  
-        const browserKey = getSessionKey(req);
-        const accessTokens = sessions.get(browserKey);  
+        const accessTokens = sessions.get('access_token');  
 
         if (!accessTokens) {  
             return res.status(401).json({   
@@ -323,8 +299,7 @@ app.post('/tweet', async (req, res) => {
 
 // Add a debug endpoint to check what's stored in sessions  
 app.get('/debug/session', (req, res) => {  
-    const browserKey = getSessionKey(req);
-        const accessTokens = sessions.get(browserKey);  
+    const accessTokens = sessions.get('access_token');  
     res.json({  
         hasAccessTokens: !!accessTokens,  
         sessionData: accessTokens ? {  
@@ -392,8 +367,7 @@ async function deleteTweet(oauth_token, oauth_token_secret, tweet_id) {
 app.delete('/tweet/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const browserKey = getSessionKey(req);
-        const accessTokens = sessions.get(browserKey);
+        const accessTokens = sessions.get('access_token');
 
         if (!accessTokens) {
             return res.status(401).json({
@@ -505,8 +479,7 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 // Add new endpoint to get searched tweets
 app.get('/search/tweets', async (req, res) => {
     try {
-        const browserKey = getSessionKey(req);
-        const accessTokens = sessions.get(browserKey);
+        const accessTokens = sessions.get('access_token');
         if (!accessTokens) {
             return res.status(401).json({
                 success: false,
