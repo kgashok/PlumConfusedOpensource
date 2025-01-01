@@ -17,8 +17,25 @@ const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
 const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
 
-// Add this near the top of your server.js with other initializations  
+// Session management with browser fingerprinting
 const sessions = new Map();
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
+
+function getSessionKey(req) {
+    const userAgent = req.get('user-agent') || 'unknown';
+    const ip = req.ip || req.connection.remoteAddress;
+    return crypto.createHash('sha256').update(`${userAgent}${ip}`).digest('hex');
+}
+
+// Clean expired sessions periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, session] of sessions.entries()) {
+        if (session.expiresAt && session.expiresAt < now) {
+            sessions.delete(key);
+        }
+    }
+}, 60 * 60 * 1000); // Clean every hour
 import pg from 'pg';
 const { Pool } = pg;
 
@@ -177,8 +194,13 @@ app.get('/', (req, res) => {
 app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
-
-        sessions.set(oAuthRequestToken.oauth_token, oAuthRequestToken.oauth_token_secret);
+        const browserKey = getSessionKey(req);
+        
+        sessions.set(browserKey, {
+            oauth_token: oAuthRequestToken.oauth_token,
+            oauth_token_secret: oAuthRequestToken.oauth_token_secret,
+            expiresAt: Date.now() + SESSION_TIMEOUT
+        });
 
         authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
         res.redirect(authorizeURL.href);
@@ -204,11 +226,12 @@ app.get('/auth/status', (req, res) => {
 // Update the callback endpoint to store user info  
 app.get('/callback', async (req, res) => {  
     try {  
-        const { oauth_token, oauth_verifier } = req.query;  
-        const oauth_token_secret = sessions.get(oauth_token);  
+        const { oauth_token, oauth_verifier } = req.query;
+        const browserKey = getSessionKey(req);
+        const sessionData = sessions.get(browserKey);
 
-        if (!oauth_token_secret) {  
-            throw new Error('OAuth token not found in session');  
+        if (!sessionData || sessionData.oauth_token !== oauth_token) {
+            throw new Error('Invalid or expired session');
         }  
 
         const oAuthAccessToken = await accessToken(  
