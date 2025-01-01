@@ -274,9 +274,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Logout functionality
+async function logout() {
+    try {
+        const response = await fetch('/auth/logout', {
+            method: 'POST',
+        });
+        if (response.ok) {
+            window.location.href = '/';
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+}
+
 // Export functions needed by HTML
 window.startAuth = () => window.location.href = "/auth/twitter";
 window.postTweet = postTweet;
 window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
 window.deleteTweet = deleteTweet;
+window.logout = logout;
