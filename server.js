@@ -18,8 +18,13 @@ const consumer_secret = process.env.CONSUMER_SECRET;
 const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
 
 // Add this near the top of your server.js with other initializations  
-const sessions = new Map();  
-const tweetHistory = new Map();  
+const sessions = new Map();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});  
 
 // Verify environment variables
 console.log('Environment check:');
@@ -300,16 +305,19 @@ app.get('/debug/session', (req, res) => {
 });  
 
 
-// Add new endpoint to get tweet history  
-// Update the history endpoint to include more debugging information  
-app.get('/tweet/history', (req, res) => {  
-    const history = Array.from(tweetHistory.values())  
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));  
-
-    // Log the history for debugging  
-    console.log('Tweet history:', history);  
-
-    res.json(history);  
+app.get('/tweet/history', async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT * FROM tweets ORDER BY timestamp DESC'
+        );
+        res.json(result.rows);
+    } catch (e) {
+        console.error('Database error:', e);
+        res.status(500).json({
+            success: false,
+            error: 'Database error'
+        });
+    }
 });  
 
 // Update the /tweet endpoint to include user info  
@@ -331,17 +339,20 @@ app.post('/tweet', async (req, res) => {
             text  
         );  
 
-        // Store tweet in history with user info  
-        const tweetId = response.data.id;  
-        const timestamp = new Date().toISOString();  
-        tweetHistory.set(tweetId, {  
-            id: tweetId,  
-            text: text,  
-            timestamp: timestamp,  
-            url: `https://twitter.com/i/web/status/${tweetId}`,  
-            user_id: accessTokens.user_id,  
-            screen_name: accessTokens.screen_name  
-        });  
+        const tweetId = response.data.id;
+        const timestamp = new Date().toISOString();
+        await pool.query(
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [
+                tweetId,
+                text,
+                timestamp,
+                `https://twitter.com/i/web/status/${tweetId}`,
+                accessTokens.user_id,
+                accessTokens.screen_name,
+                false
+            ]
+        );  
 
         res.json({ success: true, response });  
     } catch (e) {  
@@ -407,8 +418,10 @@ app.delete('/tweet/:id', async (req, res) => {
             id
         );
 
-        // Remove from history
-        tweetHistory.delete(id);
+        await pool.query(
+            'UPDATE tweets SET deleted = true WHERE id = $1',
+            [id]
+        );
 
         res.json({ success: true });
     } catch (e) {
