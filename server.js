@@ -15,28 +15,10 @@ app.use(express.static('public'));
 
 const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
-const callback_url = process.env.CALLBACK_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/callback`;
+const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
 
-// Use object to store sessions with explicit cleanup
-const sessions = {};
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
-
-// Cleanup expired sessions periodically
-setInterval(() => {
-    const now = Date.now();
-    Object.keys(sessions).forEach(key => {
-        if (sessions[key].expiresAt && sessions[key].expiresAt < now) {
-            delete sessions[key];
-        }
-    });
-}, 60 * 60 * 1000); // Clean up every hour
-
-// Helper to get unique session key
-function getSessionKey(req) {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-    return `${ip}-${userAgent}`;
-}
+// Add this near the top of your server.js with other initializations  
+const sessions = new Map();
 import pg from 'pg';
 const { Pool } = pg;
 
@@ -89,8 +71,7 @@ async function requestToken() {
 
         const req = await got.post(requestTokenURL, {
             headers: { 
-                Authorization: authHeader["Authorization"],
-                'Content-Type': 'application/x-www-form-urlencoded'
+                Authorization: authHeader["Authorization"]
             },
             form: {
                 oauth_callback: callback_url
@@ -131,10 +112,7 @@ async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
         const authHeader = oauth.toHeader(oauth.authorize(requestData));
 
         const req = await got.post(accessTokenURL, {
-            headers: { 
-                Authorization: authHeader["Authorization"],
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            headers: { Authorization: authHeader["Authorization"] },
             form: {
                 oauth_token,
                 oauth_verifier
@@ -200,15 +178,7 @@ app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
 
-        // Store with expiration and debug logging
-        const sessionKey = getSessionKey(req);
-        console.log('Storing session token for:', sessionKey);
-        sessions[sessionKey] = {
-            token: oAuthRequestToken.oauth_token,
-            token_secret: oAuthRequestToken.oauth_token_secret,
-            expiresAt: Date.now() + SESSION_TIMEOUT
-        };
-        console.log('Current sessions:', Object.keys(sessions));
+        sessions.set(oAuthRequestToken.oauth_token, oAuthRequestToken.oauth_token_secret);
 
         authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
         res.redirect(authorizeURL.href);
@@ -220,7 +190,7 @@ app.get('/auth/twitter', async (req, res) => {
 
 // Update the auth status endpoint to include user info  
 app.get('/auth/status', (req, res) => {  
-    const accessTokens = sessions[getSessionKey(req)];  
+    const accessTokens = sessions.get('access_token');  
     res.json({  
         authenticated: !!accessTokens,  
         user: accessTokens ? {  
@@ -235,11 +205,7 @@ app.get('/auth/status', (req, res) => {
 app.get('/callback', async (req, res) => {  
     try {  
         const { oauth_token, oauth_verifier } = req.query;  
-        const sessionData = sessions[oauth_token];
-        if (!sessionData || Date.now() > sessionData.expiresAt) {
-            throw new Error('Session expired or invalid');
-        }
-        const oauth_token_secret = sessionData.token_secret;  
+        const oauth_token_secret = sessions.get(oauth_token);  
 
         if (!oauth_token_secret) {  
             throw new Error('OAuth token not found in session');  
@@ -257,16 +223,15 @@ app.get('/callback', async (req, res) => {
             oauth_token_secret: '***hidden***'  
         });  
 
-        const sessionKey = getSessionKey(req);
-        // Store the access tokens and user info
-        sessions[sessionKey] = {
-            token: oAuthAccessToken.oauth_token,
-            token_secret: oAuthAccessToken.oauth_token_secret,
-            user_id: oAuthAccessToken.user_id,
-            screen_name: oAuthAccessToken.screen_name
-        };
+        // Store the access tokens and user info  
+        sessions.set('access_token', {  
+            token: oAuthAccessToken.oauth_token,  
+            token_secret: oAuthAccessToken.oauth_token_secret,  
+            user_id: oAuthAccessToken.user_id,  
+            screen_name: oAuthAccessToken.screen_name  // Make sure this exists  
+        });  
 
-        delete sessions[oauth_token];  
+        sessions.delete(oauth_token);  
         res.redirect('/?success=true');  
     } catch (e) {  
         console.error('Error during callback:', e);  
@@ -278,7 +243,7 @@ app.get('/callback', async (req, res) => {
 app.post('/tweet', async (req, res) => {  
     try {  
         const { text } = req.body;  
-        const accessTokens = sessions[getSessionKey(req)];  
+        const accessTokens = sessions.get('access_token');  
 
         if (!accessTokens) {  
             return res.status(401).json({   
@@ -334,7 +299,7 @@ app.post('/tweet', async (req, res) => {
 
 // Add a debug endpoint to check what's stored in sessions  
 app.get('/debug/session', (req, res) => {  
-    const accessTokens = sessions[getSessionKey(req)];  
+    const accessTokens = sessions.get('access_token');  
     res.json({  
         hasAccessTokens: !!accessTokens,  
         sessionData: accessTokens ? {  
@@ -402,7 +367,7 @@ async function deleteTweet(oauth_token, oauth_token_secret, tweet_id) {
 app.delete('/tweet/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const accessTokens = sessions[getSessionKey(req)];
+        const accessTokens = sessions.get('access_token');
 
         if (!accessTokens) {
             return res.status(401).json({
@@ -514,7 +479,7 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 // Add new endpoint to get searched tweets
 app.get('/search/tweets', async (req, res) => {
     try {
-        const accessTokens = sessions[getSessionKey(req)];
+        const accessTokens = sessions.get('access_token');
         if (!accessTokens) {
             return res.status(401).json({
                 success: false,
