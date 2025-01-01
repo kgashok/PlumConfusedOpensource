@@ -312,49 +312,7 @@ app.get('/tweet/history', async (req, res) => {
     }
 });  
 
-// Update the /tweet endpoint to include user info  
-app.post('/tweet', async (req, res) => {  
-    try {  
-        const { text } = req.body;  
-        const accessTokens = sessions.get('access_token');  
-
-        if (!accessTokens) {  
-            return res.status(401).json({   
-                success: false,   
-                error: 'Not authenticated. Please authorize first.'   
-            });  
-        }  
-
-        const response = await postTweet(  
-            accessTokens.token,  
-            accessTokens.token_secret,  
-            text  
-        );  
-
-        const tweetId = response.data.id;
-        const timestamp = new Date().toISOString();
-        await pool.query(
-            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-            [
-                tweetId,
-                text,
-                timestamp,
-                `https://twitter.com/i/web/status/${tweetId}`,
-                accessTokens.user_id,
-                accessTokens.screen_name,
-                false
-            ]
-        );  
-
-        res.json({ success: true, response });  
-    } catch (e) {  
-        console.error('Error posting tweet:', e);  
-        res.status(500).json({   
-            success: false,   
-            error: e.message   
-        });  
-    }  
-});  
+  
 
 app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
