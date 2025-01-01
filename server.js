@@ -261,7 +261,21 @@ app.post('/tweet', async (req, res) => {
         const tweetId = response.data.id;  
         const timestamp = new Date().toISOString();  
 
-        // Send back complete information including user details  
+        // Store in database first
+        await pool.query(
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [
+                tweetId,
+                text,
+                timestamp,
+                `https://twitter.com/i/web/status/${tweetId}`,
+                accessTokens.user_id,
+                accessTokens.screen_name,
+                false
+            ]
+        );
+
+        // Then send response
         res.json({   
             success: true,   
             response,  
@@ -484,4 +498,3 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
-
