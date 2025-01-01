@@ -258,19 +258,8 @@ app.post('/tweet', async (req, res) => {
             text  
         );  
 
-        // Store tweet in history with user info  
         const tweetId = response.data.id;  
         const timestamp = new Date().toISOString();  
-
-        // Make sure we're storing all user information  
-        tweetHistory.set(tweetId, {  
-            id: tweetId,  
-            text: text,  
-            timestamp: timestamp,  
-            url: `https://twitter.com/i/web/status/${tweetId}`,  
-            user_id: accessTokens.user_id,  
-            screen_name: accessTokens.screen_name  // Make sure this is being stored  
-        });  
 
         // Send back complete information including user details  
         res.json({   
