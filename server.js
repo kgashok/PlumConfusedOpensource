@@ -78,7 +78,8 @@ async function requestToken() {
 
         const req = await got.post(requestTokenURL, {
             headers: { 
-                Authorization: authHeader["Authorization"]
+                Authorization: authHeader["Authorization"],
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
             form: {
                 oauth_callback: callback_url
@@ -119,7 +120,10 @@ async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
         const authHeader = oauth.toHeader(oauth.authorize(requestData));
 
         const req = await got.post(accessTokenURL, {
-            headers: { Authorization: authHeader["Authorization"] },
+            headers: { 
+                Authorization: authHeader["Authorization"],
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
             form: {
                 oauth_token,
                 oauth_verifier
