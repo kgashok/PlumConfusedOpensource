@@ -15,10 +15,21 @@ app.use(express.static('public'));
 
 const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
-const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
+const callback_url = process.env.CALLBACK_URL || `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co/callback`;
 
-// Use object to store sessions per IP+User-Agent combination
+// Use object to store sessions with explicit cleanup
 const sessions = {};
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
+
+// Cleanup expired sessions periodically
+setInterval(() => {
+    const now = Date.now();
+    Object.keys(sessions).forEach(key => {
+        if (sessions[key].expiresAt && sessions[key].expiresAt < now) {
+            delete sessions[key];
+        }
+    });
+}, 60 * 60 * 1000); // Clean up every hour
 
 // Helper to get unique session key
 function getSessionKey(req) {
@@ -189,8 +200,11 @@ app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
 
-        // Store using regular object
-        sessions[oAuthRequestToken.oauth_token] = oAuthRequestToken.oauth_token_secret;
+        // Store with expiration
+        sessions[oAuthRequestToken.oauth_token] = {
+            token_secret: oAuthRequestToken.oauth_token_secret,
+            expiresAt: Date.now() + SESSION_TIMEOUT
+        };
 
         authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
         res.redirect(authorizeURL.href);
@@ -217,7 +231,11 @@ app.get('/auth/status', (req, res) => {
 app.get('/callback', async (req, res) => {  
     try {  
         const { oauth_token, oauth_verifier } = req.query;  
-        const oauth_token_secret = sessions[oauth_token];  
+        const sessionData = sessions[oauth_token];
+        if (!sessionData || Date.now() > sessionData.expiresAt) {
+            throw new Error('Session expired or invalid');
+        }
+        const oauth_token_secret = sessionData.token_secret;  
 
         if (!oauth_token_secret) {  
             throw new Error('OAuth token not found in session');  
