@@ -233,7 +233,7 @@ app.get('/callback', async (req, res) => {
         req.session.user = {
             token: oAuthAccessToken.oauth_token,
             token_secret: oAuthAccessToken.oauth_token_secret,
-            user_id: oAuthAccessToken.user_id,
+            id: oAuthAccessToken.user_id,
             screen_name: oAuthAccessToken.screen_name
         };
 
