@@ -29,7 +29,7 @@ const pool = new Pool({
 });
 
 // Twitter OAuth routes
-app.get('/auth', async (req, res) => {
+app.get('/auth/twitter', async (req, res) => {
   try {
     const requestToken = 'REQUEST_TOKEN_PLACEHOLDER';
     const requestTokenSecret = 'REQUEST_SECRET_PLACEHOLDER';
