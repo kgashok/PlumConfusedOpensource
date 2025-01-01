@@ -1,4 +1,4 @@
-# Twitter OAuth Demo
+# Social for SaveSoil 
 
 A simple web application demonstrating Twitter OAuth integration with real-time tweet posting and history tracking. Built with Node.js, Express, and modern web technologies.
 
