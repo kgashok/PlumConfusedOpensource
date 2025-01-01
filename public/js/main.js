@@ -150,11 +150,16 @@ async function deleteTweet(tweetId) {
 }
 
 function getTweetHTML(tweet) {
+    const currentUser = document.querySelector('#userInfo')?.textContent?.match(/@(\w+)/)?.[1];
+    const isCurrentUser = currentUser === tweet.screen_name;
+    
     return `
         <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
             <div class="flex justify-between items-start mb-2">
                 <div>
-                    <div class="text-sm text-blue-600 mb-1 font-medium">@${tweet.screen_name}</div>
+                    <div class="text-sm ${isCurrentUser ? 'text-green-600' : 'text-blue-600'} mb-1 font-medium">
+                        @${tweet.screen_name} ${isCurrentUser ? '(you)' : ''}
+                    </div>
                     <div class="text-gray-700">${tweet.text}</div>
                 </div>
                 <div class="flex flex-col items-end gap-2">
