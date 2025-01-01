@@ -19,7 +19,8 @@ const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback
 
 // Add this near the top of your server.js with other initializations  
 const sessions = new Map();
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
