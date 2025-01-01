@@ -200,11 +200,13 @@ app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
 
-        // Store with expiration
+        // Store with expiration and debug logging
+        console.log('Storing session token:', oAuthRequestToken.oauth_token);
         sessions[oAuthRequestToken.oauth_token] = {
             token_secret: oAuthRequestToken.oauth_token_secret,
             expiresAt: Date.now() + SESSION_TIMEOUT
         };
+        console.log('Current sessions:', Object.keys(sessions));
 
         authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
         res.redirect(authorizeURL.href);

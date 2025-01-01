@@ -231,6 +231,15 @@ function getErrorHTML(data) {
 async function postTweet() {
     const tweetText = document.getElementById("tweetText").value.trim();
     if (!tweetText) return;
+    
+    // Check authentication first
+    const authStatus = await fetch("/auth/status");
+    const authData = await authStatus.json();
+    
+    if (!authData.authenticated) {
+        showAuthStatus(false, "Please authenticate with Twitter first");
+        return;
+    }
 
     try {
         const response = await fetch("/tweet", {
