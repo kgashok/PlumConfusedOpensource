@@ -483,12 +483,26 @@ async function searchTweets(oauth_token, oauth_token_secret) {
             return { data: [] };
         }
 
-        // Sort tweets by created_at in descending order (most recent first)
-        const sortedTweets = req.body.data.sort((a, b) => 
-            new Date(b.created_at) - new Date(a.created_at)
-        ).slice(0, 10);
+        // Store tweets in database
+        for (const tweet of req.body.data) {
+            await pool.query(
+                'INSERT INTO searched_tweets (id, text, created_at, author_id, url) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING',
+                [
+                    tweet.id,
+                    tweet.text,
+                    new Date(tweet.created_at),
+                    tweet.author_id,
+                    `https://twitter.com/i/web/status/${tweet.id}`
+                ]
+            );
+        }
 
-        return { data: sortedTweets };
+        // Fetch all stored tweets
+        const result = await pool.query(
+            'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
+        );
+
+        return { data: result.rows };
     } catch (error) {
         console.error('Search tweets error:', error);
         return { 
