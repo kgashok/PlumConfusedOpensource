@@ -13,7 +13,20 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/docs', express.static('docs'));
+
+import { marked } from 'marked';
+import { readFile } from 'fs/promises';
+
+app.get('/docs/about', async (req, res) => {
+    try {
+        const markdown = await readFile('./docs/about.md', 'utf-8');
+        const html = marked(markdown);
+        res.send(html);
+    } catch (error) {
+        console.error('Error reading markdown:', error);
+        res.status(500).send('Error loading content');
+    }
+});
 
 // Initialize express-session middleware
 app.use(session({
