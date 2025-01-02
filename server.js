@@ -33,15 +33,17 @@ app.get('/api/un-dates', async (req, res) => {
         const currentDate = new Date();
         
         // Parse dates from the page
-        const elements = document.querySelectorAll('tr');
+        const elements = document.querySelectorAll('.list-view .views-row');
         elements.forEach(element => {
-            const dateText = element.querySelector('td:first-child')?.textContent.trim();
-            const title = element.querySelector('td:nth-child(2)')?.textContent.trim();
+            const dateText = element.querySelector('.date')?.textContent.trim();
+            const title = element.querySelector('.title a')?.textContent.trim();
             
             if (dateText && title) {
-                const [day, month] = dateText.split(' ');
+                const [monthStr, dayStr] = dateText.split(' ');
+                const month = monthStr.trim();
+                const day = parseInt(dayStr.replace(',', ''));
                 const monthIndex = new Date(`${month} 1`).getMonth();
-                let dateObj = new Date(currentDate.getFullYear(), monthIndex, parseInt(day));
+                let dateObj = new Date(currentDate.getFullYear(), monthIndex, day);
                 
                 // If date has passed, set it to next year
                 if (dateObj < currentDate) {
