@@ -21,10 +21,10 @@ import { readFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 
-// UN Dates API endpoint
+// International Days API endpoint
 app.get('/api/un-dates', async (req, res) => {
     try {
-        const response = await fetch('https://www.un.org/en/observances/list-days-weeks');
+        const response = await fetch('https://www.internationaldays.org/');
         const html = await response.text();
         const dom = new JSDOM(html);
         const document = dom.window.document;
@@ -33,38 +33,37 @@ app.get('/api/un-dates', async (req, res) => {
         const currentDate = new Date();
         
         // Parse dates from the page
-        const elements = document.querySelectorAll('.views-row');
+        const elements = document.querySelectorAll('.day');
         elements.forEach(element => {
-            const dateText = element.textContent.trim();
-            // First try to match single day format
-            let match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
+            const dateText = element.querySelector('.date')?.textContent.trim();
+            const title = element.querySelector('.title')?.textContent.trim();
             
-            if (match) {
-                const day = parseInt(match[1]);
-                const month = new Date(`${match[2]} 1`).getMonth();
-                const title = dateText.split(/[,—]/)[0].trim();
+            if (dateText && title) {
+                const [day, month] = dateText.split(' ');
+                const monthIndex = new Date(`${month} 1`).getMonth();
+                let dateObj = new Date(currentDate.getFullYear(), monthIndex, parseInt(day));
                 
-                let dateObj = new Date(currentDate.getFullYear(), month, day);
+                // If date has passed, set it to next year
                 if (dateObj < currentDate) {
-                    dateObj = new Date(currentDate.getFullYear() + 1, month, day);
+                    dateObj = new Date(currentDate.getFullYear() + 1, monthIndex, parseInt(day));
                 }
                 
                 dates.push({
                     date: dateObj,
                     title: title,
-                    displayDate: `${match[1]} ${match[2]}`
+                    displayDate: `${day} ${month}`
                 });
             }
         });
-        
+
         // Sort by closest upcoming dates
         dates.sort((a, b) => a.date - b.date);
         
-        // Return the two closest dates
-        res.json(dates.slice(0, 2));
+        // Return the five closest dates
+        res.json(dates.slice(0, 5));
     } catch (error) {
-        console.error('Error fetching UN dates:', error);
-        res.status(500).json({ error: 'Failed to fetch UN dates' });
+        console.error('Error fetching International Days:', error);
+        res.status(500).json({ error: 'Failed to fetch International Days' });
     }
 });
 
