@@ -370,6 +370,10 @@ async function toggleInspiration() {
     const content = modal.querySelector('.prose');
     
     if (modal.classList.contains('hidden')) {
+        // Reset modal content
+        document.getElementById('promptSection')?.classList.add('hidden');
+        document.getElementById('responseSection')?.classList.add('hidden');
+        
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
@@ -395,6 +399,8 @@ async function toggleInspiration() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         body.style.overflow = '';
+        // Clean up modal content
+        content.innerHTML = '';
     }
 }
 window.toggleInspiration = toggleInspiration;
@@ -404,18 +410,37 @@ async function askChatGPT() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
     
-    if (modal.classList.contains('hidden')) {
-        const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-        const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
-        
-        document.getElementById('gptPrompt').textContent = prompt;
-        document.getElementById('promptSection').classList.remove('hidden');
-        document.getElementById('responseSection').classList.add('hidden');
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        body.style.overflow = 'hidden';
-    }
+    // Reset modal state
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    body.style.overflow = 'hidden';
+    
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    
+    const content = modal.querySelector('.prose');
+    content.innerHTML = `
+        <div id="promptSection">
+            <h2>ChatGPT Prompt</h2>
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <p id="gptPrompt" class="text-gray-800">${prompt}</p>
+            </div>
+            <button onclick="sendToChatGPT()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4">
+                Send to ChatGPT
+            </button>
+        </div>
+        <div id="responseSection" class="hidden">
+            <h3 class="mt-4">ChatGPT Response</h3>
+            <div class="bg-green-50 p-4 rounded-lg relative">
+                <p id="gptResponse" class="text-green-800"></p>
+                <button onclick="copyResponse()" class="absolute top-2 right-2 text-green-600 hover:text-green-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
+                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>`;
 }
 
 async function sendToChatGPT() {
