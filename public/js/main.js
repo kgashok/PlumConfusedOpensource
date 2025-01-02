@@ -233,6 +233,7 @@ async function postTweet() {
     if (!tweetText) return;
 
     try {
+        localStorage.setItem('draftTweet', tweetText);
         const response = await fetch("/tweet", {
             method: "POST",
             headers: {
@@ -243,9 +244,13 @@ async function postTweet() {
 
         const data = await response.json();
         if (data.success) {
+            localStorage.removeItem('draftTweet');
             document.getElementById("tweetText").value = "";
             document.getElementById("charCount").textContent = "280";
             refreshHistory();
+        } else if (data.error === 'Not authenticated. Please authorize first.') {
+            window.location.href = "/auth/twitter";
+            return;
         } else {
             throw new Error(data.error);
         }
@@ -262,6 +267,13 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCurrentTime, 1000);
     checkAuthStatus();
     refreshHistory();
+    
+    // Restore draft tweet if exists
+    const draftTweet = localStorage.getItem('draftTweet');
+    if (draftTweet) {
+        document.getElementById("tweetText").value = draftTweet;
+        document.getElementById("charCount").textContent = 280 - draftTweet.length;
+    }
 
     // Check URL parameters
     const urlParams = new URLSearchParams(window.location.search);
