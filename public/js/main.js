@@ -364,33 +364,14 @@ window.deleteTweet = deleteTweet;
 window.logout = logout;
 
 // Inspiration modal functionality
-async function toggleInspiration() {
+function toggleInspiration() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
-    const content = modal.querySelector('.prose');
     
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
-        
-        try {
-            content.innerHTML = '<p>Loading dates...</p>';
-            const dates = await fetchUNDates();
-            
-            content.innerHTML = `
-                <h2>Looking for Tweet Ideas?</h2>
-                <p>Here are the upcoming International Days:</p>
-                <ul>
-                    ${dates.map(date => `
-                        <li><strong>${date.displayDate}</strong> - ${date.title}</li>
-                    `).join('')}
-                </ul>
-                <p class="text-sm text-gray-500 mt-4">Share your thoughts about these important observances!</p>
-            `;
-        } catch (error) {
-            content.innerHTML = '<p>Error loading dates. Please try again later.</p>';
-        }
     } else {
         modal.classList.add('hidden');
         modal.classList.remove('flex');

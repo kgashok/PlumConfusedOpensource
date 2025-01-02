@@ -17,58 +17,6 @@ app.use(express.static('public'));
 import { marked } from 'marked';
 import { readFile } from 'fs/promises';
 
-
-import { JSDOM } from 'jsdom';
-import fetch from 'node-fetch';
-
-// International Days API endpoint
-app.get('/api/un-dates', async (req, res) => {
-    try {
-        const response = await fetch('https://www.internationaldays.org/');
-        const html = await response.text();
-        const dom = new JSDOM(html);
-        const document = dom.window.document;
-        
-        const dates = [];
-        const currentDate = new Date();
-        
-        // Parse dates from the page
-        const elements = document.querySelectorAll('.list-view .views-row');
-        elements.forEach(element => {
-            const dateText = element.querySelector('.date')?.textContent.trim();
-            const title = element.querySelector('.title a')?.textContent.trim();
-            
-            if (dateText && title) {
-                const [monthStr, dayStr] = dateText.split(' ');
-                const month = monthStr.trim();
-                const day = parseInt(dayStr.replace(',', ''));
-                const monthIndex = new Date(`${month} 1`).getMonth();
-                let dateObj = new Date(currentDate.getFullYear(), monthIndex, day);
-                
-                // If date has passed, set it to next year
-                if (dateObj < currentDate) {
-                    dateObj = new Date(currentDate.getFullYear() + 1, monthIndex, parseInt(day));
-                }
-                
-                dates.push({
-                    date: dateObj,
-                    title: title,
-                    displayDate: `${day} ${month}`
-                });
-            }
-        });
-
-        // Sort by closest upcoming dates
-        dates.sort((a, b) => a.date - b.date);
-        
-        // Return the five closest dates
-        res.json(dates.slice(0, 5));
-    } catch (error) {
-        console.error('Error fetching International Days:', error);
-        res.status(500).json({ error: 'Failed to fetch International Days' });
-    }
-});
-
 app.get('/docs/about', async (req, res) => {
     try {
         const markdown = await readFile('./docs/about.md', 'utf-8');
