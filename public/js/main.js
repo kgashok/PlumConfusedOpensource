@@ -403,42 +403,54 @@ window.toggleInspiration = toggleInspiration;
 async function askChatGPT() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
-    const content = modal.querySelector('.prose');
     
     if (modal.classList.contains('hidden')) {
+        const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+        const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+        
+        document.getElementById('gptPrompt').textContent = prompt;
+        document.getElementById('promptSection').classList.remove('hidden');
+        document.getElementById('responseSection').classList.add('hidden');
+        
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
-        
-        try {
-            content.innerHTML = '<p>Loading response from ChatGPT...</p>';
-            const response = await fetch('/api/chatgpt', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-                content.innerHTML = `
-                    <h2>ChatGPT Suggestion</h2>
-                    <div class="bg-green-50 p-4 rounded-lg">
-                        <p class="text-green-800">${data.response}</p>
-                    </div>
-                `;
-            } else {
-                throw new Error(data.error);
-            }
-        } catch (error) {
-            content.innerHTML = `
-                <h2>Error</h2>
-                <div class="bg-red-50 p-4 rounded-lg">
-                    <p class="text-red-800">Failed to get ChatGPT response. Please try again later.</p>
-                </div>
-            `;
-        }
     }
+}
+
+async function sendToChatGPT() {
+    try {
+        const promptSection = document.getElementById('promptSection');
+        const responseSection = document.getElementById('responseSection');
+        const gptResponse = document.getElementById('gptResponse');
+        
+        responseSection.classList.remove('hidden');
+        gptResponse.innerHTML = 'Loading response from ChatGPT...';
+        
+        const response = await fetch('/api/chatgpt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            gptResponse.textContent = data.response;
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        document.getElementById('gptResponse').innerHTML = 'Failed to get ChatGPT response. Please try again later.';
+    }
+}
+
+function copyResponse() {
+    const responseText = document.getElementById('gptResponse').textContent;
+    navigator.clipboard.writeText(responseText).then(() => {
+        // Visual feedback could be added here
+        console.log('Response copied to clipboard');
+    });
 }
 window.askChatGPT = askChatGPT;
 
