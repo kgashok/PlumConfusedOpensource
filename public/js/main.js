@@ -276,9 +276,17 @@ async function postTweet() {
 // Info modal functionality
 async function toggleInfo() {
     const modal = document.getElementById('infoModal');
+    const body = document.body;
+    
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        body.style.overflow = 'hidden'; // Prevent background scrolling
+        
+        // Set focus to modal content
+        const modalContent = document.getElementById('infoContent');
+        modalContent.tabIndex = -1;
+        modalContent.focus();
         
         // Fetch and render markdown content
         if (!modal.hasContent) {
@@ -294,6 +302,7 @@ async function toggleInfo() {
     } else {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        body.style.overflow = ''; // Restore scrolling
     }
 }
 
