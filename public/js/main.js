@@ -362,3 +362,28 @@ window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
 window.deleteTweet = deleteTweet;
 window.logout = logout;
+
+// Inspiration modal functionality
+function toggleInspiration() {
+    const modal = document.getElementById('inspirationModal');
+    const body = document.body;
+    
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        body.style.overflow = 'hidden';
+    } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        body.style.overflow = '';
+    }
+}
+window.toggleInspiration = toggleInspiration;
+
+// Close inspiration modal when clicking outside
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('inspirationModal');
+    if (e.target === modal) {
+        toggleInspiration();
+    }
+});
