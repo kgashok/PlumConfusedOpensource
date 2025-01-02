@@ -606,9 +606,16 @@ app.post('/api/chatgpt', async (req, res) => {
     });
   } catch (error) {
     console.error('OpenAI API error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Error fetching ChatGPT response' 
-    });
+    if (error.error?.type === 'insufficient_quota') {
+      res.status(429).json({
+        success: false,
+        error: 'API quota exceeded. Please check the API key configuration.'
+      });
+    } else {
+      res.status(500).json({ 
+        success: false, 
+        error: 'Error fetching ChatGPT response' 
+      });
+    }
   }
 });
