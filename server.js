@@ -535,7 +535,6 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
-import { readFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 
 app.get('/api/upcoming-days', async (req, res) => {
