@@ -21,7 +21,7 @@ import { parse } from 'csv-parse/sync';
 // Add endpoint to get current month events
 app.get('/api/current-month-events', async (req, res) => {
     try {
-        const csvData = await readFile('./files/international_days.csv', 'utf-8');
+        const csvData = await readFile('./files/Modified_International_DaysFinal.csv', 'utf-8');
         const records = parse(csvData, { columns: true });
         const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
         
