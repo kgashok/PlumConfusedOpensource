@@ -535,3 +535,47 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
+import { readFile } from 'fs/promises';
+import { parse } from 'csv-parse/sync';
+
+app.get('/api/upcoming-days', async (req, res) => {
+    try {
+        const fileContent = await readFile('./files/international_days.csv', 'utf-8');
+        const records = parse(fileContent, {
+            columns: true,
+            skip_empty_lines: true
+        });
+
+        const currentDate = new Date();
+        const upcoming = records
+            .map(record => {
+                const [month, day] = record.Date.split(' ');
+                let date = new Date(currentDate.getFullYear(), getMonthIndex(month), parseInt(day));
+                if (date < currentDate) {
+                    date = new Date(currentDate.getFullYear() + 1, getMonthIndex(month), parseInt(day));
+                }
+                return { ...record, dateObj: date };
+            })
+            .sort((a, b) => a.dateObj - b.dateObj)
+            .slice(0, 5)
+            .map(({ Date, "Event Name": name, Link: link }) => ({
+                date: Date,
+                name,
+                link
+            }));
+
+        res.json(upcoming);
+    } catch (error) {
+        console.error('Error fetching upcoming days:', error);
+        res.status(500).json({ error: 'Failed to fetch upcoming days' });
+    }
+});
+
+function getMonthIndex(monthName) {
+    const months = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3,
+        'May': 4, 'June': 5, 'July': 6, 'August': 7,
+        'September': 8, 'October': 9, 'November': 10, 'December': 11
+    };
+    return months[monthName];
+}
