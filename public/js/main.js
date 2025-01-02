@@ -367,7 +367,7 @@ window.logout = logout;
 async function toggleInspiration() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
-    const content = document.getElementById('inspirationContent');
+    const content = modal.querySelector('.prose');
     
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
@@ -375,28 +375,21 @@ async function toggleInspiration() {
         body.style.overflow = 'hidden';
         
         try {
-            const response = await fetch('/api/current-month-events');
-            const events = await response.json();
-            const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+            content.innerHTML = '<p>Loading dates...</p>';
+            const dates = await fetchUNDates();
             
             content.innerHTML = `
-                <h2 class="text-xl font-bold mb-4">International Days in ${currentMonth}</h2>
-                ${events.length ? `
-                    <ul class="space-y-3">
-                        ${events.map(event => `
-                            <li>
-                                <a href="${event.Link}" target="_blank" 
-                                   class="block p-3 border rounded hover:bg-gray-50 transition duration-150">
-                                    <div class="font-medium">${event['Event Name']}</div>
-                                    <div class="text-sm text-gray-500">${new Date(event.Date).toLocaleDateString()}</div>
-                                </a>
-                            </li>
-                        `).join('')}
-                    </ul>
-                ` : '<p class="text-gray-500">No international days this month.</p>'}
+                <h2>Looking for Tweet Ideas?</h2>
+                <p>Here are the upcoming International Days:</p>
+                <ul>
+                    ${dates.map(date => `
+                        <li><strong>${date.displayDate}</strong> - ${date.title}</li>
+                    `).join('')}
+                </ul>
+                <p class="text-sm text-gray-500 mt-4">Share your thoughts about these important observances!</p>
             `;
         } catch (error) {
-            content.innerHTML = '<p class="text-red-500">Error loading events.</p>';
+            content.innerHTML = '<p>Error loading dates. Please try again later.</p>';
         }
     } else {
         modal.classList.add('hidden');

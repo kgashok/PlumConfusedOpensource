@@ -16,25 +16,54 @@ app.use(express.static('public'));
 
 import { marked } from 'marked';
 import { readFile } from 'fs/promises';
-import { parse } from 'csv-parse/sync';
 
-// Add endpoint to get current month events
-app.get('/api/current-month-events', async (req, res) => {
+
+import { JSDOM } from 'jsdom';
+import fetch from 'node-fetch';
+
+// UN Dates API endpoint
+app.get('/api/un-dates', async (req, res) => {
     try {
-        const csvData = await readFile('./files/Modified_International_DaysFinal.csv', 'utf-8');
-        const records = parse(csvData, { columns: true });
-        const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+        const response = await fetch('https://www.un.org/en/observances/list-days-weeks');
+        const html = await response.text();
+        const dom = new JSDOM(html);
+        const document = dom.window.document;
         
-        const monthEvents = records.filter(record => {
-            const eventDate = new Date(record.Date);
-            const eventMonth = eventDate.toLocaleString('en-US', { month: 'long' });
-            return eventMonth === currentMonth;
+        const dates = [];
+        const currentDate = new Date();
+        
+        // Parse dates from the page
+        const elements = document.querySelectorAll('.views-row');
+        elements.forEach(element => {
+            const dateText = element.textContent.trim();
+            const match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
+            
+            if (match) {
+                const day = parseInt(match[1]);
+                const month = new Date(`${match[2]} 1`).getMonth();
+                const title = dateText.split('—')[1]?.trim() || dateText;
+                
+                let dateObj = new Date(currentDate.getFullYear(), month, day);
+                if (dateObj < currentDate) {
+                    dateObj = new Date(currentDate.getFullYear() + 1, month, day);
+                }
+                
+                dates.push({
+                    date: dateObj,
+                    title: title,
+                    displayDate: `${match[1]} ${match[2]}`
+                });
+            }
         });
-
-        res.json(monthEvents);
+        
+        // Sort by closest upcoming dates
+        dates.sort((a, b) => a.date - b.date);
+        
+        // Return the two closest dates
+        res.json(dates.slice(0, 2));
     } catch (error) {
-        console.error('Error reading events:', error);
-        res.status(500).json({ error: 'Error fetching events' });
+        console.error('Error fetching UN dates:', error);
+        res.status(500).json({ error: 'Failed to fetch UN dates' });
     }
 });
 
