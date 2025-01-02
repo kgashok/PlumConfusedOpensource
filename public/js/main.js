@@ -46,6 +46,8 @@ async function checkAuthStatus() {
 
 function updateUserInfo(data) {
     const userInfoDiv = document.getElementById("userInfo");
+    const refreshButton = document.getElementById("refreshButton");
+    
     if (data.authenticated && data.user) {
         userInfoDiv.classList.remove("hidden");
         userInfoDiv.innerHTML = `
@@ -53,8 +55,19 @@ function updateUserInfo(data) {
                 <div class="font-medium text-blue-700">Logged in as: @${data.user.screen_name}</div>
                 <div class="text-sm text-blue-600">Twitter ID: ${data.user.id}</div>
             </div>`;
+            
+        // Enable refresh button only for lifebalance
+        if (data.user.screen_name === 'lifebalance') {
+            refreshButton.disabled = false;
+            refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            refreshButton.disabled = true;
+            refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
     } else {
         userInfoDiv.classList.add("hidden");
+        refreshButton.disabled = true;
+        refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
     }
 }
 
