@@ -24,7 +24,7 @@ import fetch from 'node-fetch';
 // UN Dates API endpoint
 app.get('/api/un-dates', async (req, res) => {
     try {
-        const response = await fetch('https://www.un.org/en/observances/list-days-weeks');
+        const response = await fetch('https://nationaltoday.com/today/');
         const html = await response.text();
         const dom = new JSDOM(html);
         const document = dom.window.document;
@@ -33,26 +33,19 @@ app.get('/api/un-dates', async (req, res) => {
         const currentDate = new Date();
         
         // Parse dates from the page
-        const elements = document.querySelectorAll('.views-row');
+        const elements = document.querySelectorAll('.holiday-card');
         elements.forEach(element => {
-            const dateText = element.textContent.trim();
-            // First try to match single day format
-            let match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
-            
-            if (match) {
-                const day = parseInt(match[1]);
-                const month = new Date(`${match[2]} 1`).getMonth();
-                const title = dateText.split(/[,—]/)[0].trim();
-                
-                let dateObj = new Date(currentDate.getFullYear(), month, day);
-                if (dateObj < currentDate) {
-                    dateObj = new Date(currentDate.getFullYear() + 1, month, day);
-                }
-                
+            const titleElement = element.querySelector('.holiday-title');
+            if (titleElement) {
+                const title = titleElement.textContent.trim();
+                const dateObj = new Date();
                 dates.push({
                     date: dateObj,
                     title: title,
-                    displayDate: `${match[1]} ${match[2]}`
+                    displayDate: dateObj.toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric' 
+                    })
                 });
             }
         });
