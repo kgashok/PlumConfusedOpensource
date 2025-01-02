@@ -438,10 +438,13 @@ async function sendToChatGPT() {
         if (data.success) {
             gptResponse.textContent = data.response;
         } else {
-            throw new Error(data.error);
+            const errorMessage = data.error === 'API quota exceeded. Please check the API key configuration.' 
+                ? 'OpenAI API quota has been exceeded. Please try again later when the quota resets.'
+                : data.error;
+            gptResponse.innerHTML = `<div class="text-red-600">${errorMessage}</div>`;
         }
     } catch (error) {
-        document.getElementById('gptResponse').innerHTML = 'Failed to get ChatGPT response. Please try again later.';
+        gptResponse.innerHTML = `<div class="text-red-600">Failed to get ChatGPT response: ${error.message}</div>`;
     }
 }
 
