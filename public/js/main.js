@@ -273,6 +273,38 @@ async function postTweet() {
     }
 }
 
+// Info modal functionality
+async function toggleInfo() {
+    const modal = document.getElementById('infoModal');
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Fetch and render markdown content
+        if (!modal.hasContent) {
+            try {
+                const response = await fetch('/docs/about');
+                const content = await response.text();
+                document.getElementById('infoContent').innerHTML = content;
+                modal.hasContent = true;
+            } catch (error) {
+                console.error('Error loading info content:', error);
+            }
+        }
+    } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('infoModal');
+    if (e.target === modal) {
+        toggleInfo();
+    }
+});
+
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
     initCharCounter();
