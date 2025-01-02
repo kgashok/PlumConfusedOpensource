@@ -306,9 +306,14 @@ app.post('/tweet', async (req, res) => {
         });  
     } catch (e) {  
         console.error('Error posting tweet:', e);  
+        // Check if it's a Twitter API error response
+        const errorMessage = e.message.includes('Twitter API error:') 
+            ? JSON.parse(e.message.replace('Twitter API error: ', '')).detail
+            : e.message;
+            
         res.status(500).json({   
             success: false,   
-            error: e.message   
+            error: errorMessage   
         });  
     }  
 });  

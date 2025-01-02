@@ -251,6 +251,7 @@ async function postTweet() {
         }
     } catch (error) {
         console.error("Error posting tweet:", error);
+        showAuthStatus(false, error.message || "Error posting tweet");
     }
 }
 
