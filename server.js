@@ -36,12 +36,13 @@ app.get('/api/un-dates', async (req, res) => {
         const elements = document.querySelectorAll('.views-row');
         elements.forEach(element => {
             const dateText = element.textContent.trim();
-            const match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
+            // First try to match single day format
+            let match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
             
             if (match) {
                 const day = parseInt(match[1]);
                 const month = new Date(`${match[2]} 1`).getMonth();
-                const title = dateText.split('—')[1]?.trim() || dateText;
+                const title = dateText.split(/[,—]/)[0].trim();
                 
                 let dateObj = new Date(currentDate.getFullYear(), month, day);
                 if (dateObj < currentDate) {
