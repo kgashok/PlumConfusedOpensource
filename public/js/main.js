@@ -400,10 +400,7 @@ async function toggleInspiration() {
 window.toggleInspiration = toggleInspiration;
 
 // ChatGPT functionality
-function askChatGPT() {
-    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
-    
+async function askChatGPT() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
     const content = modal.querySelector('.prose');
@@ -413,13 +410,34 @@ function askChatGPT() {
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
         
-        content.innerHTML = `
-            <h2>ChatGPT Suggestion</h2>
-            <div class="bg-green-50 p-4 rounded-lg">
-                <p class="text-green-800">${prompt}</p>
-            </div>
-            <p class="mt-4 text-sm text-gray-500">Use this prompt to get environmentally-focused international days for the current month!</p>
-        `;
+        try {
+            content.innerHTML = '<p>Loading response from ChatGPT...</p>';
+            const response = await fetch('/api/chatgpt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                content.innerHTML = `
+                    <h2>ChatGPT Suggestion</h2>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-green-800">${data.response}</p>
+                    </div>
+                `;
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            content.innerHTML = `
+                <h2>Error</h2>
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-800">Failed to get ChatGPT response. Please try again later.</p>
+                </div>
+            `;
+        }
     }
 }
 window.askChatGPT = askChatGPT;

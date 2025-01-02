@@ -20,6 +20,11 @@ import { readFile } from 'fs/promises';
 
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // UN Dates API endpoint
 app.get('/api/un-dates', async (req, res) => {
@@ -584,4 +589,26 @@ app.get('/search/tweets', async (req, res) => {
             error: e.message
         });
     }
+});
+app.post('/api/chatgpt', async (req, res) => {
+  try {
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{"role": "user", "content": prompt}],
+    });
+
+    res.json({ 
+      success: true, 
+      response: completion.choices[0].message.content 
+    });
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error fetching ChatGPT response' 
+    });
+  }
 });
