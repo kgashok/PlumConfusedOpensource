@@ -399,6 +399,31 @@ async function toggleInspiration() {
 }
 window.toggleInspiration = toggleInspiration;
 
+// ChatGPT functionality
+function askChatGPT() {
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    
+    const modal = document.getElementById('inspirationModal');
+    const body = document.body;
+    const content = modal.querySelector('.prose');
+    
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        body.style.overflow = 'hidden';
+        
+        content.innerHTML = `
+            <h2>ChatGPT Suggestion</h2>
+            <div class="bg-green-50 p-4 rounded-lg">
+                <p class="text-green-800">${prompt}</p>
+            </div>
+            <p class="mt-4 text-sm text-gray-500">Use this prompt to get environmentally-focused international days for the current month!</p>
+        `;
+    }
+}
+window.askChatGPT = askChatGPT;
+
 // Close inspiration modal when clicking outside
 document.addEventListener('click', (e) => {
     const modal = document.getElementById('inspirationModal');
