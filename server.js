@@ -33,10 +33,10 @@ app.get('/api/un-dates', async (req, res) => {
         const currentDate = new Date();
         
         // Parse dates from the page
-        const elements = document.querySelectorAll('.day');
+        const elements = document.querySelectorAll('tr');
         elements.forEach(element => {
-            const dateText = element.querySelector('.date')?.textContent.trim();
-            const title = element.querySelector('.title')?.textContent.trim();
+            const dateText = element.querySelector('td:first-child')?.textContent.trim();
+            const title = element.querySelector('td:nth-child(2)')?.textContent.trim();
             
             if (dateText && title) {
                 const [day, month] = dateText.split(' ');
