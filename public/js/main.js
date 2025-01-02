@@ -364,14 +364,40 @@ window.deleteTweet = deleteTweet;
 window.logout = logout;
 
 // Inspiration modal functionality
-function toggleInspiration() {
+async function toggleInspiration() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
+    const content = document.getElementById('inspirationContent');
     
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
+        
+        try {
+            const response = await fetch('/api/current-month-events');
+            const events = await response.json();
+            const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+            
+            content.innerHTML = `
+                <h2 class="text-xl font-bold mb-4">International Days in ${currentMonth}</h2>
+                ${events.length ? `
+                    <ul class="space-y-3">
+                        ${events.map(event => `
+                            <li>
+                                <a href="${event.Link}" target="_blank" 
+                                   class="block p-3 border rounded hover:bg-gray-50 transition duration-150">
+                                    <div class="font-medium">${event['Event Name']}</div>
+                                    <div class="text-sm text-gray-500">${new Date(event.Date).toLocaleDateString()}</div>
+                                </a>
+                            </li>
+                        `).join('')}
+                    </ul>
+                ` : '<p class="text-gray-500">No international days this month.</p>'}
+            `;
+        } catch (error) {
+            content.innerHTML = '<p class="text-red-500">Error loading events.</p>';
+        }
     } else {
         modal.classList.add('hidden');
         modal.classList.remove('flex');

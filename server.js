@@ -16,6 +16,27 @@ app.use(express.static('public'));
 
 import { marked } from 'marked';
 import { readFile } from 'fs/promises';
+import { parse } from 'csv-parse/sync';
+
+// Add endpoint to get current month events
+app.get('/api/current-month-events', async (req, res) => {
+    try {
+        const csvData = await readFile('./files/international_days.csv', 'utf-8');
+        const records = parse(csvData, { columns: true });
+        const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+        
+        const monthEvents = records.filter(record => {
+            const eventDate = new Date(record.Date);
+            const eventMonth = eventDate.toLocaleString('en-US', { month: 'long' });
+            return eventMonth === currentMonth;
+        });
+
+        res.json(monthEvents);
+    } catch (error) {
+        console.error('Error reading events:', error);
+        res.status(500).json({ error: 'Error fetching events' });
+    }
+});
 
 app.get('/docs/about', async (req, res) => {
     try {
