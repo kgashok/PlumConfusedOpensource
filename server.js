@@ -285,7 +285,7 @@ app.post('/tweet', async (req, res) => {
                 text,
                 timestamp,
                 `https://twitter.com/i/web/status/${tweetId}`,
-                accessTokens.user_id,
+                accessTokens.id,
                 accessTokens.screen_name,
                 false
             ]
