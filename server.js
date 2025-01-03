@@ -592,8 +592,13 @@ app.get('/search/tweets', async (req, res) => {
 });
 app.post('/api/chatgpt', async (req, res) => {
   try {
-    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
     
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
