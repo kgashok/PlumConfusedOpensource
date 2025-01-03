@@ -1,4 +1,11 @@
 
+/* Prevent body scroll when textarea focused */
+body.textarea-focused {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
 /* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
     width: 12px;
