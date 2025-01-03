@@ -420,14 +420,14 @@ async function askChatGPT() {
     body.style.overflow = 'hidden';
     
     const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    const defaultPrompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
     
     const content = modal.querySelector('.prose');
     content.innerHTML = `
         <div id="promptSection">
             <h2>ChatGPT Prompt</h2>
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <p id="gptPrompt" class="text-gray-800">${prompt}</p>
+                <textarea id="gptPrompt" class="w-full p-2 bg-transparent border border-gray-300 rounded resize-y focus:outline-none focus:border-green-500" rows="4">${defaultPrompt}</textarea>
             </div>
             <button onclick="sendToChatGPT()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4">
                 Send to ChatGPT
@@ -452,6 +452,12 @@ async function sendToChatGPT() {
         const promptSection = document.getElementById('promptSection');
         const responseSection = document.getElementById('responseSection');
         const gptResponse = document.getElementById('gptResponse');
+        const customPrompt = document.getElementById('gptPrompt').value;
+        
+        if (!customPrompt.trim()) {
+            gptResponse.innerHTML = '<div class="text-red-600">Please enter a prompt</div>';
+            return;
+        }
         
         responseSection.classList.remove('hidden');
         gptResponse.innerHTML = 'Loading response from ChatGPT...';
