@@ -590,20 +590,6 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
-app.get('/api/random-prompt', async (req, res) => {
-  try {
-    const prompts = ['funnyPrompt.md', 'seriousPrompt.md', 'internationalPrompt.md'];
-    const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-    const promptContent = await readFile(`./prompts/${randomPrompt}`, 'utf-8');
-    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-    const formattedPrompt = promptContent.replace('{currentMonth}', currentMonth);
-    res.json({ success: true, prompt: formattedPrompt });
-  } catch (error) {
-    console.error('Error reading prompt file:', error);
-    res.status(500).json({ success: false, error: 'Failed to get prompt' });
-  }
-});
-
 app.post('/api/chatgpt', async (req, res) => {
   try {
     const { prompt } = req.body;
