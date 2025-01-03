@@ -410,7 +410,7 @@ async function toggleInspiration() {
 window.toggleInspiration = toggleInspiration;
 
 // ChatGPT functionality
-async function askChatGPT() {
+function askChatGPT() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
     
@@ -443,40 +443,23 @@ async function askChatGPT() {
         </div>
     `;
 
-    try {
-        const response = await fetch('/api/chatgpt');
-        const data = await response.json();
-        if (data.success) {
-            document.getElementById('gptPrompt').value = data.response;
-        } else {
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        console.error('Error getting ChatGPT response:', error);
-        content.innerHTML = `<div class="text-red-600">Error: ${error.message}</div>`;
-    }
+    fetch('/api/chatgpt')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('gptPrompt').value = data.response;
+            } else {
+                throw new Error(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error getting ChatGPT response:', error);
+            content.innerHTML = `<div class="text-red-600">Error: ${error.message}</div>`;
+        });
 }
-        <div id="promptSection">
-            <h2>ChatGPT Prompt</h2>
-            <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <textarea id="gptPrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4">${prompt}</textarea>
-            </div>
-            <button onclick="sendToChatGPT()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4">
-                Send to ChatGPT
-            </button>
-        </div>
-        <div id="responseSection" class="hidden">
-            <h3 class="mt-4">ChatGPT Response</h3>
-            <div class="bg-green-50 p-4 rounded-lg relative">
-                <p id="gptResponse" class="text-green-800"></p>
-                <button onclick="copyResponse()" class="absolute top-2 right-2 text-green-600 hover:text-green-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path>
-                        <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>`;
+
+// Make askChatGPT available globally
+window.askChatGPT = askChatGPT;
 }
 
 async function sendToChatGPT() {
