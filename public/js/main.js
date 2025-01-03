@@ -427,7 +427,7 @@ async function askChatGPT() {
         <div id="promptSection">
             <h2>ChatGPT Prompt</h2>
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <p id="gptPrompt" class="text-gray-800">${prompt}</p>
+                <textarea id="gptPrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4">${prompt}</textarea>
             </div>
             <button onclick="sendToChatGPT()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4">
                 Send to ChatGPT
@@ -452,6 +452,12 @@ async function sendToChatGPT() {
         const promptSection = document.getElementById('promptSection');
         const responseSection = document.getElementById('responseSection');
         const gptResponse = document.getElementById('gptResponse');
+        const customPrompt = document.getElementById('gptPrompt').value;
+        
+        if (!customPrompt.trim()) {
+            gptResponse.innerHTML = '<div class="text-red-600">Please enter a prompt</div>';
+            return;
+        }
         
         responseSection.classList.remove('hidden');
         gptResponse.innerHTML = 'Loading response from ChatGPT...';
