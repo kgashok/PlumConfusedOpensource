@@ -420,7 +420,7 @@ async function askChatGPT() {
     body.style.overflow = 'hidden';
     
     const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    const defaultPrompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
     
     const content = modal.querySelector('.prose');
     content.innerHTML = `
@@ -452,11 +452,17 @@ async function sendToChatGPT() {
         const promptSection = document.getElementById('promptSection');
         const responseSection = document.getElementById('responseSection');
         const gptResponse = document.getElementById('gptResponse');
+        const customPrompt = document.getElementById('gptPrompt').value;
         
         responseSection.classList.remove('hidden');
         gptResponse.innerHTML = 'Loading response from ChatGPT...';
         
         const response = await fetch('/api/chatgpt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ prompt: customPrompt })
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
