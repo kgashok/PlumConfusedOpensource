@@ -419,8 +419,13 @@ async function askChatGPT() {
     modal.classList.add('flex');
     body.style.overflow = 'hidden';
     
-    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+    try {
+        const response = await fetch('/api/random-prompt');
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error);
+        }
+        const prompt = data.prompt.replace('{currentMonth}', new Date().toLocaleString('en-US', { month: 'long' }));
     
     const content = modal.querySelector('.prose');
     content.innerHTML = `
