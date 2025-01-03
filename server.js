@@ -6,8 +6,6 @@ import qs from 'querystring';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session'; // Import express-session
-import { readFile, readdir } from 'fs/promises';
-import { join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +15,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 import { marked } from 'marked';
+import { readFile } from 'fs/promises';
 
 
 import { JSDOM } from 'jsdom';
@@ -591,14 +590,16 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
-
 app.post('/api/chatgpt', async (req, res) => {
   try {
-    const promptPath = join(__dirname, 'prompts');
-    const files = await readdir(promptPath);
-    const randomFile = files[Math.floor(Math.random() * files.length)];
-    const prompt = await readFile(join(promptPath, randomFile), 'utf8');
-
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Prompt is required'
+      });
+    }
+    
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{"role": "user", "content": prompt}],

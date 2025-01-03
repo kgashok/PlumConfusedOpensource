@@ -410,20 +410,24 @@ async function toggleInspiration() {
 window.toggleInspiration = toggleInspiration;
 
 // ChatGPT functionality
-function askChatGPT() {
+async function askChatGPT() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
     
+    // Reset modal state
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     body.style.overflow = 'hidden';
+    
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
     
     const content = modal.querySelector('.prose');
     content.innerHTML = `
         <div id="promptSection">
             <h2>ChatGPT Prompt</h2>
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <textarea id="gptPrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4"></textarea>
+                <textarea id="gptPrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4">${prompt}</textarea>
             </div>
             <button onclick="sendToChatGPT()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4">
                 Send to ChatGPT
@@ -440,26 +444,7 @@ function askChatGPT() {
                     </svg>
                 </button>
             </div>
-        </div>
-    `;
-
-    fetch('/api/chatgpt')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('gptPrompt').value = data.response;
-            } else {
-                throw new Error(data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error getting ChatGPT response:', error);
-            content.innerHTML = `<div class="text-red-600">Error: ${error.message}</div>`;
-        });
-}
-
-// Make askChatGPT available globally
-window.askChatGPT = askChatGPT;
+        </div>`;
 }
 
 async function sendToChatGPT() {
