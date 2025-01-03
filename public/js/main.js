@@ -6,17 +6,7 @@ function updateCurrentTime() {
 
 // Character counter for tweet input
 function initCharCounter() {
-    const textarea = document.getElementById("tweetText");
-    
-    textarea.addEventListener("focus", function() {
-        document.body.classList.add('textarea-focused');
-    });
-    
-    textarea.addEventListener("blur", function() {
-        document.body.classList.remove('textarea-focused');
-    });
-    
-    textarea.addEventListener("input", function(e) {
+    document.getElementById("tweetText").addEventListener("input", function(e) {
         const remaining = 280 - e.target.value.length;
         const charCount = document.getElementById("charCount");
         charCount.textContent = remaining;
