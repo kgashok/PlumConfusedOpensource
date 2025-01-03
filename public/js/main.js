@@ -422,7 +422,7 @@ async function askChatGPT() {
     const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
     // const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
 
-    const prompt = `Act as an environmental scientist. Compose a factual and impactful tweet about soil conservation. Include a compelling statistic or scientific fact that highlights the urgency of soil preservation. The message should be clear, authoritative, and educational. Include the #SaveSoil hashtag.`
+    const prompt = `Act as an environmental scientist. Compose a factual and impactful tweet about soil conservation. Include a compelling statistic or scientific fact that highlights the urgency of soil preservation. The message should be clear, authoritative, and educational. Include the #SaveSoil hashtag.`;
     
     const content = modal.querySelector('.prose');
     content.innerHTML = `
