@@ -515,9 +515,9 @@ async function showFunnyPrompt() {
         modalContent.innerHTML = `
             <h2>Funny Prompt</h2>
             <div class="bg-purple-50 p-4 rounded-lg">
-                <p class="text-purple-800">${content}</p>
+                <p id="funnyPromptContent" class="text-purple-800">${content}</p>
             </div>
-            <button onclick="sendToChatGPT()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded mt-4">
+            <button onclick="copyFunnyPrompt()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded mt-4">
                 Use This Prompt
             </button>
         `;
@@ -534,3 +534,10 @@ document.addEventListener('click', (e) => {
         toggleInspiration();
     }
 });
+function copyFunnyPrompt() {
+    const promptText = document.getElementById('funnyPromptContent').textContent;
+    navigator.clipboard.writeText(promptText).then(() => {
+        console.log('Funny prompt copied to clipboard');
+    });
+}
+window.copyFunnyPrompt = copyFunnyPrompt;
