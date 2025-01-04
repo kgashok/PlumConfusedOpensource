@@ -474,7 +474,10 @@ async function sendToChatGPT() {
         const data = await response.json();
         
         if (data.success) {
-            gptResponse.textContent = data.response;
+            let response = data.response;
+            // Remove quotes at start and end if they exist
+            response = response.replace(/^"(.*)"$/, '$1');
+            gptResponse.textContent = response;
         } else {
             const errorMessage = data.error === 'API quota exceeded. Please check the API key configuration.' 
                 ? 'OpenAI API quota has been exceeded. Please try again later when the quota resets.'
