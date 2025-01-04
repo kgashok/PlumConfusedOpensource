@@ -590,6 +590,18 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
+app.get('/api/random-prompt', async (req, res) => {
+    try {
+        const promptContent = await getRandomPrompt();
+        const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+        const formattedPrompt = promptContent.replace('{currentMonth}', currentMonth);
+        res.json({ prompt: formattedPrompt });
+    } catch (error) {
+        console.error('Error getting random prompt:', error);
+        res.status(500).json({ error: 'Failed to get random prompt' });
+    }
+});
+
 app.post('/api/chatgpt', async (req, res) => {
   try {
     const { prompt } = req.body;
