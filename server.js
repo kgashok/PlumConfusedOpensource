@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 app.use(express.static('public'));
+app.use('/prompts', express.static('prompts'));
 
 import { marked } from 'marked';
 import { readFile } from 'fs/promises';

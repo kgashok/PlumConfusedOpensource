@@ -495,6 +495,35 @@ function copyResponse() {
 }
 window.askChatGPT = askChatGPT;
 
+// Funny Prompt functionality
+async function showFunnyPrompt() {
+    try {
+        const response = await fetch('/prompts/funnyPrompt.md');
+        const content = await response.text();
+        
+        const modal = document.getElementById('inspirationModal');
+        const body = document.body;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        body.style.overflow = 'hidden';
+        
+        const modalContent = modal.querySelector('.prose');
+        modalContent.innerHTML = `
+            <h2>Funny Prompt</h2>
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <p class="text-purple-800">${content}</p>
+            </div>
+            <button onclick="sendToChatGPT()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded mt-4">
+                Use This Prompt
+            </button>
+        `;
+    } catch (error) {
+        console.error('Error loading funny prompt:', error);
+    }
+}
+window.showFunnyPrompt = showFunnyPrompt;
+
 // Close inspiration modal when clicking outside
 document.addEventListener('click', (e) => {
     const modal = document.getElementById('inspirationModal');
