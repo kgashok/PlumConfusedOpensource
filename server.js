@@ -15,13 +15,10 @@ app.use(express.json());
 app.use(express.static('public'));
 
 import { marked } from 'marked';
-import { readFile } from 'fs/promises';
-
-
+import { readFile, readdir } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 import OpenAI from 'openai';
-import { readdir, readFile } from 'fs/promises';
 
 async function getRandomPrompt() {
     const promptsDir = path.join(__dirname, 'prompts');
