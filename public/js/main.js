@@ -419,16 +419,12 @@ async function askChatGPT() {
     modal.classList.add('flex');
     body.style.overflow = 'hidden';
     
-    try {
-        const response = await fetch('/api/random-prompt');
-        const data = await response.json();
-        const prompt = data.prompt;
-        
-        const content = modal.querySelector('.prose');
-    } catch (error) {
-        console.error('Error fetching random prompt:', error);
-        const content = modal.querySelector('.prose');
-        content.innerHTML = '<p class="text-red-500">Error loading prompt. Please try again.</p>';
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    // const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
+
+    const prompt = `Act as an environmental scientist. Compose a factual and impactful tweet about soil conservation. Include a compelling statistic or scientific fact that highlights the urgency of soil preservation. The message should be clear, authoritative, and educational. Include the #SaveSoil hashtag.`;
+    
+    const content = modal.querySelector('.prose');
     content.innerHTML = `
         <div id="promptSection">
             <h2>ChatGPT Prompt</h2>

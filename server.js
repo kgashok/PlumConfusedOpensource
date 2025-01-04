@@ -15,19 +15,12 @@ app.use(express.json());
 app.use(express.static('public'));
 
 import { marked } from 'marked';
-import { readFile, readdir } from 'fs/promises';
+import { readFile } from 'fs/promises';
+
+
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 import OpenAI from 'openai';
-
-async function getRandomPrompt() {
-    const promptsDir = path.join(__dirname, 'prompts');
-    const files = await readdir(promptsDir);
-    const mdFiles = files.filter(file => file.endsWith('.md'));
-    const randomFile = mdFiles[Math.floor(Math.random() * mdFiles.length)];
-    const promptPath = path.join(promptsDir, randomFile);
-    return await readFile(promptPath, 'utf-8');
-}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -597,18 +590,6 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
-app.get('/api/random-prompt', async (req, res) => {
-    try {
-        const promptContent = await getRandomPrompt();
-        const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
-        const formattedPrompt = promptContent.replace('{currentMonth}', currentMonth);
-        res.json({ prompt: formattedPrompt });
-    } catch (error) {
-        console.error('Error getting random prompt:', error);
-        res.status(500).json({ error: 'Failed to get random prompt' });
-    }
-});
-
 app.post('/api/chatgpt', async (req, res) => {
   try {
     const { prompt } = req.body;
