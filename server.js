@@ -21,6 +21,16 @@ import { readFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 import OpenAI from 'openai';
+import { readdir, readFile } from 'fs/promises';
+
+async function getRandomPrompt() {
+    const promptsDir = path.join(__dirname, 'prompts');
+    const files = await readdir(promptsDir);
+    const mdFiles = files.filter(file => file.endsWith('.md'));
+    const randomFile = mdFiles[Math.floor(Math.random() * mdFiles.length)];
+    const promptPath = path.join(promptsDir, randomFile);
+    return await readFile(promptPath, 'utf-8');
+}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY

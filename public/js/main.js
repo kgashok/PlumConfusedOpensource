@@ -423,8 +423,12 @@ async function askChatGPT() {
         const response = await fetch('/api/random-prompt');
         const data = await response.json();
         const prompt = data.prompt;
-    
-    const content = modal.querySelector('.prose');
+        
+        const content = modal.querySelector('.prose');
+    } catch (error) {
+        console.error('Error fetching random prompt:', error);
+        const content = modal.querySelector('.prose');
+        content.innerHTML = '<p class="text-red-500">Error loading prompt. Please try again.</p>';
     content.innerHTML = `
         <div id="promptSection">
             <h2>ChatGPT Prompt</h2>
