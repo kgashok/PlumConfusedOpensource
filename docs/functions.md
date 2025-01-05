@@ -7,6 +7,19 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
+### March 2024
+- Added UN International Days integration
+- Implemented funny prompt feature
+- Enhanced modal system for displaying prompts
+- Added clipboard functionality for prompts
+- Enhanced ChatGPT response handling
+- Improved error message display
+- Added visual feedback for tweet deletion
+- Implemented draft tweet persistence
+- Added mobile-responsive design improvements
+
+## Previous Changes
+
 ### February 2024
 - Added session management with express-session
 - Implemented user authentication persistence
