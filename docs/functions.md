@@ -7,7 +7,7 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
-### March 2024
+### Jan 2025
 - Added UN International Days integration
 - Implemented funny prompt feature
 - Enhanced modal system for displaying prompts
@@ -20,7 +20,7 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Previous Changes
 
-### February 2024
+### December 2024
 - Added session management with express-session
 - Implemented user authentication persistence
 - Added debug endpoint for session inspection
