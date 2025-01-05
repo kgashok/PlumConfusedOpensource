@@ -1,0 +1,1 @@
+What is the International Day theme for today? Find that out and then consider the #SaveSoil movement. Find some kind of a intersection between both and create a very hilarious tweet, not more than 250 words. Add the hashtag #SaveSoil and @cpsavesoil as well.
