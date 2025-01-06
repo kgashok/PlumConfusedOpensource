@@ -47,6 +47,7 @@ async function checkAuthStatus() {
 function updateUserInfo(data) {
     const userInfoDiv = document.getElementById("userInfo");
     const refreshButton = document.getElementById("refreshButton");
+    const createImageLink = document.getElementById("createImageLink");
     
     if (data.authenticated && data.user) {
         userInfoDiv.classList.remove("hidden");
@@ -60,13 +61,15 @@ function updateUserInfo(data) {
                     '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues" class="mt-2 block text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>'}
             </div>`;
             
-        // Enable refresh button only for lifebalance
+        // Enable refresh button and create image link only for lifebalance
         if (data.user.screen_name === 'lifebalance') {
             refreshButton.disabled = false;
             refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            createImageLink?.classList.remove('hidden');
         } else {
             refreshButton.disabled = true;
             refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
+            createImageLink?.classList.add('hidden');
         }
     } else {
         userInfoDiv.classList.add("hidden");
