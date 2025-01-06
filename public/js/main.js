@@ -408,6 +408,10 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCurrentTime, 1000);
     checkAuthStatus();
     refreshHistory();
+    // Fetch SaveSoil tweets on page load if user is authenticated
+    if (document.getElementById("userInfo")?.textContent?.includes('@')) {
+        fetchSearchedTweets();
+    }
     
     // Restore draft tweet and image if they exist
     const draftTweet = localStorage.getItem('draftTweet');
