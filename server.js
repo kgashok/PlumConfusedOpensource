@@ -398,9 +398,8 @@ app.post('/tweet', upload.single('image'), async (req, res) => {
         const timestamp = new Date().toISOString();  
 
         // Store in database first
-        const mediaUrl = imageFile ? `https://ton.twitter.com/i/ton/data/dm/${response.data.id}/${response.data.id}.jpg` : null;
         await pool.query(
-            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted, media_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [
                 tweetId,
                 text,
@@ -408,8 +407,7 @@ app.post('/tweet', upload.single('image'), async (req, res) => {
                 `https://twitter.com/i/web/status/${tweetId}`,
                 accessTokens.id,
                 accessTokens.screen_name,
-                false,
-                mediaUrl
+                false
             ]
         );
 

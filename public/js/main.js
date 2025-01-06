@@ -186,13 +186,6 @@ function getTweetHTML(tweet) {
                         @${tweet.screen_name} ${isCurrentUser ? '(you)' : ''}
                     </div>
                     <div class="text-gray-700">${tweet.text}</div>
-                    ${tweet.media_url ? `
-                        <div class="mt-2">
-                            <a href="${tweet.url}" target="_blank">
-                                <img src="${tweet.media_url}" alt="Tweet media" class="rounded-lg max-h-32 object-cover hover:opacity-90 transition-opacity" />
-                            </a>
-                        </div>
-                    ` : ''}
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <div class="text-xs text-gray-500">${formatDate(tweet.timestamp)}</div>
