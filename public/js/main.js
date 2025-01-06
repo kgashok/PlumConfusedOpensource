@@ -257,7 +257,7 @@ function getSearchTweetHTML(tweet) {
             <div class="flex justify-between items-start mb-2">
                 <div>
                     <div class="text-sm text-blue-600 mb-1 font-medium">
-                        <span>@${tweet.username || tweet.screen_name}</span>
+                        <span>@${tweet.username || 'user'}</span>
                         <span class="text-gray-500 ml-2">(ID: ${tweet.author_id})</span>
                     </div>
                     <div class="text-gray-700">${tweet.text}</div>
