@@ -226,12 +226,44 @@ async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
     }
 }
 
-async function postTweet(oauth_token, oauth_token_secret, tweetText) {
+async function postTweet(oauth_token, oauth_token_secret, tweetText, imageBuffer) {
     const token = {
         key: oauth_token,
         secret: oauth_token_secret
     };
+    
+    // Upload image first if provided
+    let mediaId = null;
+    if (imageBuffer) {
+        const uploadUrl = 'https://upload.twitter.com/1.1/media/upload.json';
+        const form = new FormData();
+        form.append('media', imageBuffer);
 
+        const uploadRequestData = {
+            url: uploadUrl,
+            method: 'POST'
+        };
+
+        const uploadAuthHeader = oauth.toHeader(oauth.authorize(uploadRequestData, token));
+
+        const uploadReq = await got.post(uploadUrl, {
+            headers: {
+                ...uploadAuthHeader,
+                ...form.getHeaders()
+            },
+            body: form,
+            throwHttpErrors: false
+        });
+
+        if (uploadReq.statusCode !== 200) {
+            throw new Error(`Twitter Media Upload error: ${uploadReq.body}`);
+        }
+
+        const uploadResponse = JSON.parse(uploadReq.body);
+        mediaId = uploadResponse.media_id_string;
+    }
+
+    // Post tweet with or without media
     const requestData = {
         url: endpointURL,
         method: 'POST'
@@ -239,8 +271,16 @@ async function postTweet(oauth_token, oauth_token_secret, tweetText) {
 
     const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
 
+    const tweetData = {
+        text: tweetText
+    };
+
+    if (mediaId) {
+        tweetData.media = { media_ids: [mediaId] };
+    }
+
     const req = await got.post(endpointURL, {
-        json: { text: tweetText },
+        json: tweetData,
         responseType: 'json',
         headers: {
             Authorization: authHeader["Authorization"],
@@ -350,7 +390,8 @@ app.post('/tweet', upload.single('image'), async (req, res) => {
         const response = await postTweet(  
             accessTokens.token,  
             accessTokens.token_secret,  
-            text  
+            text,
+            imageFile ? imageFile.buffer : null
         );  
 
         const tweetId = response.data.id;  
