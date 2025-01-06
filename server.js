@@ -591,6 +591,43 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
+app.post('/api/generate-image', async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({
+                success: false,
+                error: 'Prompt is required'
+            });
+        }
+
+        const response = await openai.images.generate({
+            model: "dall-e-2",
+            prompt: prompt,
+            n: 1,
+            size: "1024x1024",
+        });
+
+        res.json({
+            success: true,
+            imageUrl: response.data[0].url
+        });
+    } catch (error) {
+        console.error('OpenAI API error:', error);
+        if (error.error?.type === 'insufficient_quota') {
+            res.status(429).json({
+                success: false,
+                error: 'API quota exceeded. Please try again later.'
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: 'Error generating image'
+            });
+        }
+    }
+});
+
 app.post('/api/chatgpt', async (req, res) => {
   try {
     const { prompt } = req.body;

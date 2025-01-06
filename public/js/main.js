@@ -541,3 +541,67 @@ function copyFunnyPrompt() {
     });
 }
 window.copyFunnyPrompt = copyFunnyPrompt;
+
+// Image generation functionality
+async function showImagePrompt() {
+    const modal = document.getElementById('inspirationModal');
+    const body = document.body;
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    body.style.overflow = 'hidden';
+    
+    const modalContent = modal.querySelector('.prose');
+    modalContent.innerHTML = `
+        <h2>Generate Image</h2>
+        <div class="bg-yellow-50 p-4 rounded-lg mb-4">
+            <textarea id="imagePrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4" placeholder="Describe the image you want to generate..."></textarea>
+        </div>
+        <button onclick="generateImage()" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded mb-4">
+            Generate Image
+        </button>
+        <div id="imageResult" class="hidden">
+            <div class="mt-4">
+                <img id="generatedImage" class="max-w-full rounded-lg shadow-lg" />
+            </div>
+        </div>
+    `;
+}
+
+async function generateImage() {
+    const imagePrompt = document.getElementById('imagePrompt').value;
+    const imageResult = document.getElementById('imageResult');
+    const generatedImage = document.getElementById('generatedImage');
+    
+    if (!imagePrompt.trim()) {
+        alert('Please enter an image description');
+        return;
+    }
+    
+    try {
+        imageResult.innerHTML = '<div class="text-gray-600">Generating image...</div>';
+        imageResult.classList.remove('hidden');
+        
+        const response = await fetch('/api/generate-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ prompt: imagePrompt })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            generatedImage.src = data.imageUrl;
+            imageResult.classList.remove('hidden');
+        } else {
+            imageResult.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+        }
+    } catch (error) {
+        imageResult.innerHTML = '<div class="text-red-600">Failed to generate image</div>';
+    }
+}
+
+window.showImagePrompt = showImagePrompt;
+window.generateImage = generateImage;
