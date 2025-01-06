@@ -62,7 +62,10 @@ function updateUserInfo(data) {
             </div>`;
             
         // Enable refresh button and create image link for specific users
-        if (data.user.screen_name === 'lifebalance' || data.user.screen_name === 'savesoilkg') {
+        const isAuthorizedUser = data.user.screen_name === 'lifebalance' || data.user.screen_name === 'savesoilkg';
+        
+        // Enable refresh button for both users
+        if (isAuthorizedUser) {
             refreshButton.disabled = false;
             refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.remove('hidden');
