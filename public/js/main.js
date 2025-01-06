@@ -251,6 +251,26 @@ function updateSearchedTweets(data) {
     tweetsDiv.innerHTML = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
+function getSearchTweetHTML(tweet) {
+    return `
+        <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <div class="text-sm text-blue-600 mb-1 font-medium">
+                        Tweet ID: ${tweet.id}
+                    </div>
+                    <div class="text-gray-700">${tweet.text}</div>
+                </div>
+                <div class="text-xs text-gray-500">
+                    ${formatDate(tweet.created_at)}
+                </div>
+            </div>
+            <div class="text-sm mt-2">
+                <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
+            </div>
+        </div>`;
+}
+
 function getErrorHTML(data) {
     let errorMessage = data.error;
     if (data.statusCode === 429 && data.waitSeconds) {
