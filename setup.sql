@@ -15,5 +15,6 @@ CREATE TABLE IF NOT EXISTS searched_tweets (
     created_at TIMESTAMP NOT NULL,
     author_id TEXT NOT NULL,
     username TEXT NOT NULL,
+    name TEXT,
     url TEXT NOT NULL
 );
