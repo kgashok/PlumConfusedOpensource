@@ -188,7 +188,9 @@ function getTweetHTML(tweet) {
                     <div class="text-gray-700">${tweet.text}</div>
                     ${tweet.media_url ? `
                         <div class="mt-2">
-                            <img src="${tweet.media_url}" alt="Tweet media" class="rounded-lg max-h-32 object-cover" />
+                            <a href="${tweet.url}" target="_blank">
+                                <img src="${tweet.media_url}" alt="Tweet media" class="rounded-lg max-h-32 object-cover hover:opacity-90 transition-opacity" />
+                            </a>
                         </div>
                     ` : ''}
                 </div>
