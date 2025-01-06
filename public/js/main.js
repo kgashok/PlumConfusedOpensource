@@ -218,7 +218,10 @@ function showSearchError(errorMessage = 'Error fetching tweets. Please try again
                 <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p class="text-red-700">${errorMessage}</p>
+                <div>
+                    <p class="text-red-700 font-medium">Failed to fetch tweets</p>
+                    <p class="text-red-600 text-sm mt-1">${errorMessage}</p>
+                </div>
             </div>
         </div>`;
 }
@@ -254,7 +257,8 @@ function updateSearchedTweets(data) {
         tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No tweets found.</p></div>`;
         return;
     }
-    tweetsDiv.innerHTML = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Successfully fetched ${data.data.length} tweets</div>`;
+    tweetsDiv.innerHTML = statusMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
 function getSearchTweetHTML(tweet) {
