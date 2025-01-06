@@ -253,9 +253,11 @@ function updateSearchedTweets(data) {
 
 function getErrorHTML(data) {
     let errorMessage = data.error;
-    if (data.statusCode === 429) {
+    if (data.statusCode === 429 && data.waitSeconds) {
         const minutes = Math.ceil(data.waitSeconds / 60);
         errorMessage = `Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? "s" : ""}.`;
+    } else if (data.statusCode === 429) {
+        errorMessage = 'Rate limit exceeded. Please try again later.';
     }
     return `
         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
