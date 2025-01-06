@@ -579,7 +579,12 @@ async function generateImage() {
     }
     
     try {
-        imageResult.innerHTML = '<div class="text-gray-600">Generating image...</div>';
+        imageResult.innerHTML = `
+            <div class="text-gray-600">Generating image...</div>
+            <div class="mt-4">
+                <img id="generatedImage" class="max-w-full rounded-lg shadow-lg hidden" />
+            </div>
+        `;
         imageResult.classList.remove('hidden');
         
         const response = await fetch('/api/generate-image', {
@@ -591,12 +596,14 @@ async function generateImage() {
         });
         
         const data = await response.json();
+        const generatedImage = document.getElementById('generatedImage');
         
         if (data.success) {
             generatedImage.src = data.imageUrl;
-            imageResult.classList.remove('hidden');
+            generatedImage.classList.remove('hidden');
+            imageResult.querySelector('.text-gray-600').remove();
         } else {
-            imageResult.innerHTML = `<div class="text-red-600">${data.error}</div>`;
+            imageResult.innerHTML = `<div class="text-red-600">${data.error || 'Failed to generate image'}</div>`;
         }
     } catch (error) {
         imageResult.innerHTML = '<div class="text-red-600">Failed to generate image</div>';
