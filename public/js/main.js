@@ -250,7 +250,9 @@ function handleImageSelect(event) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById('imagePreview').src = e.target.result;
+            const imageData = e.target.result;
+            localStorage.setItem('draftTweetImage', imageData);
+            document.getElementById('imagePreview').src = imageData;
             document.getElementById('selectedImage').classList.remove('hidden');
         };
         reader.readAsDataURL(file);
@@ -261,6 +263,7 @@ function removeImage() {
     document.getElementById('tweetImage').value = '';
     document.getElementById('selectedImage').classList.add('hidden');
     document.getElementById('imagePreview').src = '';
+    localStorage.removeItem('draftTweetImage');
 }
 
 async function postTweet() {
@@ -284,8 +287,12 @@ async function postTweet() {
         const data = await response.json();
         if (data.success) {
             localStorage.removeItem('draftTweet');
+            localStorage.removeItem('draftTweetImage');
             document.getElementById("tweetText").value = "";
             document.getElementById("charCount").textContent = "280";
+            document.getElementById('selectedImage').classList.add('hidden');
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('tweetImage').value = '';
             refreshHistory();
         } else if (data.error === 'Not authenticated. Please authorize first.') {
             window.location.href = "/auth/twitter";
@@ -348,11 +355,18 @@ document.addEventListener("DOMContentLoaded", () => {
     checkAuthStatus();
     refreshHistory();
     
-    // Restore draft tweet if exists
+    // Restore draft tweet and image if they exist
     const draftTweet = localStorage.getItem('draftTweet');
+    const draftImage = localStorage.getItem('draftTweetImage');
+    
     if (draftTweet) {
         document.getElementById("tweetText").value = draftTweet;
         document.getElementById("charCount").textContent = 280 - draftTweet.length;
+    }
+    
+    if (draftImage) {
+        document.getElementById('imagePreview').src = draftImage;
+        document.getElementById('selectedImage').classList.remove('hidden');
     }
 
     // Check URL parameters
