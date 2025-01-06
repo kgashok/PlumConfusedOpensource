@@ -245,18 +245,40 @@ function getErrorHTML(data) {
 }
 
 // Tweet posting functionality
+function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('selectedImage').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImage() {
+    document.getElementById('tweetImage').value = '';
+    document.getElementById('selectedImage').classList.add('hidden');
+    document.getElementById('imagePreview').src = '';
+}
+
 async function postTweet() {
     const tweetText = document.getElementById("tweetText").value.trim();
-    if (!tweetText) return;
+    const imageFile = document.getElementById("tweetImage").files[0];
+    if (!tweetText && !imageFile) return;
 
     try {
         localStorage.setItem('draftTweet', tweetText);
+        const formData = new FormData();
+        formData.append('text', tweetText);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
         const response = await fetch("/tweet", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ text: tweetText })
+            body: formData
         });
 
         const data = await response.json();

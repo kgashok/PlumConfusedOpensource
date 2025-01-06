@@ -3,6 +3,14 @@ import got from 'got';
 import crypto from 'crypto';
 import OAuth from 'oauth-1.0a';
 import qs from 'querystring';
+import multer from 'multer';
+import FormData from 'form-data';
+
+const upload = multer({
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
+});
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session'; // Import express-session
@@ -326,9 +334,10 @@ app.post('/auth/logout', (req, res) => {
 });
 
 // Modify your /tweet endpoint in server.js to store history  
-app.post('/tweet', async (req, res) => {  
+app.post('/tweet', upload.single('image'), async (req, res) => {  
     try {  
-        const { text } = req.body;  
+        const text = req.body.text;  
+        const imageFile = req.file;
         const accessTokens = req.session.user; //Get access tokens from session
 
         if (!accessTokens) {  
