@@ -613,22 +613,24 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 // Add new endpoint to get searched tweets
 app.get('/search/tweets', async (req, res) => {
     try {
-        const accessTokens = req.session.user; //Get access tokens from session
-        if (!accessTokens) {
-            return res.status(401).json({
-                success: false,
-                error: 'Not authenticated'
-            });
+        // If user is authenticated, fetch new tweets
+        if (req.session.user) {
+            const tweets = await searchTweets(
+                req.session.user.token,
+                req.session.user.token_secret
+            );
+            if (!tweets.error) {
+                return res.json(tweets);
+            }
         }
-
-        const tweets = await searchTweets(
-            accessTokens.token,
-            accessTokens.token_secret
+        
+        // Otherwise return tweets from database
+        const result = await pool.query(
+            'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
         );
-
-        res.json(tweets);
+        res.json({ data: result.rows });
     } catch (e) {
-        console.error('Error searching tweets:', e);
+        console.error('Error fetching tweets:', e);
         res.status(500).json({
             success: false,
             error: e.message

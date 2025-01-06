@@ -61,15 +61,15 @@ function updateUserInfo(data) {
                     '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues" class="mt-2 block text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>'}
             </div>`;
             
-        // Enable refresh button and create image link for specific users
+        // Enable refresh button for authorized users
         const isAuthorizedUser = data.user.screen_name === 'lifebalance' || data.user.screen_name === 'savesoilkg';
         
-        // Enable refresh button for both users
         if (isAuthorizedUser) {
             refreshButton.disabled = false;
             refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.remove('hidden');
         } else {
+            // Only disable refresh for unauthorized users when logged in
             refreshButton.disabled = true;
             refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.add('hidden');
@@ -457,6 +457,7 @@ window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
 window.deleteTweet = deleteTweet;
 window.logout = logout;
+window.toggleInfo = toggleInfo;
 
 // Inspiration modal functionality
 async function toggleInspiration() {
