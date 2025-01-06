@@ -269,14 +269,22 @@ function removeImage() {
 async function postTweet() {
     const tweetText = document.getElementById("tweetText").value.trim();
     const imageFile = document.getElementById("tweetImage").files[0];
-    if (!tweetText && !imageFile) return;
+    const storedImage = localStorage.getItem('draftTweetImage');
+    if (!tweetText && !imageFile && !storedImage) return;
 
     try {
         localStorage.setItem('draftTweet', tweetText);
         const formData = new FormData();
         formData.append('text', tweetText);
+        
+        // Use either the selected file or stored image
         if (imageFile) {
             formData.append('image', imageFile);
+        } else if (storedImage) {
+            // Convert base64 to blob
+            const response = await fetch(storedImage);
+            const blob = await response.blob();
+            formData.append('image', blob, 'image.jpg');
         }
 
         const response = await fetch("/tweet", {
