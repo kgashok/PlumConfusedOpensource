@@ -224,6 +224,9 @@ function showSearchError(errorMessage = 'Error fetching tweets. Please try again
 }
 
 async function fetchSearchedTweets() {
+    document.body.style.cursor = 'wait';
+    const refreshButton = document.getElementById('refreshButton');
+    refreshButton.style.cursor = 'wait';
     try {
         const response = await fetch("/search/tweets");
         if (!response.ok) {
@@ -235,6 +238,9 @@ async function fetchSearchedTweets() {
     } catch (error) {
         console.error("Search tweets error:", error);
         showSearchError(error.message);
+    } finally {
+        document.body.style.cursor = 'default';
+        refreshButton.style.cursor = 'pointer';
     }
 }
 
