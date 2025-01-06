@@ -567,13 +567,21 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         // Log rate limit info but continue processing
         if (req.statusCode === 429) {
-            console.log('Twitter rate limit headers:', req.headers);
+            const resetTime = req.headers['x-rate-limit-reset'];
+            const waitSeconds = resetTime ? Math.ceil((new Date(resetTime * 1000) - new Date()) / 1000) : 900;
+            return {
+                error: 'Rate limit exceeded',
+                statusCode: 429,
+                waitSeconds: waitSeconds,
+                headers: req.headers
+            };
         }
 
         if (req.statusCode !== 200) {
             return { 
                 error: `Twitter API error: ${req.statusCode}`,
-                statusCode: req.statusCode
+                statusCode: req.statusCode,
+                details: req.body
             };
         }
 
