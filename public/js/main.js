@@ -48,7 +48,7 @@ function updateUserInfo(data) {
     const userInfoDiv = document.getElementById("userInfo");
     const refreshButton = document.getElementById("refreshButton");
     const createImageLink = document.getElementById("createImageLink");
-    
+
     if (data.authenticated && data.user) {
         userInfoDiv.classList.remove("hidden");
         userInfoDiv.innerHTML = `
@@ -60,10 +60,10 @@ function updateUserInfo(data) {
                     '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" class="text-sm text-green-500 hover:text-green-600 transition-colors">New Issue</a></div>' : 
                     '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues" class="mt-2 block text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>'}
             </div>`;
-            
+
         // Enable refresh button and create image link for specific users
         const isAuthorizedUser = data.user.screen_name === 'lifebalance' || data.user.screen_name === 'savesoilkg';
-        
+
         // Enable refresh button for both users
         if (isAuthorizedUser) {
             refreshButton.disabled = false;
@@ -87,7 +87,7 @@ const MAX_ERROR_HISTORY = 5;
 
 function showAuthStatus(isAuthenticated, message) {
     const authStatus = document.getElementById("authStatus");
-    
+
     if (!isAuthenticated) {
         // Add new error to history
         errorMessages.unshift({
@@ -101,7 +101,7 @@ function showAuthStatus(isAuthenticated, message) {
     }
 
     authStatus.className = `mb-6 p-4 rounded-lg ${isAuthenticated ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`;
-    
+
     if (isAuthenticated) {
         authStatus.innerHTML = `
             <div class="flex items-center">
@@ -183,7 +183,7 @@ async function deleteTweet(tweetId) {
 function getTweetHTML(tweet) {
     const currentUser = document.querySelector('#userInfo')?.textContent?.match(/@(\w+)/)?.[1];
     const isCurrentUser = currentUser === tweet.screen_name;
-    
+
     return `
         <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
             <div class="flex justify-between items-start mb-2">
@@ -282,7 +282,7 @@ async function postTweet() {
         localStorage.setItem('draftTweet', tweetText);
         const formData = new FormData();
         formData.append('text', tweetText);
-        
+
         // Use either the selected file or stored image
         if (imageFile) {
             formData.append('image', imageFile);
@@ -324,17 +324,17 @@ async function postTweet() {
 async function toggleInfo() {
     const modal = document.getElementById('infoModal');
     const body = document.body;
-    
+
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden'; // Prevent background scrolling
-        
+
         // Set focus to modal content
         const modalContent = document.getElementById('infoContent');
         modalContent.tabIndex = -1;
         modalContent.focus();
-        
+
         // Fetch and render markdown content
         if (!modal.hasContent) {
             try {
@@ -368,16 +368,17 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCurrentTime, 1000);
     checkAuthStatus();
     refreshHistory();
-    
+    displaySavedTweets(); // Call the new function here
+
     // Restore draft tweet and image if they exist
     const draftTweet = localStorage.getItem('draftTweet');
     const draftImage = localStorage.getItem('draftTweetImage');
-    
+
     if (draftTweet) {
         document.getElementById("tweetText").value = draftTweet;
         document.getElementById("charCount").textContent = 280 - draftTweet.length;
     }
-    
+
     if (draftImage) {
         document.getElementById('imagePreview').src = draftImage;
         document.getElementById('selectedImage').classList.remove('hidden');
@@ -416,26 +417,28 @@ window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
 window.deleteTweet = deleteTweet;
 window.logout = logout;
+window.toggleInfo = toggleInfo;
+
 
 // Inspiration modal functionality
 async function toggleInspiration() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
     const content = modal.querySelector('.prose');
-    
+
     if (modal.classList.contains('hidden')) {
         // Reset modal content
         document.getElementById('promptSection')?.classList.add('hidden');
         document.getElementById('responseSection')?.classList.add('hidden');
-        
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
-        
+
         try {
             content.innerHTML = '<p>Loading dates...</p>';
             const dates = await fetchUNDates();
-            
+
             content.innerHTML = `
                 <h2>Looking for Tweet Ideas?</h2>
                 <p>Here are the upcoming International Days:</p>
@@ -463,17 +466,17 @@ window.toggleInspiration = toggleInspiration;
 async function askChatGPT() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
-    
+
     // Reset modal state
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     body.style.overflow = 'hidden';
-    
+
     const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
     // const prompt = `Act as my international day theme expert. Take the month from today's date (${currentMonth}) and find the closest International Days that are environmentally oriented during the current month.`;
 
     const prompt = `Act as an environmental scientist. Compose a factual and impactful tweet about soil conservation. Include a compelling statistic or scientific fact that highlights the urgency of soil preservation. The message should be clear, authoritative, and educational. Include the #SaveSoil hashtag.`;
-    
+
     const content = modal.querySelector('.prose');
     content.innerHTML = `
         <div id="promptSection">
@@ -505,15 +508,15 @@ async function sendToChatGPT() {
         const responseSection = document.getElementById('responseSection');
         const gptResponse = document.getElementById('gptResponse');
         const customPrompt = document.getElementById('gptPrompt').value;
-        
+
         if (!customPrompt.trim()) {
             gptResponse.innerHTML = '<div class="text-red-600">Please enter a prompt</div>';
             return;
         }
-        
+
         responseSection.classList.remove('hidden');
         gptResponse.innerHTML = 'Loading response from ChatGPT...';
-        
+
         const response = await fetch('/api/chatgpt', {
             method: 'POST',
             headers: {
@@ -522,7 +525,7 @@ async function sendToChatGPT() {
             body: JSON.stringify({ prompt: customPrompt })
         });
         const data = await response.json();
-        
+
         if (data.success) {
             let response = data.response;
             // Remove quotes at start and end if they exist
@@ -553,14 +556,14 @@ async function showFunnyPrompt() {
     try {
         const response = await fetch('/prompts/funnyPrompt.md');
         const content = await response.text();
-        
+
         const modal = document.getElementById('inspirationModal');
         const body = document.body;
-        
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
-        
+
         const modalContent = modal.querySelector('.prose');
         modalContent.innerHTML = `
             <h2>Funny Prompt</h2>
@@ -596,11 +599,11 @@ window.copyFunnyPrompt = copyFunnyPrompt;
 async function showImagePrompt() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     body.style.overflow = 'hidden';
-    
+
     const modalContent = modal.querySelector('.prose');
     modalContent.innerHTML = `
         <h2>Generate Image</h2>
@@ -622,12 +625,12 @@ async function generateImage() {
     const imagePrompt = document.getElementById('imagePrompt').value;
     const imageResult = document.getElementById('imageResult');
     const generatedImage = document.getElementById('generatedImage');
-    
+
     if (!imagePrompt.trim()) {
         alert('Please enter an image description');
         return;
     }
-    
+
     try {
         imageResult.innerHTML = `
             <div class="text-gray-600">Generating image...</div>
@@ -636,7 +639,7 @@ async function generateImage() {
             </div>
         `;
         imageResult.classList.remove('hidden');
-        
+
         const response = await fetch('/api/generate-image', {
             method: 'POST',
             headers: {
@@ -644,10 +647,10 @@ async function generateImage() {
             },
             body: JSON.stringify({ prompt: imagePrompt })
         });
-        
+
         const data = await response.json();
         const generatedImage = document.getElementById('generatedImage');
-        
+
         if (data.success) {
             generatedImage.src = data.imageUrl;
             generatedImage.classList.remove('hidden');
@@ -662,3 +665,44 @@ async function generateImage() {
 
 window.showImagePrompt = showImagePrompt;
 window.generateImage = generateImage;
+
+function getSearchTweetHTML(tweet) {
+    const tweetDate = new Date(tweet.created_at);
+    return `
+        <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
+            <div class="flex justify-between items-start mb-2">
+                <div class="text-gray-700">${tweet.text}</div>
+                <div class="text-xs text-gray-500">${formatDate(tweetDate)}</div>
+            </div>
+            <div class="text-sm mt-2">
+                <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
+            </div>
+        </div>`;
+}
+
+async function displaySavedTweets() {
+    try {
+        document.body.style.cursor = 'wait';
+        const response = await fetch("/search/tweets");
+        const data = await response.json();
+
+        const tweetsDiv = document.getElementById("searchedTweets");
+        if (data.error) {
+            tweetsDiv.innerHTML = getErrorHTML(data);
+            return;
+        }
+
+        if (!data.data || data.data.length === 0) {
+            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
+            return;
+        }
+
+        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Found ${data.data.length} SaveSoil tweets</div>`;
+        tweetsDiv.innerHTML = statusMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    } catch (error) {
+        console.error("Error fetching saved tweets:", error);
+        document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
+    } finally {
+        document.body.style.cursor = 'default';
+    }
+}
