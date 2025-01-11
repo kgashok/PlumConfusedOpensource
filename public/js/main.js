@@ -220,7 +220,7 @@ async function fetchSearchedTweets() {
     }
 }
 
-function updateSearchedTweets(data) {
+async function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
     
     // Handle rate limit with stored tweets
@@ -236,7 +236,15 @@ function updateSearchedTweets(data) {
                 </div>
             </div>`;
         
-        displaySavedTweets(rateLimitMessage);
+        // Fetch stored tweets
+        const response = await fetch("/search/tweets?stored=true");
+        const storedData = await response.json();
+        
+        if (storedData.data && storedData.data.length > 0) {
+            tweetsDiv.innerHTML = rateLimitMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+        } else {
+            tweetsDiv.innerHTML = rateLimitMessage + '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
+        }
         return;
     }
 
