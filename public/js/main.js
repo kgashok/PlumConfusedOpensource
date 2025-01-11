@@ -469,15 +469,15 @@ async function toggleInspiration() {
                 content.innerHTML = '<p>Could not load international day information.</p>';
             }
 
+            // Keep the nearest day content
             content.innerHTML = `
-                <h2>Looking for Tweet Ideas?</h2>
-                <p>Here are the upcoming International Days:</p>
-                <ul>
-                    ${dates.map(date => `
-                        <li><strong>${date.displayDate}</strong> - ${date.title}</li>
-                    `).join('')}
-                </ul>
-                <p class="text-sm text-gray-500 mt-4">Share your thoughts about these important observances!</p>
+                <h2>Upcoming International Day</h2>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="font-medium text-lg mb-2">${date}</p>
+                    <p class="text-gray-700 mb-2">${nearestDay.theme}</p>
+                    ${nearestDay.url ? `<a href="${nearestDay.url}" target="_blank" class="text-blue-500 hover:text-blue-600">Learn more</a>` : ''}
+                </div>
+                <p class="text-sm text-gray-500 mt-4">Consider connecting this theme with soil conservation in your tweet!</p>
             `;
         } catch (error) {
             content.innerHTML = '<p>Error loading dates. Please try again later.</p>';
