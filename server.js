@@ -57,6 +57,7 @@ function getNearestDay(dates, targetDate) {
 
 app.get('/api/nearest-day', async (req, res) => {
     try {
+        // Get data from CSV
         const fileContent = await readFile('InternationalDays.csv', 'utf-8');
         const lines = fileContent.split('\n').filter(line => line.trim());
         const dates = [];
@@ -74,11 +75,24 @@ app.get('/api/nearest-day', async (req, res) => {
 
         const currentDate = new Date();
         const nearest = getNearestDay(dates, currentDate);
+
+        // Get suggestion from ChatGPT
+        const chatGPTPrompt = "Act as expert web scraping programmer. Given today's date, look up the information on https://www.internationaldays.org/ and fetch me the next nearest date with an International Theme/observance and the corresponding URL.";
+        
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [{"role": "user", "content": chatGPTPrompt}],
+        });
+
+        const chatGPTSuggestion = completion.choices[0].message.content;
         
         res.json({
-            date: nearest.date,
-            theme: nearest.theme,
-            url: nearest.url
+            csvData: {
+                date: nearest.date,
+                theme: nearest.theme,
+                url: nearest.url
+            },
+            aiSuggestion: chatGPTSuggestion
         });
     } catch (error) {
         console.error('Error finding nearest day:', error);

@@ -456,14 +456,26 @@ async function toggleInspiration() {
                     day: 'numeric'
                 });
 
+                const csvDate = new Date(nearestDay.csvData.date).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
                 content.innerHTML = `
-                    <h2>Upcoming International Day</h2>
-                    <div class="bg-blue-50 p-4 rounded-lg">
-                        <p class="font-medium text-lg mb-2">${date}</p>
-                        <p class="text-gray-700 mb-2">${nearestDay.theme}</p>
-                        ${nearestDay.url ? `<a href="${nearestDay.url}" target="_blank" class="text-blue-500 hover:text-blue-600">Learn more</a>` : ''}
+                    <h2>Upcoming International Days</h2>
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="font-bold mb-2">From Our Database:</h3>
+                            <p class="font-medium text-lg mb-2">${csvDate}</p>
+                            <p class="text-gray-700 mb-2">${nearestDay.csvData.theme}</p>
+                            ${nearestDay.csvData.url ? `<a href="${nearestDay.csvData.url}" target="_blank" class="text-blue-500 hover:text-blue-600">Learn more</a>` : ''}
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h3 class="font-bold mb-2">AI Suggestion:</h3>
+                            <p class="text-gray-700">${nearestDay.aiSuggestion}</p>
+                        </div>
                     </div>
-                    <p class="text-sm text-gray-500 mt-4">Consider connecting this theme with soil conservation in your tweet!</p>
+                    <p class="text-sm text-gray-500 mt-4">Consider connecting these themes with soil conservation in your tweet!</p>
                 `;
             } else {
                 content.innerHTML = '<p>Could not load international day information.</p>';
