@@ -222,15 +222,59 @@ async function fetchSearchedTweets() {
 
 function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
+    
+    // Handle rate limit with stored tweets
+    if (data.error && data.statusCode === 429) {
+        const minutes = Math.ceil(data.waitSeconds / 60);
+        const rateLimitMessage = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center text-yellow-700">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p>Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.</p>
+                </div>
+            </div>`;
+        
+        displaySavedTweets(rateLimitMessage);
+        return;
+    }
+
+    // Handle other errors
     if (data.error) {
         tweetsDiv.innerHTML = getErrorHTML(data);
         return;
     }
+
     if (!data.data || data.data.length === 0) {
         tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No tweets found.</p></div>`;
         return;
     }
+
     tweetsDiv.innerHTML = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+}
+
+async function displaySavedTweets(headerMessage = '') {
+    try {
+        document.body.style.cursor = 'wait';
+        const response = await fetch("/search/tweets?stored=true");
+        const data = await response.json();
+
+        const tweetsDiv = document.getElementById("searchedTweets");
+        
+        if (!data.data || data.data.length === 0) {
+            tweetsDiv.innerHTML = `${headerMessage}<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
+            return;
+        }
+
+        const statusMessage = `${headerMessage}<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Showing ${data.data.length} stored SaveSoil tweets from database</div>`;
+        tweetsDiv.innerHTML = statusMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    } catch (error) {
+        console.error("Error fetching saved tweets:", error);
+        document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
+    } finally {
+        document.body.style.cursor = 'default';
+    }
 }
 
 function getErrorHTML(data) {
