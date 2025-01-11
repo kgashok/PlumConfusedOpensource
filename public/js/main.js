@@ -421,17 +421,6 @@ window.toggleInfo = toggleInfo;
 
 
 // Inspiration modal functionality
-async function fetchNearestDay() {
-    try {
-        const response = await fetch('/api/nearest-day');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching nearest day:', error);
-        return null;
-    }
-}
-
 async function toggleInspiration() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
@@ -447,39 +436,19 @@ async function toggleInspiration() {
         body.style.overflow = 'hidden';
 
         try {
-            content.innerHTML = '<p>Loading nearest international day...</p>';
-            const nearestDay = await fetchNearestDay();
+            content.innerHTML = '<p>Loading dates...</p>';
+            const dates = await fetchUNDates();
 
-            if (nearestDay) {
-                const date = new Date(nearestDay.date).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                const csvDate = new Date(nearestDay.csvData.date).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric'
-                });
-                
-                content.innerHTML = `
-                    <h2>Upcoming International Days</h2>
-                    <div class="space-y-4">
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <h3 class="font-bold mb-2">From Our Database:</h3>
-                            <p class="font-medium text-lg mb-2">${csvDate}</p>
-                            <p class="text-gray-700 mb-2">${nearestDay.csvData.theme}</p>
-                            ${nearestDay.csvData.url ? `<a href="${nearestDay.csvData.url}" target="_blank" class="text-blue-500 hover:text-blue-600">Learn more</a>` : ''}
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <h3 class="font-bold mb-2">AI Suggestion:</h3>
-                            <p class="text-gray-700">${nearestDay.aiSuggestion}</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-4">Consider connecting these themes with soil conservation in your tweet!</p>
-                `;
-            } else {
-                content.innerHTML = '<p>Could not load international day information.</p>';
-            }
+            content.innerHTML = `
+                <h2>Looking for Tweet Ideas?</h2>
+                <p>Here are the upcoming International Days:</p>
+                <ul>
+                    ${dates.map(date => `
+                        <li><strong>${date.displayDate}</strong> - ${date.title}</li>
+                    `).join('')}
+                </ul>
+                <p class="text-sm text-gray-500 mt-4">Share your thoughts about these important observances!</p>
+            `;
         } catch (error) {
             content.innerHTML = '<p>Error loading dates. Please try again later.</p>';
         }
