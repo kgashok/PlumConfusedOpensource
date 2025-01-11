@@ -549,7 +549,7 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         const query = '#SaveSoil';
         const requestData = {
-            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username,name`,
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username`,
             method: 'GET'
         };
 
@@ -565,23 +565,21 @@ async function searchTweets(oauth_token, oauth_token_secret) {
             throwHttpErrors: false // Don't throw on HTTP errors
         });
 
-        // Log rate limit info but continue processing
+        // Handle rate limiting
         if (req.statusCode === 429) {
             const resetTime = req.headers['x-rate-limit-reset'];
             const waitSeconds = resetTime ? Math.ceil((new Date(resetTime * 1000) - new Date()) / 1000) : 900;
-            return {
-                error: 'Rate limit exceeded',
-                statusCode: 429,
-                waitSeconds: waitSeconds,
-                headers: req.headers
+            return { 
+                error: 'Rate limit exceeded', 
+                waitSeconds,
+                statusCode: 429
             };
         }
 
         if (req.statusCode !== 200) {
             return { 
                 error: `Twitter API error: ${req.statusCode}`,
-                statusCode: req.statusCode,
-                details: req.body
+                statusCode: req.statusCode
             };
         }
 
@@ -591,15 +589,13 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         // Store tweets in database
         for (const tweet of req.body.data) {
-            const user = req.body.includes?.users?.find(u => u.id === tweet.author_id);
             await pool.query(
-                'INSERT INTO searched_tweets (id, text, created_at, author_id, username, url) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING',
+                'INSERT INTO searched_tweets (id, text, created_at, author_id, url) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING',
                 [
                     tweet.id,
                     tweet.text,
                     new Date(tweet.created_at),
                     tweet.author_id,
-                    user?.username || tweet.author_id,
                     `https://twitter.com/i/web/status/${tweet.id}`
                 ]
             );
@@ -623,24 +619,22 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 // Add new endpoint to get searched tweets
 app.get('/search/tweets', async (req, res) => {
     try {
-        // If user is authenticated, fetch new tweets
-        if (req.session.user) {
-            const tweets = await searchTweets(
-                req.session.user.token,
-                req.session.user.token_secret
-            );
-            if (!tweets.error) {
-                return res.json(tweets);
-            }
+        const accessTokens = req.session.user; //Get access tokens from session
+        if (!accessTokens) {
+            return res.status(401).json({
+                success: false,
+                error: 'Not authenticated'
+            });
         }
-        
-        // Otherwise return tweets from database
-        const result = await pool.query(
-            'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
+
+        const tweets = await searchTweets(
+            accessTokens.token,
+            accessTokens.token_secret
         );
-        res.json({ data: result.rows });
+
+        res.json(tweets);
     } catch (e) {
-        console.error('Error fetching tweets:', e);
+        console.error('Error searching tweets:', e);
         res.status(500).json({
             success: false,
             error: e.message

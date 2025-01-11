@@ -61,15 +61,15 @@ function updateUserInfo(data) {
                     '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues" class="mt-2 block text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>'}
             </div>`;
             
-        // Enable refresh button for authorized users
+        // Enable refresh button and create image link for specific users
         const isAuthorizedUser = data.user.screen_name === 'lifebalance' || data.user.screen_name === 'savesoilkg';
         
+        // Enable refresh button for both users
         if (isAuthorizedUser) {
             refreshButton.disabled = false;
             refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.remove('hidden');
         } else {
-            // Only disable refresh for unauthorized users when logged in
             refreshButton.disabled = true;
             refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.add('hidden');
@@ -210,53 +210,13 @@ function getTweetHTML(tweet) {
 }
 
 // Search functionality
-function showSearchError(errorMessage = 'Error fetching tweets. Please try again later.') {
-    const tweetsDiv = document.getElementById("searchedTweets");
-    tweetsDiv.innerHTML = `
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div class="flex items-center">
-                <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                    <p class="text-red-700 font-medium">Failed to fetch tweets</p>
-                    <p class="text-red-600 text-sm mt-1">${errorMessage}</p>
-                </div>
-            </div>
-        </div>`;
-}
-
 async function fetchSearchedTweets() {
-    document.body.style.cursor = 'wait';
-    const refreshButton = document.getElementById('refreshButton');
-    refreshButton.style.cursor = 'wait';
     try {
         const response = await fetch("/search/tweets");
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to fetch tweets');
-        }
         const data = await response.json();
         updateSearchedTweets(data);
     } catch (error) {
-        console.error("Search tweets error:", error);
-        const errorMessage = error.message || 'An unexpected error occurred';
-        showSearchError(errorMessage);
-        
-        // Display error in UI
-        const tweetsDiv = document.getElementById("searchedTweets");
-        tweetsDiv.innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                <div class="flex items-center">
-                    <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p class="text-red-700">${errorMessage}</p>
-                </div>
-            </div>`;
-    } finally {
-        document.body.style.cursor = 'default';
-        refreshButton.style.cursor = 'pointer';
+        showSearchError();
     }
 }
 
@@ -270,38 +230,14 @@ function updateSearchedTweets(data) {
         tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No tweets found.</p></div>`;
         return;
     }
-    const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Successfully fetched ${data.data.length} tweets</div>`;
-    tweetsDiv.innerHTML = statusMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
-}
-
-function getSearchTweetHTML(tweet) {
-    return `
-        <div class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out">
-            <div class="flex justify-between items-start mb-2">
-                <div>
-                    <div class="text-sm text-blue-600 mb-1 font-medium">
-                        <span>@${tweet.username || tweet.name}</span>
-                        <span class="text-gray-500 ml-2">(ID: ${tweet.author_id})</span>
-                    </div>
-                    <div class="text-gray-700">${tweet.text}</div>
-                </div>
-                <div class="text-xs text-gray-500">
-                    ${formatDate(tweet.created_at)}
-                </div>
-            </div>
-            <div class="text-sm mt-2">
-                <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
-            </div>
-        </div>`;
+    tweetsDiv.innerHTML = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
 function getErrorHTML(data) {
     let errorMessage = data.error;
-    if (data.statusCode === 429 && data.waitSeconds) {
+    if (data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
         errorMessage = `Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? "s" : ""}.`;
-    } else if (data.statusCode === 429) {
-        errorMessage = 'Rate limit exceeded. Please try again later.';
     }
     return `
         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -432,7 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCurrentTime, 1000);
     checkAuthStatus();
     refreshHistory();
-    fetchSearchedTweets();
     
     // Restore draft tweet and image if they exist
     const draftTweet = localStorage.getItem('draftTweet');
@@ -481,7 +416,6 @@ window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
 window.deleteTweet = deleteTweet;
 window.logout = logout;
-window.toggleInfo = toggleInfo;
 
 // Inspiration modal functionality
 async function toggleInspiration() {
