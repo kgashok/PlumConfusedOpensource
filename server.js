@@ -36,6 +36,56 @@ const openai = new OpenAI({
 });
 
 // UN Dates API endpoint
+function parseCSVDate(dateStr) {
+    const [day, month] = dateStr.split(',')[0].split(' ');
+    return new Date(new Date().getFullYear(), new Date(`${month} 1`).getMonth(), parseInt(day));
+}
+
+function getNearestDay(dates, targetDate) {
+    let nearest = dates[0];
+    let minDiff = Math.abs(new Date(nearest.date) - targetDate);
+
+    for (const day of dates) {
+        const diff = Math.abs(new Date(day.date) - targetDate);
+        if (diff < minDiff) {
+            minDiff = diff;
+            nearest = day;
+        }
+    }
+    return nearest;
+}
+
+app.get('/api/nearest-day', async (req, res) => {
+    try {
+        const fileContent = await readFile('InternationalDays.csv', 'utf-8');
+        const lines = fileContent.split('\n').filter(line => line.trim());
+        const dates = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const [date, theme, url] = lines[i].split(',');
+            if (date && date.trim()) {
+                dates.push({
+                    date: parseCSVDate(date),
+                    theme: theme?.trim() || '',
+                    url: url?.trim() || ''
+                });
+            }
+        }
+
+        const currentDate = new Date();
+        const nearest = getNearestDay(dates, currentDate);
+        
+        res.json({
+            date: nearest.date,
+            theme: nearest.theme,
+            url: nearest.url
+        });
+    } catch (error) {
+        console.error('Error finding nearest day:', error);
+        res.status(500).json({ error: 'Failed to find nearest international day' });
+    }
+});
+
 app.get('/api/un-dates', async (req, res) => {
     try {
         const response = await fetch('https://www.un.org/en/observances/list-days-weeks');

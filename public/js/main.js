@@ -421,6 +421,17 @@ window.toggleInfo = toggleInfo;
 
 
 // Inspiration modal functionality
+async function fetchNearestDay() {
+    try {
+        const response = await fetch('/api/nearest-day');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching nearest day:', error);
+        return null;
+    }
+}
+
 async function toggleInspiration() {
     const modal = document.getElementById('inspirationModal');
     const body = document.body;
@@ -436,8 +447,27 @@ async function toggleInspiration() {
         body.style.overflow = 'hidden';
 
         try {
-            content.innerHTML = '<p>Loading dates...</p>';
-            const dates = await fetchUNDates();
+            content.innerHTML = '<p>Loading nearest international day...</p>';
+            const nearestDay = await fetchNearestDay();
+            
+            if (nearestDay) {
+                const date = new Date(nearestDay.date).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                content.innerHTML = `
+                    <h2>Upcoming International Day</h2>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="font-medium text-lg mb-2">${date}</p>
+                        <p class="text-gray-700 mb-2">${nearestDay.theme}</p>
+                        ${nearestDay.url ? `<a href="${nearestDay.url}" target="_blank" class="text-blue-500 hover:text-blue-600">Learn more</a>` : ''}
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">Consider connecting this theme with soil conservation in your tweet!</p>
+                `;
+            } else {
+                content.innerHTML = '<p>Could not load international day information.</p>';
+            }
 
             content.innerHTML = `
                 <h2>Looking for Tweet Ideas?</h2>
