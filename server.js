@@ -619,6 +619,15 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 // Add new endpoint to get searched tweets
 app.get('/search/tweets', async (req, res) => {
     try {
+        // For stored tweets, don't require authentication
+        if (req.query.stored === 'true') {
+            const result = await pool.query(
+                'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
+            );
+            return res.json({ data: result.rows });
+        }
+
+        // Require authentication for live Twitter API calls
         const accessTokens = req.session.user;
         if (!accessTokens) {
             return res.status(401).json({
@@ -626,8 +635,6 @@ app.get('/search/tweets', async (req, res) => {
                 error: 'Not authenticated'
             });
         }
-
-        // If stored=true or we hit rate limit, return stored tweets
         if (req.query.stored === 'true') {
             const result = await pool.query(
                 'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'

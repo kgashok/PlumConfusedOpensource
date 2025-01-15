@@ -735,7 +735,8 @@ function getSearchTweetHTML(tweet) {
 async function displaySavedTweets() {
     try {
         document.body.style.cursor = 'wait';
-        const response = await fetch("/search/tweets");
+        // Try to get stored tweets directly first
+        const response = await fetch("/search/tweets?stored=true");
         const data = await response.json();
 
         const tweetsDiv = document.getElementById("searchedTweets");
