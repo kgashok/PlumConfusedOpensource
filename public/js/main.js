@@ -725,7 +725,12 @@ function getSearchTweetHTML(tweet) {
     return `
         <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
             <div class="flex justify-between items-start mb-2">
-                <div class="text-gray-700">${tweet.text}</div>
+                <div>
+                    <div class="text-sm text-blue-600 hover:text-blue-700 mb-2">
+                        <a href="https://x.com/${tweet.author_id}" target="_blank" class="transition-colors">@${tweet.author_id}</a>
+                    </div>
+                    <div class="text-gray-700">${tweet.text}</div>
+                </div>
                 <div class="text-xs text-gray-500">${formatDate(tweetDate)}</div>
             </div>
             <div class="text-sm mt-2">
