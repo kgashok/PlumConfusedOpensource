@@ -7,6 +7,14 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
+### February 2025
+- Added busy cursor state for fetch operations
+- Enhanced error handling for tweet operations
+- Improved screen_name display and linking 
+- Added persistent database storage for searched tweets
+- Modified tweet UI to show proper author information
+- Updated search functionality to handle rate limiting gracefully
+
 ### Jan 2025
 - Added UN International Days integration
 - Implemented funny prompt feature
