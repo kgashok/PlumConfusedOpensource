@@ -188,8 +188,10 @@ function getTweetHTML(tweet) {
         <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
             <div class="flex justify-between items-start mb-2">
                 <div>
-                    <div class="text-sm ${isCurrentUser ? 'text-green-600' : 'text-blue-600'} mb-1 font-medium">
-                        @${tweet.screen_name} ${isCurrentUser ? '(you)' : ''}
+                    <div class="text-sm mb-1 font-medium">
+                        <a href="https://x.com/${tweet.screen_name}" target="_blank" class="${isCurrentUser ? 'text-green-600 hover:text-green-700' : 'text-blue-600 hover:text-blue-700'} transition-colors">
+                            @${tweet.screen_name} ${isCurrentUser ? '(you)' : ''}
+                        </a>
                     </div>
                     <div class="text-gray-700">${tweet.text}</div>
                 </div>
