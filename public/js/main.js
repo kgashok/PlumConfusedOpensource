@@ -214,11 +214,21 @@ function getTweetHTML(tweet) {
 // Search functionality
 async function fetchSearchedTweets() {
     try {
+        document.body.style.cursor = 'wait';
+        const refreshButton = document.getElementById('refreshButton');
+        refreshButton.disabled = true;
+        refreshButton.style.cursor = 'wait';
+        
         const response = await fetch("/search/tweets");
         const data = await response.json();
         updateSearchedTweets(data);
     } catch (error) {
         showSearchError();
+    } finally {
+        document.body.style.cursor = 'default';
+        const refreshButton = document.getElementById('refreshButton');
+        refreshButton.disabled = false;
+        refreshButton.style.cursor = 'pointer';
     }
 }
 
