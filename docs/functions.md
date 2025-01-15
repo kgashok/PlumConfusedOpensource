@@ -93,29 +93,38 @@ Fetches and displays tweet history.
 - Calls `/tweet/history` endpoint
 - Updates tweet history display
 - Called after posting/deleting tweets
-- Now includes database persistence
+- Implements database persistence
+- Includes error handling for failed fetches
 
 ### `updateTweetHistory(history)`
 Updates the tweet history UI.
 - Parameters: Array of tweet objects
 - Renders empty state if no tweets
 - Displays tweets in chronological order
-- Includes delete functionality
+- Shows clickable Twitter handles
+- Handles tweet deletion with visual feedback
+- Supports profile page linking
 
 ### `deleteTweet(tweetId)`
 Handles tweet deletion.
 - Parameters: Tweet ID
 - Calls `/tweet/:id` DELETE endpoint
 - Updates database status
-- Refreshes history on success
-- Includes visual feedback
+- Shows deletion animation
+- Adds deletion indicator in UI
+- Auto-refreshes history after delay
+- Includes error handling
 
 ### `postTweet()`
 Handles new tweet creation.
 - Gets text from "tweetText" input
-- Calls `/tweet` POST endpoint
-- Stores in database
-- Clears input and refreshes history on success
+- Validates input content
+- Supports image attachments
+- Handles draft persistence
+- Shows character count
+- Implements error feedback
+- Manages authentication state
+- Auto-refreshes on success
 
 ## Search Functions
 
@@ -139,30 +148,35 @@ Updates the search results UI.
 1. User clicks "Authenticate with Twitter"
 2. Frontend: `startAuth()` → Backend: `/auth/twitter`
 3. Twitter OAuth flow through `/callback`
-4. Session creation and storage
+4. Session creation with user info storage
 5. Status check: `checkAuthStatus()` → `/auth/status`
 
 ### Tweet Operations Flow
 1. Posting Tweet:
    - Frontend: `postTweet()` → Backend: POST `/tweet`
-   - Server stores tweet in database
-   - Frontend refreshes display
+   - Supports multipart/form-data for images
+   - Server stores tweet and media in database
+   - Returns tweet URL and metadata
+   - Frontend shows success/error feedback
 
 2. Deleting Tweet:
    - Frontend: `deleteTweet()` → Backend: DELETE `/tweet/:id`
-   - Server updates database
-   - Frontend updates display
+   - Server validates ownership
+   - Updates database with soft delete
+   - Frontend shows deletion animation
 
 ### Search Flow
-1. User clicks refresh
+1. User clicks "Fetch latest" with busy cursor
 2. Frontend: `fetchSearchedTweets()` → Backend: GET `/search/tweets`
 3. Server queries Twitter API with rate limiting
-4. Results stored in database
-5. Frontend displays results or error
+4. Results cached in database with screen_name
+5. Fallback to stored tweets during rate limits
+6. Frontend displays results with error handling
 
 ### Error Handling
-- Frontend maintains error history
-- Server sends detailed error responses
-- Rate limiting handled on both ends
+- Frontend maintains error history queue
+- Server implements comprehensive error types
+- Rate limiting with countdown display
 - Enhanced session validation
-- Database error handling
+- Database transaction management
+- Graceful degradation strategies
