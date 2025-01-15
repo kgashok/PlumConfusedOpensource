@@ -727,7 +727,7 @@ function getSearchTweetHTML(tweet) {
             <div class="flex justify-between items-start mb-2">
                 <div>
                     <div class="text-sm text-blue-600 hover:text-blue-700 mb-2">
-                        <a href="https://x.com/${tweet.author_id}" target="_blank" class="transition-colors">@${tweet.author_id}</a>
+                        <a href="https://twitter.com/${tweet.screen_name || tweet.author_id}" target="_blank" class="transition-colors">@${tweet.screen_name || tweet.author_id}</a>
                     </div>
                     <div class="text-gray-700">${tweet.text}</div>
                 </div>

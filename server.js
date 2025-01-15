@@ -549,7 +549,7 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         const query = '#SaveSoil';
         const requestData = {
-            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username`,
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id,text&expansions=author_id&user.fields=username,screen_name`,
             method: 'GET'
         };
 
@@ -589,13 +589,16 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         // Store tweets in database
         for (const tweet of req.body.data) {
+            const user = req.body.includes?.users?.find(u => u.id === tweet.author_id);
+            const screen_name = user ? user.username : tweet.author_id;
             await pool.query(
-                'INSERT INTO searched_tweets (id, text, created_at, author_id, url) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING',
+                'INSERT INTO searched_tweets (id, text, created_at, author_id, screen_name, url) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING',
                 [
                     tweet.id,
                     tweet.text,
                     new Date(tweet.created_at),
                     tweet.author_id,
+                    screen_name,
                     `https://twitter.com/i/web/status/${tweet.id}`
                 ]
             );
