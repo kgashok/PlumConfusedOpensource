@@ -218,7 +218,8 @@ async function fetchSearchedTweets() {
         const refreshButton = document.getElementById('refreshButton');
         refreshButton.disabled = true;
         refreshButton.style.cursor = 'wait';
-        refreshButton.classList.add('cursor-wait');
+        refreshButton.classList.add('cursor-wait', 'pointer-events-none', 'opacity-50');
+        refreshButton.style.touchAction = 'none';
         
         const response = await fetch("/search/tweets");
         const data = await response.json();
@@ -230,7 +231,8 @@ async function fetchSearchedTweets() {
         const refreshButton = document.getElementById('refreshButton');
         refreshButton.disabled = false;
         refreshButton.style.cursor = 'pointer';
-        refreshButton.classList.remove('cursor-wait');
+        refreshButton.classList.remove('cursor-wait', 'pointer-events-none', 'opacity-50');
+        refreshButton.style.touchAction = 'auto';
     }
 }
 
