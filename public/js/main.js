@@ -161,7 +161,7 @@ function updateSearchedTweets(data) {
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
-        const rateLimitMessage = `
+        content = `
             <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <div class="flex items-center text-yellow-700">
                     <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -170,8 +170,6 @@ function updateSearchedTweets(data) {
                     <p>Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.</p>
                 </div>
             </div>`;
-        
-        content = rateLimitMessage;
         
         // Fetch stored tweets
         fetch("/search/tweets?stored=true")
@@ -184,7 +182,6 @@ function updateSearchedTweets(data) {
                 }
                 document.getElementById('savesoilContent').innerHTML = content;
             });
-        
     } else if (data.error) {
         content = getErrorHTML(data);
     } else if (!data.data || data.data.length === 0) {
@@ -201,10 +198,16 @@ function updateSearchedTweets(data) {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
         </div>
-        <div id="savesoilContent" class="transition-all duration-300">
+        <div id="savesoilContent" class="transition-all duration-300 hidden">
             ${content}
         </div>
     `;
+
+    // Make sure the arrow is rotated correctly
+    const arrow = document.getElementById('savesoilArrow');
+    if (arrow) {
+        arrow.style.transform = 'rotate(180deg)';
+    }
     
     // Initialize collapsed state
     const savesoilContent = document.getElementById('savesoilContent');
