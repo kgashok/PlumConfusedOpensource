@@ -156,7 +156,6 @@ function updateTweetHistory(history) {
 
 function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
-    
     let content = '';
     
     // Handle rate limit with stored tweets
@@ -206,6 +205,16 @@ function updateSearchedTweets(data) {
             ${content}
         </div>
     `;
+    
+    // Initialize collapsed state
+    const savesoilContent = document.getElementById('savesoilContent');
+    if (savesoilContent) {
+        savesoilContent.classList.add('hidden');
+        const arrow = document.getElementById('savesoilArrow');
+        if (arrow) {
+            arrow.style.transform = 'rotate(180deg)';
+        }
+    }
 }
 
 // Add toggle function
