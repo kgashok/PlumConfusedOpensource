@@ -158,6 +158,16 @@ function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
     let content = '';
     
+    // Create header section
+    const headerSection = `
+        <div class="flex justify-between items-center mb-4 bg-gray-50 p-3 rounded-lg cursor-pointer" 
+             onclick="toggleSection('savesoilContent')">
+            <h2 class="text-lg font-semibold">SaveSoil Tweets</h2>
+            <svg class="w-5 h-5 transform transition-transform duration-200" id="savesoilArrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </div>`;
+
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
@@ -191,13 +201,7 @@ function updateSearchedTweets(data) {
     }
 
     tweetsDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-4 bg-gray-50 p-3 rounded-lg cursor-pointer" 
-             onclick="toggleSection('savesoilContent')">
-            <h2 class="text-lg font-semibold">SaveSoil Tweets</h2>
-            <svg class="w-5 h-5 transform transition-transform duration-200" id="savesoilArrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        </div>
+        ${headerSection}
         <div id="savesoilContent" class="transition-all duration-300 hidden">
             ${content}
         </div>
