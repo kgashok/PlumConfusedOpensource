@@ -425,6 +425,20 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Toggle section functionality
+function toggleSection(sectionId) {
+    const content = document.getElementById(sectionId);
+    const arrow = sectionId === 'tweetHistory' ? document.getElementById('historyArrow') : document.getElementById('savesoilArrow');
+    
+    if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.style.transform = 'rotate(0deg)';
+    } else {
+        content.classList.add('hidden');
+        arrow.style.transform = 'rotate(180deg)';
+    }
+}
+
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
     initCharCounter();
