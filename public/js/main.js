@@ -138,12 +138,87 @@ async function refreshHistory() {
 
 function updateTweetHistory(history) {
     const historyDiv = document.getElementById("tweetHistory");
-    if (history.length === 0) {
-        historyDiv.innerHTML = getEmptyHistoryHTML();
-        return;
-    }
-    historyDiv.innerHTML = history.map(tweet => getTweetHTML(tweet)).join("");
+    const content = history.length === 0 ? getEmptyHistoryHTML() : history.map(tweet => getTweetHTML(tweet)).join("");
+    
+    historyDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-4 bg-gray-50 p-3 rounded-lg cursor-pointer" 
+             onclick="toggleSection('historyContent')">
+            <h2 class="text-lg font-semibold">Tweet History</h2>
+            <svg class="w-5 h-5 transform transition-transform duration-200" id="historyArrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </div>
+        <div id="historyContent" class="transition-all duration-300">
+            ${content}
+        </div>
+    `;
 }
+
+function updateSearchedTweets(data) {
+    const tweetsDiv = document.getElementById("searchedTweets");
+    
+    let content = '';
+    
+    // Handle rate limit with stored tweets
+    if (data.error && data.statusCode === 429) {
+        const minutes = Math.ceil(data.waitSeconds / 60);
+        const rateLimitMessage = `
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center text-yellow-700">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p>Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.</p>
+                </div>
+            </div>`;
+        
+        content = rateLimitMessage;
+        
+        // Fetch stored tweets
+        fetch("/search/tweets?stored=true")
+            .then(response => response.json())
+            .then(storedData => {
+                if (storedData.data && storedData.data.length > 0) {
+                    content += storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+                } else {
+                    content += '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
+                }
+                document.getElementById('savesoilContent').innerHTML = content;
+            });
+        
+    } else if (data.error) {
+        content = getErrorHTML(data);
+    } else if (!data.data || data.data.length === 0) {
+        content = '<div class="text-gray-500 text-center py-8"><p>No tweets found.</p></div>';
+    } else {
+        content = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    }
+
+    tweetsDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-4 bg-gray-50 p-3 rounded-lg cursor-pointer" 
+             onclick="toggleSection('savesoilContent')">
+            <h2 class="text-lg font-semibold">SaveSoil Tweets</h2>
+            <svg class="w-5 h-5 transform transition-transform duration-200" id="savesoilArrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </div>
+        <div id="savesoilContent" class="transition-all duration-300">
+            ${content}
+        </div>
+    `;
+}
+
+// Add toggle function
+function toggleSection(contentId) {
+    const content = document.getElementById(contentId);
+    const arrow = document.getElementById(contentId.replace('Content', 'Arrow'));
+    
+    content.classList.toggle('hidden');
+    arrow.style.transform = content.classList.contains('hidden') ? 'rotate(180deg)' : '';
+}
+
+// Make toggleSection available globally
+window.toggleSection = toggleSection;
 
 function getEmptyHistoryHTML() {
     return `
