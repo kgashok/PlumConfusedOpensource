@@ -1,4 +1,3 @@
-404: Not Found
 CREATE TABLE IF NOT EXISTS retweets (
     id SERIAL PRIMARY KEY,
     original_tweet_id VARCHAR(255) NOT NULL,
