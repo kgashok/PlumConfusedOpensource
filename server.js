@@ -798,7 +798,7 @@ app.post('/retweet/:tweetId', async (req, res) => {
         await pool.query(
             'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
             [
-                retweetResponse.data.retweeted_tweet_id,
+                tweetId,
                 tweetText,
                 new Date().toISOString(),
                 `https://twitter.com/i/web/status/${tweetId}`,
