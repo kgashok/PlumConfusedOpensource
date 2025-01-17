@@ -528,7 +528,7 @@ async function repostTweet(tweetId) {
         const authResponse = await fetch("/auth/status");
         const authData = await authResponse.json();
         
-        if (!authData.authenticated) {
+        if (!authData.authenticated || !authData.user) {
             window.location.href = "/auth/twitter";
             return;
         }
@@ -537,8 +537,14 @@ async function repostTweet(tweetId) {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            credentials: 'same-origin'
         });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to repost tweet');
+        }
 
         const data = await response.json();
         if (data.success) {
