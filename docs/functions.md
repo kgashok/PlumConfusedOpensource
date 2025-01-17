@@ -7,6 +7,14 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
+### March 2025
+- Added retweet functionality with database persistence
+- Implemented tweet URL display after successful repost
+- Enhanced error handling for database operations
+- Added retweets table for tracking repost history
+- Improved success message display with clickable tweet links
+- Updated tweet history to include reposted content
+
 ### February 2025
 - Added busy cursor state for fetch operations
 - Enhanced error handling for tweet operations
