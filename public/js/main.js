@@ -492,14 +492,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check URL parameters safely
     try {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has("success")) {
+        if (urlParams.get("success") === "true") {
             showAuthStatus(true, "Successfully authenticated with Twitter!");
         } else if (urlParams.has("error")) {
             const error = urlParams.get("error");
             if (error) {
                 showAuthStatus(false, decodeURIComponent(error));
                 // Prevent the status from being overridden
-                clearTimeout(window.authCheckTimeout);
+                if (window.authCheckTimeout) {
+                    clearTimeout(window.authCheckTimeout);
+                }
             }
         }
     } catch (error) {
