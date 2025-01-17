@@ -221,11 +221,34 @@ async function fetchSearchedTweets() {
         refreshButton.classList.add('cursor-wait', 'pointer-events-none', 'opacity-50');
         refreshButton.style.touchAction = 'none';
         
-        const response = await fetch("/search/tweets");
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await fetch("/search/tweets", {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         updateSearchedTweets(data);
     } catch (error) {
-        showSearchError();
+        console.error('Fetch error:', error);
+        // Display stored tweets if available
+        try {
+            const storedResponse = await fetch("/search/tweets?stored=true");
+            const storedData = await storedResponse.json();
+            if (storedData.data && storedData.data.length > 0) {
+                const errorMessage = `<div class="bg-yellow-50 text-yellow-700 p-3 rounded-lg mb-4">Failed to fetch new tweets. Showing stored tweets.</div>`;
+                updateSearchedTweets(storedData, errorMessage);
+            } else {
+                showSearchError();
+            }
+        } catch (e) {
+            showSearchError();
+        }
     } finally {
         document.body.style.cursor = 'default';
         const refreshButton = document.getElementById('refreshButton');
