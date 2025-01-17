@@ -99,9 +99,10 @@ Manages authentication status display.
 Fetches and displays tweet history.
 - Calls `/tweet/history` endpoint
 - Updates tweet history display
-- Called after posting/deleting tweets
+- Called after posting/deleting/retweeting
 - Implements database persistence
 - Includes error handling for failed fetches
+- Shows reposted tweets in history
 
 ### `updateTweetHistory(history)`
 Updates the tweet history UI.
@@ -111,6 +112,7 @@ Updates the tweet history UI.
 - Shows clickable Twitter handles
 - Handles tweet deletion with visual feedback
 - Supports profile page linking
+- Displays repost status and links
 
 ### `deleteTweet(tweetId)`
 Handles tweet deletion.
@@ -132,6 +134,16 @@ Handles new tweet creation.
 - Implements error feedback
 - Manages authentication state
 - Auto-refreshes on success
+
+### `repostTweet(tweetId)`
+Handles retweeting functionality.
+- Parameters: Tweet ID
+- Calls `/retweet/:tweetId` endpoint
+- Shows success message with tweet URL
+- Updates tweet history
+- Handles API rate limits
+- Manages database persistence
+- Includes error handling
 
 ## Search Functions
 
@@ -171,6 +183,14 @@ Updates the search results UI.
    - Server validates ownership
    - Updates database with soft delete
    - Frontend shows deletion animation
+
+3. Retweeting:
+   - Frontend: `repostTweet()` → Backend: POST `/retweet/:tweetId`
+   - Server validates authentication
+   - Stores retweet in retweets table
+   - Updates tweet history
+   - Shows success message with URL
+   - Handles rate limiting and errors
 
 ### Search Flow
 1. User clicks "Fetch latest" with busy cursor
