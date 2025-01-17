@@ -220,15 +220,15 @@ async function fetchSearchedTweets() {
         refreshButton.style.cursor = 'wait';
         refreshButton.classList.add('cursor-wait', 'pointer-events-none', 'opacity-50');
         refreshButton.style.touchAction = 'none';
-
+        
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
+        
         const response = await fetch("/search/tweets", {
             signal: controller.signal
         });
         clearTimeout(timeoutId);
-
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -261,7 +261,7 @@ async function fetchSearchedTweets() {
 
 async function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
-
+    
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
@@ -274,11 +274,11 @@ async function updateSearchedTweets(data) {
                     <p>Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.</p>
                 </div>
             </div>`;
-
+        
         // Fetch stored tweets
         const response = await fetch("/search/tweets?stored=true");
         const storedData = await response.json();
-
+        
         if (storedData.data && storedData.data.length > 0) {
             tweetsDiv.innerHTML = rateLimitMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
         } else {
@@ -308,7 +308,7 @@ async function displaySavedTweets(headerMessage = '') {
         const data = await response.json();
 
         const tweetsDiv = document.getElementById("searchedTweets");
-
+        
         if (!data.data || data.data.length === 0) {
             tweetsDiv.innerHTML = `${headerMessage}<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
             return;
@@ -456,7 +456,7 @@ document.addEventListener('click', (e) => {
 function toggleSection(sectionId) {
     const content = document.getElementById(sectionId);
     const arrow = sectionId === 'tweetHistory' ? document.getElementById('historyArrow') : document.getElementById('savesoilArrow');
-
+    
     if (content.classList.contains('hidden')) {
         content.classList.remove('hidden');
         arrow.style.transform = 'rotate(0deg)';
@@ -491,19 +491,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check URL parameters safely
     try {
-        const search = window.location.search.replace(/[?&]success=true/, '');
-        const urlParams = new URLSearchParams(search);
-        
-        if (window.location.search.includes('success=true')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("success")) {
             showAuthStatus(true, "Successfully authenticated with Twitter!");
         } else if (urlParams.has("error")) {
             const error = urlParams.get("error");
             if (error) {
                 showAuthStatus(false, decodeURIComponent(error));
                 // Prevent the status from being overridden
-                if (window.authCheckTimeout) {
-                    clearTimeout(window.authCheckTimeout);
-                }
+                clearTimeout(window.authCheckTimeout);
             }
         }
     } catch (error) {
@@ -539,14 +535,6 @@ async function repostTweet(text) {
         const data = await response.json();
         if (data.success) {
             refreshHistory();
-            const tweetElement = document.querySelector(`[data-tweet-id="${data.tweet.id}"]`);
-            if (tweetElement) {
-                const successDiv = document.createElement('div');
-                successDiv.className = 'text-green-600 text-sm mt-2';
-                successDiv.textContent = 'Reposted successfully';
-                tweetElement.appendChild(successDiv);
-                setTimeout(() => successDiv.remove(), 3000); // Remove after 3 seconds
-            }
         } else if (data.error === 'Not authenticated. Please authorize first.') {
             window.location.href = "/auth/twitter";
         } else {
