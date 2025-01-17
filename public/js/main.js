@@ -522,14 +522,10 @@ async function logout() {
 }
 
 // Export functions needed by HTML
-async function repostTweet(text) {
+async function repostTweet(tweetId) {
     try {
-        const response = await fetch("/tweet", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ text })
+        const response = await fetch(`/retweet/${tweetId}`, {
+            method: "POST"
         });
 
         const data = await response.json();
@@ -828,7 +824,7 @@ function getSearchTweetHTML(tweet) {
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <div class="text-xs text-gray-500">${formatDate(tweetDate)}</div>
-                    <button onclick="repostTweet('${tweet.text}')" class="text-green-500 hover:text-green-600 transition-colors flex items-center gap-1">
+                    <button onclick="repostTweet('${tweet.id}')" class="text-green-500 hover:text-green-600 transition-colors flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>

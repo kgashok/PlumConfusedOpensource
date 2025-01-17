@@ -42,26 +42,26 @@ app.get('/api/un-dates', async (req, res) => {
         const html = await response.text();
         const dom = new JSDOM(html);
         const document = dom.window.document;
-        
+
         const dates = [];
         const currentDate = new Date();
-        
+
         // Parse dates from the page
         const elements = document.querySelectorAll('.views-row');
         elements.forEach(element => {
             const dateText = element.textContent.trim();
             const match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
-            
+
             if (match) {
                 const day = parseInt(match[1]);
                 const month = new Date(`${match[2]} 1`).getMonth();
                 const title = dateText.split('—')[1]?.trim() || dateText;
-                
+
                 let dateObj = new Date(currentDate.getFullYear(), month, day);
                 if (dateObj < currentDate) {
                     dateObj = new Date(currentDate.getFullYear() + 1, month, day);
                 }
-                
+
                 dates.push({
                     date: dateObj,
                     title: title,
@@ -69,10 +69,10 @@ app.get('/api/un-dates', async (req, res) => {
                 });
             }
         });
-        
+
         // Sort by closest upcoming dates
         dates.sort((a, b) => a.date - b.date);
-        
+
         // Return the two closest dates
         res.json(dates.slice(0, 2));
     } catch (error) {
@@ -226,12 +226,44 @@ async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
     }
 }
 
+async function retweetTweet(oauth_token, oauth_token_secret, tweet_id) {
+    const token = {
+        key: oauth_token,
+        secret: oauth_token_secret
+    };
+
+    const requestData = {
+        url: `https://api.twitter.com/2/users/${token.key}/retweets`,
+        method: 'POST'
+    };
+
+    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+    const req = await got.post(requestData.url, {
+        json: { tweet_id: tweet_id },
+        responseType: 'json',
+        headers: {
+            Authorization: authHeader["Authorization"],
+            'user-agent': "v2RetweetJS",
+            'content-type': "application/json",
+            'accept': "application/json"
+        },
+        throwHttpErrors: false
+    });
+
+    if (req.statusCode !== 200) {
+        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+    }
+
+    return req.body;
+}
+
 async function postTweet(oauth_token, oauth_token_secret, tweetText, imageBuffer) {
     const token = {
         key: oauth_token,
         secret: oauth_token_secret
     };
-    
+
     // Upload image first if provided
     let mediaId = null;
     if (imageBuffer) {
@@ -430,7 +462,7 @@ app.post('/tweet', upload.single('image'), async (req, res) => {
         const errorMessage = e.message.includes('Twitter API error:') 
             ? JSON.parse(e.message.replace('Twitter API error: ', '')).detail
             : e.message;
-            
+
         res.status(500).json({   
             success: false,   
             error: errorMessage   
@@ -466,7 +498,7 @@ app.get('/tweet/history', async (req, res) => {
     }
 });  
 
-  
+
 
 app.listen(3000, '0.0.0.0', () => {
     console.log('Server running on port 3000');
@@ -705,7 +737,7 @@ app.post('/api/chatgpt', async (req, res) => {
         error: 'Prompt is required'
       });
     }
-    
+
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{"role": "user", "content": prompt}],
@@ -729,4 +761,29 @@ app.post('/api/chatgpt', async (req, res) => {
       });
     }
   }
+});
+
+//New Retweet Endpoint
+app.post('/retweet/:tweetId', async (req, res) => {
+    try {
+        const { tweetId } = req.params;
+        const accessTokens = req.session.user;
+
+        if (!accessTokens) {
+            return res.status(401).json({ success: false, error: 'Not authenticated' });
+        }
+
+        const retweetResponse = await retweetTweet(accessTokens.token, accessTokens.token_secret, tweetId);
+
+        //Store retweet in database (Adapt as needed for your schema)
+        await pool.query(
+            'INSERT INTO retweets (original_tweet_id, user_id, timestamp) VALUES ($1, $2, $3)',
+            [tweetId, accessTokens.id, new Date().toISOString()]
+        );
+
+        res.json({ success: true, retweetResponse });
+    } catch (error) {
+        console.error('Error retweeting:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
