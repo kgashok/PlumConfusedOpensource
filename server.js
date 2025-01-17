@@ -234,7 +234,8 @@ async function retweetTweet(oauth_token, oauth_token_secret, tweet_id) {
 
     const requestData = {
         url: `https://api.twitter.com/2/users/${token.key}/retweets`,
-        method: 'POST'
+        method: 'POST',
+        data: { tweet_id }
     };
 
     const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
