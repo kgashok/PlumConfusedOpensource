@@ -489,15 +489,21 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('selectedImage').classList.remove('hidden');
     }
 
-    // Check URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("success")) {
-        showAuthStatus(true, "Successfully authenticated with Twitter!");
-    } else if (urlParams.has("error")) {
-        const error = decodeURIComponent(urlParams.get("error"));
-        showAuthStatus(false, error);
-        // Prevent the status from being overridden
-        clearTimeout(window.authCheckTimeout);
+    // Check URL parameters safely
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("success")) {
+            showAuthStatus(true, "Successfully authenticated with Twitter!");
+        } else if (urlParams.has("error")) {
+            const error = urlParams.get("error");
+            if (error) {
+                showAuthStatus(false, decodeURIComponent(error));
+                // Prevent the status from being overridden
+                clearTimeout(window.authCheckTimeout);
+            }
+        }
+    } catch (error) {
+        console.error("Error parsing URL parameters:", error);
     }
 });
 
