@@ -226,22 +226,21 @@ async function accessToken(oauth_token, oauth_token_secret, oauth_verifier) {
     }
 }
 
-async function retweetTweet(oauth_token, oauth_token_secret, tweet_id) {
+async function retweetTweet(oauth_token, oauth_token_secret, tweet_id, user_id) {
     const token = {
         key: oauth_token,
         secret: oauth_token_secret
     };
 
     const requestData = {
-        url: `https://api.twitter.com/2/users/${token.key}/retweets`,
-        method: 'POST',
-        data: { tweet_id }
+        url: `https://api.twitter.com/2/users/${user_id}/retweets`,
+        method: 'POST'
     };
 
     const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
 
     const req = await got.post(requestData.url, {
-        json: { tweet_id: tweet_id },
+        json: { tweet_id },
         responseType: 'json',
         headers: {
             Authorization: authHeader["Authorization"],
@@ -774,7 +773,12 @@ app.post('/retweet/:tweetId', async (req, res) => {
             return res.status(401).json({ success: false, error: 'Not authenticated' });
         }
 
-        const retweetResponse = await retweetTweet(accessTokens.token, accessTokens.token_secret, tweetId);
+        const retweetResponse = await retweetTweet(
+            accessTokens.token, 
+            accessTokens.token_secret, 
+            tweetId,
+            accessTokens.id
+        );
 
         //Store retweet in database (Adapt as needed for your schema)
         await pool.query(
