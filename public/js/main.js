@@ -516,11 +516,36 @@ async function logout() {
 }
 
 // Export functions needed by HTML
+async function repostTweet(text) {
+    try {
+        const response = await fetch("/tweet", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ text })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            refreshHistory();
+        } else if (data.error === 'Not authenticated. Please authorize first.') {
+            window.location.href = "/auth/twitter";
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error("Error reposting tweet:", error);
+        showAuthStatus(false, error.message || "Error reposting tweet");
+    }
+}
+
 window.startAuth = () => window.location.href = "/auth/twitter";
 window.postTweet = postTweet;
 window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
 window.deleteTweet = deleteTweet;
+window.repostTweet = repostTweet;
 window.logout = logout;
 window.toggleInfo = toggleInfo;
 
@@ -795,7 +820,15 @@ function getSearchTweetHTML(tweet) {
                     </div>
                     <div class="text-gray-700">${tweet.text}</div>
                 </div>
-                <div class="text-xs text-gray-500">${formatDate(tweetDate)}</div>
+                <div class="flex flex-col items-end gap-2">
+                    <div class="text-xs text-gray-500">${formatDate(tweetDate)}</div>
+                    <button onclick="repostTweet('${tweet.text}')" class="text-green-500 hover:text-green-600 transition-colors flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        Repost
+                    </button>
+                </div>
             </div>
             <div class="text-sm mt-2">
                 <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
