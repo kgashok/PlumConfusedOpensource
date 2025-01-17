@@ -524,15 +524,32 @@ async function logout() {
 // Export functions needed by HTML
 async function repostTweet(tweetId) {
     try {
+        // Check authentication status first
+        const authResponse = await fetch("/auth/status");
+        const authData = await authResponse.json();
+        
+        if (!authData.authenticated) {
+            window.location.href = "/auth/twitter";
+            return;
+        }
+
         const response = await fetch(`/retweet/${tweetId}`, {
-            method: "POST"
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         const data = await response.json();
         if (data.success) {
+            const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
+            if (tweetElement) {
+                const successMsg = document.createElement('div');
+                successMsg.className = 'text-green-600 text-sm mt-2';
+                successMsg.textContent = 'Reposted successfully';
+                tweetElement.appendChild(successMsg);
+            }
             refreshHistory();
-        } else if (data.error === 'Not authenticated. Please authorize first.') {
-            window.location.href = "/auth/twitter";
         } else {
             throw new Error(data.error);
         }
