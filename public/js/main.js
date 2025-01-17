@@ -552,7 +552,7 @@ async function repostTweet(tweetId) {
             if (tweetElement) {
                 const successMsg = document.createElement('div');
                 successMsg.className = 'text-green-600 text-sm mt-2';
-                successMsg.textContent = 'Reposted successfully';
+                successMsg.innerHTML = `Reposted successfully - <a href="https://twitter.com/i/web/status/${tweetId}" target="_blank" class="underline hover:text-green-700">View Tweet</a>`;
                 tweetElement.appendChild(successMsg);
             }
             refreshHistory();
