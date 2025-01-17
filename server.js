@@ -786,6 +786,28 @@ app.post('/retweet/:tweetId', async (req, res) => {
             [tweetId, accessTokens.id, new Date().toISOString()]
         );
 
+        // Get the original tweet text
+        const tweetResult = await pool.query(
+            'SELECT text FROM searched_tweets WHERE id = $1',
+            [tweetId]
+        );
+        
+        const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
+        
+        // Store in tweets table
+        await pool.query(
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [
+                retweetResponse.data.retweeted_tweet_id,
+                tweetText,
+                new Date().toISOString(),
+                `https://twitter.com/i/web/status/${tweetId}`,
+                accessTokens.id,
+                accessTokens.screen_name,
+                false
+            ]
+        );
+
         res.json({ success: true, retweetResponse });
     } catch (error) {
         console.error('Error retweeting:', error);
