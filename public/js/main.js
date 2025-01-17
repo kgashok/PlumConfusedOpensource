@@ -491,8 +491,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check URL parameters safely
     try {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get("success") === "true") {
+        const search = window.location.search.replace(/[?&]success=true/, '');
+        const urlParams = new URLSearchParams(search);
+        
+        if (window.location.search.includes('success=true')) {
             showAuthStatus(true, "Successfully authenticated with Twitter!");
         } else if (urlParams.has("error")) {
             const error = urlParams.get("error");
