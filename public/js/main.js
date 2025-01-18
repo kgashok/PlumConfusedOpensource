@@ -220,15 +220,15 @@ async function fetchSearchedTweets() {
         refreshButton.style.cursor = 'wait';
         refreshButton.classList.add('cursor-wait', 'pointer-events-none', 'opacity-50');
         refreshButton.style.touchAction = 'none';
-        
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
+
         const response = await fetch("/search/tweets", {
             signal: controller.signal
         });
         clearTimeout(timeoutId);
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -261,7 +261,7 @@ async function fetchSearchedTweets() {
 
 async function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
-    
+
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
@@ -274,11 +274,11 @@ async function updateSearchedTweets(data) {
                     <p>Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.</p>
                 </div>
             </div>`;
-        
+
         // Fetch stored tweets
         const response = await fetch("/search/tweets?stored=true");
         const storedData = await response.json();
-        
+
         if (storedData.data && storedData.data.length > 0) {
             tweetsDiv.innerHTML = rateLimitMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
         } else {
@@ -308,14 +308,16 @@ async function displaySavedTweets(headerMessage = '') {
         const data = await response.json();
 
         const tweetsDiv = document.getElementById("searchedTweets");
-        
+
         if (!data.data || data.data.length === 0) {
             tweetsDiv.innerHTML = `${headerMessage}<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
             return;
         }
 
-        const statusMessage = `${headerMessage}<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Showing ${data.data.length} stored SaveSoil tweets from database</div>`;
-        tweetsDiv.innerHTML = statusMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+        // Filter out retweets by checking if text starts with "RT @"
+        const originalTweets = data.data.filter(tweet => !tweet.text.startsWith('RT @'));
+        const statusMessage = `${headerMessage}<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Showing ${originalTweets.length} stored SaveSoil tweets from database</div>`;
+        tweetsDiv.innerHTML = statusMessage + originalTweets.map(tweet => getSearchTweetHTML(tweet)).join("");
     } catch (error) {
         console.error("Error fetching saved tweets:", error);
         document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
@@ -456,7 +458,7 @@ document.addEventListener('click', (e) => {
 function toggleSection(sectionId) {
     const content = document.getElementById(sectionId);
     const arrow = sectionId === 'tweetHistory' ? document.getElementById('historyArrow') : document.getElementById('savesoilArrow');
-    
+
     if (content.classList.contains('hidden')) {
         content.classList.remove('hidden');
         arrow.style.transform = 'rotate(0deg)';
@@ -527,7 +529,7 @@ async function repostTweet(tweetId) {
         // Check authentication status first
         const authResponse = await fetch("/auth/status");
         const authData = await authResponse.json();
-        
+
         if (!authData.authenticated || !authData.user) {
             window.location.href = "/auth/twitter";
             return;
@@ -879,8 +881,10 @@ async function displaySavedTweets() {
             return;
         }
 
-        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Found ${data.data.length} SaveSoil tweets</div>`;
-        tweetsDiv.innerHTML = statusMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+        // Filter out retweets by checking if text starts with "RT @"
+        const originalTweets = data.data.filter(tweet => !tweet.text.startsWith('RT @'));
+        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Found ${originalTweets.length} original SaveSoil tweets</div>`;
+        tweetsDiv.innerHTML = statusMessage + originalTweets.map(tweet => getSearchTweetHTML(tweet)).join("");
     } catch (error) {
         console.error("Error fetching saved tweets:", error);
         document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
