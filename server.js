@@ -778,9 +778,16 @@ app.post('/retweet/:tweetId', async (req, res) => {
             accessTokens.token_secret, 
             tweetId,
             accessTokens.id
-        );
+        ).catch(error => {
+            throw new Error(error.message || 'Failed to retweet');
+        });
 
-        //Store retweet in database (Adapt as needed for your schema)
+        // Only proceed if retweet was successful
+        if (!retweetResponse || retweetResponse.errors) {
+            throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
+        }
+
+        // Store retweet in database
         await pool.query(
             'INSERT INTO retweets (original_tweet_id, user_id, timestamp) VALUES ($1, $2, $3)',
             [tweetId, accessTokens.id, new Date().toISOString()]
