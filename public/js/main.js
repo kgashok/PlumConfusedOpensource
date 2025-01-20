@@ -863,12 +863,23 @@ function getSearchTweetHTML(tweet) {
         </div>`;
 }
 
-async function displaySavedTweets() {
+async function displaySavedTweets(showAll = true) {
     try {
         document.body.style.cursor = 'wait';
-        // Try to get stored tweets directly first
         const response = await fetch("/search/tweets?stored=true");
         const data = await response.json();
+
+        const filterButtons = `
+            <div class="flex gap-2 mb-4">
+                <button onclick="displaySavedTweets(true)" 
+                    class="px-3 py-1 rounded ${showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                    All Tweets
+                </button>
+                <button onclick="displaySavedTweets(false)"
+                    class="px-3 py-1 rounded ${!showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                    Original Tweets
+                </button>
+            </div>`;
 
         const tweetsDiv = document.getElementById("searchedTweets");
         if (data.error) {
@@ -881,10 +892,11 @@ async function displaySavedTweets() {
             return;
         }
 
-        // Filter out retweets by checking if text starts with "RT @"
-        const originalTweets = data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Found ${originalTweets.length} original SaveSoil tweets</div>`;
-        tweetsDiv.innerHTML = statusMessage + originalTweets.map(tweet => getSearchTweetHTML(tweet)).join("");
+        const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
+        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
+            Found ${tweets.length} ${!showAll ? 'original' : ''} SaveSoil tweets
+        </div>`;
+        tweetsDiv.innerHTML = filterButtons + statusMessage + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
     } catch (error) {
         console.error("Error fetching saved tweets:", error);
         document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
