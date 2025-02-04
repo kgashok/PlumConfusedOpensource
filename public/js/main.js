@@ -461,6 +461,16 @@ async function toggleInfo() {
                 const sections = content.split('\n## ').filter(Boolean);
                 const mainTitle = sections.shift(); // Remove main title section
                 
+                // Simple markdown to HTML converter
+                function convertMarkdown(text) {
+                    return text
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // Bold
+                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-500 hover:text-blue-600">$1</a>')  // Links 
+                        .replace(/^- (.+)$/gm, '<li>$1</li>')  // List items
+                        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')  // Wrap lists
+                        .replace(/\n\n/g, '<br><br>');  // Paragraphs
+                }
+
                 const collapsibleContent = sections.map((section, index) => {
                     const sectionTitle = section.split('\n')[0];
                     const sectionContent = section.split('\n').slice(1).join('\n');
@@ -473,14 +483,14 @@ async function toggleInfo() {
                                 </svg>
                             </button>
                             <div class="overflow-hidden transition-all duration-200 max-h-0" id="content-${index}">
-                                <div class="p-4 prose">${marked(sectionContent)}</div>
+                                <div class="p-4 prose">${convertMarkdown(sectionContent)}</div>
                             </div>
                         </div>
                     `;
                 }).join('');
 
                 document.getElementById('infoContent').innerHTML = `
-                    ${marked(mainTitle)}
+                    ${convertMarkdown(mainTitle)}
                     ${collapsibleContent}
                 `;
                 modal.hasContent = true;
