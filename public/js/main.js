@@ -1,6 +1,7 @@
 /**
  * Updates the current time display in the UI 
  * Runs on page load and updates every second
+ * @description Displays the current time in a localized format in the "currentTime" element
  */
 function updateCurrentTime() {
     const now = new Date();
@@ -135,7 +136,20 @@ function showAuthStatus(isAuthenticated, message) {
     authStatus.classList.remove("hidden");
 }
 
-// Tweet functionality
+/**
+ * Tweet Management Functions
+ * @module TweetManagement
+ */
+
+/**
+ * Refreshes the tweet history display
+ * @description Fetches and displays tweet history with:
+ * - Database query for latest tweets
+ * - Empty state handling
+ * - Error handling
+ * - Delete button integration
+ * @returns {Promise<void>}
+ */
 async function refreshHistory() {
     try {
         const response = await fetch("/tweet/history");
@@ -436,7 +450,16 @@ async function postTweet() {
     }
 }
 
-// Info modal functionality
+/**
+ * Toggles the info modal display
+ * @description Handles the about.md content display in a modal with:
+ * - Markdown parsing
+ * - Collapsible sections
+ * - Content caching
+ * - Accessibility features
+ * - Mobile responsiveness
+ * @returns {Promise<void>}
+ */
 async function toggleInfo() {
     const modal = document.getElementById('infoModal');
     const body = document.body;
@@ -600,12 +623,20 @@ async function logout() {
 
 /**
  * Core functions exported for HTML use
+ * These functions are attached to the window object for use in HTML event handlers
  */
 
 /**
  * Reposts a tweet and handles the UI feedback
  * @param {string} tweetId - The ID of the tweet to repost
  * @returns {Promise<void>}
+ * @description Handles the repost operation including:
+ * - Authentication check
+ * - API call to repost
+ * - Success/error message display beneath the tweet
+ * - Database update
+ * - UI refresh after successful repost
+ * @throws {Error} If authentication fails or repost operation fails
  */
 async function repostTweet(tweetId) {
     try {
