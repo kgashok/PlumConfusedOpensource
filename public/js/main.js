@@ -1,10 +1,16 @@
-// Time display functionality
+/**
+ * Updates the current time display in the UI 
+ * Runs on page load and updates every second
+ */
 function updateCurrentTime() {
     const now = new Date();
     document.getElementById("currentTime").textContent = now.toLocaleString();
 }
 
-// Character counter for tweet input
+/**
+ * Initializes the character counter for tweet input
+ * Tracks remaining characters (max 280) and changes color when nearing limit
+ */
 function initCharCounter() {
     document.getElementById("tweetText").addEventListener("input", function(e) {
         const remaining = 280 - e.target.value.length;
@@ -29,7 +35,11 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString("en-US", options);
 }
 
-// Authentication and status
+/**
+ * Authentication and Status Management
+ * Handles checking auth state and displaying user info
+ * @returns {Promise<void>}
+ */
 async function checkAuthStatus() {
     try {
         const response = await fetch("/auth/status");
@@ -211,7 +221,12 @@ function getTweetHTML(tweet) {
         </div>`;
 }
 
-// Search functionality
+/**
+ * Search Functionality
+ * Fetches searched tweets with rate limiting and error handling
+ * Falls back to stored tweets if API fails
+ * @returns {Promise<void>}
+ */
 async function fetchSearchedTweets() {
     try {
         document.body.style.cursor = 'wait';
@@ -343,7 +358,15 @@ function getErrorHTML(data) {
         </div>`;
 }
 
-// Tweet posting functionality
+/**
+ * Tweet Posting Functionality
+ * Handles image uploads and tweet submissions
+ */
+
+/**
+ * Handles image selection for tweet attachments
+ * @param {Event} event - The file input change event
+ */
 function handleImageSelect(event) {
     const file = event.target.files[0];
     if (file) {
@@ -523,7 +546,15 @@ async function logout() {
     }
 }
 
-// Export functions needed by HTML
+/**
+ * Core functions exported for HTML use
+ */
+
+/**
+ * Reposts a tweet and handles the UI feedback
+ * @param {string} tweetId - The ID of the tweet to repost
+ * @returns {Promise<void>}
+ */
 async function repostTweet(tweetId) {
     try {
         // Check authentication status first
