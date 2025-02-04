@@ -535,6 +535,12 @@ async function repostTweet(tweetId) {
             return;
         }
 
+        const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
+        const existingMsg = tweetElement.querySelector('.repost-message');
+        if (existingMsg) {
+            existingMsg.remove();
+        }
+
         const response = await fetch(`/retweet/${tweetId}`, {
             method: "POST",
             headers: {
@@ -543,27 +549,31 @@ async function repostTweet(tweetId) {
             credentials: 'same-origin'
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to repost tweet');
-        }
-
         const data = await response.json();
-        if (data.success) {
-            const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
-            if (tweetElement) {
-                const successMsg = document.createElement('div');
-                successMsg.className = 'text-green-600 text-sm mt-2';
-                successMsg.innerHTML = `Reposted successfully - <a href="https://twitter.com/i/web/status/${tweetId}" target="_blank" class="underline hover:text-green-700">View Tweet</a>`;
-                tweetElement.appendChild(successMsg);
-            }
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'repost-message text-sm mt-2';
+
+        if (response.ok && data.success) {
+            messageDiv.className += ' text-green-600';
+            messageDiv.innerHTML = `Reposted successfully - <a href="https://twitter.com/i/web/status/${tweetId}" target="_blank" class="underline hover:text-green-700">View Tweet</a>`;
             refreshHistory();
         } else {
-            throw new Error(data.error);
+            messageDiv.className += ' text-red-600';
+            messageDiv.textContent = data.error || 'Failed to repost tweet';
+        }
+
+        if (tweetElement) {
+            tweetElement.appendChild(messageDiv);
         }
     } catch (error) {
         console.error("Error reposting tweet:", error);
-        showAuthStatus(false, error.message || "Error reposting tweet");
+        const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
+        if (tweetElement) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
+            errorDiv.textContent = error.message || "Error reposting tweet";
+            tweetElement.appendChild(errorDiv);
+        }
     }
 }
 
