@@ -479,11 +479,11 @@ async function toggleInfo() {
             try {
                 const response = await fetch('/docs/about');
                 const content = await response.text();
-                
+
                 // Convert markdown sections into collapsible panels
                 const sections = content.split('\n## ').filter(Boolean);
                 const mainTitle = sections.shift(); // Remove main title section
-                
+
                 // Simple markdown to HTML converter
                 function convertMarkdown(text) {
                     return text
@@ -532,7 +532,7 @@ async function toggleInfo() {
 function toggleCollapsible(index) {
     const content = document.getElementById(`content-${index}`);
     const arrow = document.getElementById(`arrow-${index}`);
-    
+
     if (content.style.maxHeight === '0px' || !content.style.maxHeight) {
         content.style.maxHeight = content.scrollHeight + 'px';
         arrow.style.transform = 'rotate(180deg)';

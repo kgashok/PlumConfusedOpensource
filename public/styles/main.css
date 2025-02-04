@@ -29,7 +29,23 @@
     color: #374151;
     max-height: 80vh;
     overflow-y: auto;
-    padding-right: 1rem;
+    padding: 0.5rem 1rem;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .prose {
+        max-width: 100%;
+        max-height: 70vh;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+    
+    #infoModal > div {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-height: calc(100% - 2rem);
+    }
 }
 
 /* Collapsible section animations */
