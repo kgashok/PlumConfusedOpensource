@@ -27,6 +27,14 @@
 .prose {
     max-width: 65ch;
     color: #374151;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+/* Collapsible section animations */
+.overflow-hidden {
+    transition: max-height 0.3s ease-in-out;
 }
 
 .prose ul {
@@ -54,10 +62,23 @@
 }
 
 .prose h2 {
-    font-size: 1.5em;
-    margin-top: 2em;
-    margin-bottom: 1em;
+    font-size: 1.25em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
     font-weight: 600;
+}
+
+/* Collapsible button styles */
+.prose button.w-full {
+    transition: background-color 0.2s;
+}
+
+.prose button.w-full:hover {
+    background-color: #f3f4f6;
+}
+
+.prose .border {
+    border-color: #e5e7eb;
 }
 
 .prose a {
