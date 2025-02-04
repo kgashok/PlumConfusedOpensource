@@ -5,14 +5,14 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
-### April 2025
+### Feb 2025
 - Enhanced repost error handling to display beneath tweets
 - Added success message with clickable tweet URL for reposts
 - Improved error message cleanup before new repost attempts
 - Added database tracking for repost operations
 - Enhanced UI feedback for repost success/failure states
 
-### March 2025
+### Jan 25 2025
 - Added retweet functionality with database persistence
 - Implemented tweet URL display after successful repost
 - Enhanced error handling for database operations
@@ -20,7 +20,7 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 - Improved success message display with clickable tweet links
 - Updated tweet history to include reposted content
 
-### February 2025
+### Jan 15 2025
 - Added busy cursor state for fetch operations
 - Enhanced error handling for tweet operations
 - Improved screen_name display and linking 
