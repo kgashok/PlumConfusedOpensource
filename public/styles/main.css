@@ -1,4 +1,3 @@
-
 /* Custom scrollbar for webkit browsers */
 ::-webkit-scrollbar {
     width: 24px;
@@ -69,4 +68,33 @@
 
 .prose a:hover {
     color: #2563eb;
+}
+
+/* Styles for collapsible sections */
+details {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 1em;
+    padding: 1em;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0.5em;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 0.5em;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+summary::before {
+    content: "▾ ";
+}
+
+summary[aria-expanded="true"]::before {
+    content: "▴ ";
 }

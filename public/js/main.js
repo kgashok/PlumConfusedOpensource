@@ -451,12 +451,38 @@ async function toggleInfo() {
         modalContent.tabIndex = -1;
         modalContent.focus();
 
-        // Fetch and render markdown content
+        // Fetch and render markdown content with collapsible sections
         if (!modal.hasContent) {
             try {
                 const response = await fetch('/docs/about');
                 const content = await response.text();
-                document.getElementById('infoContent').innerHTML = content;
+                
+                // Convert markdown sections into collapsible panels
+                const sections = content.split('\n## ').filter(Boolean);
+                const mainTitle = sections.shift(); // Remove main title section
+                
+                const collapsibleContent = sections.map((section, index) => {
+                    const sectionTitle = section.split('\n')[0];
+                    const sectionContent = section.split('\n').slice(1).join('\n');
+                    return `
+                        <div class="border rounded-lg mb-2">
+                            <button class="w-full px-4 py-2 text-left font-bold bg-gray-50 hover:bg-gray-100 rounded-lg focus:outline-none flex justify-between items-center" onclick="toggleCollapsible(${index})">
+                                ${sectionTitle}
+                                <svg class="w-5 h-5 transform transition-transform duration-200" id="arrow-${index}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="overflow-hidden transition-all duration-200 max-h-0" id="content-${index}">
+                                <div class="p-4 prose">${marked(sectionContent)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('infoContent').innerHTML = `
+                    ${marked(mainTitle)}
+                    ${collapsibleContent}
+                `;
                 modal.hasContent = true;
             } catch (error) {
                 console.error('Error loading info content:', error);
@@ -468,6 +494,22 @@ async function toggleInfo() {
         body.style.overflow = ''; // Restore scrolling
     }
 }
+
+// Toggle collapsible sections
+function toggleCollapsible(index) {
+    const content = document.getElementById(`content-${index}`);
+    const arrow = document.getElementById(`arrow-${index}`);
+    
+    if (content.style.maxHeight === '0px' || !content.style.maxHeight) {
+        content.style.maxHeight = content.scrollHeight + 'px';
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        content.style.maxHeight = '0px';
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+window.toggleCollapsible = toggleCollapsible;
 
 // Close modal when clicking outside
 document.addEventListener('click', (e) => {
