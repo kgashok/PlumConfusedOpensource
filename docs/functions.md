@@ -1,10 +1,16 @@
-
 # Function Documentation
 
-### [DO NOT EDIT] Prompt used
+### [DO NOT EDIT] Prompt used 
 Review the contents of @docs/functions.md. Now, update the contents to reflect all the MAJOR changes that have happened since the last update as another "ChangeLog". Please review @docs/functions.md and makes updates to the "Tweet Management Functions" and "Server Routes" section as well. However, do not delete or change the [DO NOT EDIT] section. 
 
 ## Changelog
+
+### April 2025
+- Enhanced repost error handling to display beneath tweets
+- Added success message with clickable tweet URL for reposts
+- Improved error message cleanup before new repost attempts
+- Added database tracking for repost operations
+- Enhanced UI feedback for repost success/failure states
 
 ### March 2025
 - Added retweet functionality with database persistence
@@ -34,7 +40,6 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 - Added mobile-responsive design improvements
 
 ## Previous Changes
-
 ### December 2024
 - Added session management with express-session
 - Implemented user authentication persistence
@@ -136,14 +141,14 @@ Handles new tweet creation.
 - Auto-refreshes on success
 
 ### `repostTweet(tweetId)`
-Handles retweeting functionality.
+Handles reposting of tweets with enhanced error handling.
 - Parameters: Tweet ID
-- Calls `/retweet/:tweetId` endpoint
-- Shows success message with tweet URL
-- Updates tweet history
-- Handles API rate limits
-- Manages database persistence
-- Includes error handling
+- Shows error messages beneath the specific tweet
+- Implements loading state during repost
+- Displays success message with clickable link
+- Cleans up previous error messages
+- Updates database with repost status
+- Refreshes tweet history after success
 
 ## Search Functions
 
@@ -171,26 +176,27 @@ Updates the search results UI.
 5. Status check: `checkAuthStatus()` → `/auth/status`
 
 ### Tweet Operations Flow
-1. Posting Tweet:
+1. Reposting Tweet:
+   - Frontend: `repostTweet()` → Backend: POST `/retweet/:tweetId`
+   - Validates authentication
+   - Shows error beneath tweet
+   - Updates database
+   - Returns success with URL
+   - Handles rate limits
+   - Manages error states
+
+2. Posting Tweet:
    - Frontend: `postTweet()` → Backend: POST `/tweet`
    - Supports multipart/form-data for images
    - Server stores tweet and media in database
    - Returns tweet URL and metadata
    - Frontend shows success/error feedback
 
-2. Deleting Tweet:
+3. Deleting Tweet:
    - Frontend: `deleteTweet()` → Backend: DELETE `/tweet/:id`
    - Server validates ownership
    - Updates database with soft delete
    - Frontend shows deletion animation
-
-3. Retweeting:
-   - Frontend: `repostTweet()` → Backend: POST `/retweet/:tweetId`
-   - Server validates authentication
-   - Stores retweet in retweets table
-   - Updates tweet history
-   - Shows success message with URL
-   - Handles rate limiting and errors
 
 ### Search Flow
 1. User clicks "Fetch latest" with busy cursor
@@ -201,9 +207,9 @@ Updates the search results UI.
 6. Frontend displays results with error handling
 
 ### Error Handling
-- Frontend maintains error history queue
-- Server implements comprehensive error types
-- Rate limiting with countdown display
-- Enhanced session validation
+- Localized error display beneath tweets
 - Database transaction management
-- Graceful degradation strategies
+- Rate limit handling
+- Authentication validation
+- Success state management
+- UI feedback system
