@@ -67,9 +67,9 @@ function updateUserInfo(data) {
                 <div class="font-medium text-blue-700">Logged in as: @${data.user.screen_name}</div>
                 <div class="text-sm text-blue-600">Twitter ID: ${data.user.id}</div>
                 ${data.user.screen_name === 'lifebalance' ? 
-                    '<div class="mt-2 flex gap-2"><a href="https://github.com/kgashok/PlumConfusedOpensource/issues" class="text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>' +
-                    '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" class="text-sm text-green-500 hover:text-green-600 transition-colors">New Issue</a></div>' : 
-                    '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues" class="mt-2 block text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>'}
+                    '<div class="mt-2 flex gap-2"><a href="https://github.com/kgashok/PlumConfusedOpensource/issues" target="_blank" class="text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>' +
+                    '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" target="_blank" class="text-sm text-green-500 hover:text-green-600 transition-colors">New Issue</a></div>' : 
+                    '<a href="https://github.com/kgashok/PlumConfusedOpensource/issues" target="_blank" class="mt-2 block text-sm text-blue-500 hover:text-blue-600 transition-colors">Feedback</a>'}
             </div>`;
 
         // Enable refresh button and create image link for specific users
