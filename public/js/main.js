@@ -289,6 +289,18 @@ async function fetchSearchedTweets() {
 
 async function updateSearchedTweets(data) {
     const tweetsDiv = document.getElementById("searchedTweets");
+    
+    const filterButtons = `
+        <div class="flex gap-2 mb-4">
+            <button onclick="displaySavedTweets(true)" 
+                class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">
+                All Tweets
+            </button>
+            <button onclick="displaySavedTweets(false)"
+                class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">
+                Original Tweets
+            </button>
+        </div>`;
 
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
@@ -308,25 +320,25 @@ async function updateSearchedTweets(data) {
         const storedData = await response.json();
 
         if (storedData.data && storedData.data.length > 0) {
-            tweetsDiv.innerHTML = rateLimitMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+            tweetsDiv.innerHTML = filterButtons + rateLimitMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
         } else {
-            tweetsDiv.innerHTML = rateLimitMessage + '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
+            tweetsDiv.innerHTML = filterButtons + rateLimitMessage + '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
         }
         return;
     }
 
     // Handle other errors
     if (data.error) {
-        tweetsDiv.innerHTML = getErrorHTML(data);
+        tweetsDiv.innerHTML = filterButtons + getErrorHTML(data);
         return;
     }
 
     if (!data.data || data.data.length === 0) {
-        tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No tweets found.</p></div>`;
+        tweetsDiv.innerHTML = filterButtons + `<div class="text-gray-500 text-center py-8"><p>No tweets found.</p></div>`;
         return;
     }
 
-    tweetsDiv.innerHTML = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    tweetsDiv.innerHTML = filterButtons + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
 async function displaySavedTweets(headerMessage = '') {
