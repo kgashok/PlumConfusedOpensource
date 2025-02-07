@@ -992,15 +992,25 @@ async function displaySavedTweets(showAll = true) {
         const response = await fetch("/search/tweets?stored=true");
         const data = await response.json();
 
+        const tweetsDiv = document.getElementById("searchedTweets");
+        
+        if (!data.data || data.data.length === 0) {
+            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
+            return;
+        }
+
+        // Filter tweets based on selection
+        const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
+        
         const filterButtons = `
             <div class="flex gap-2 mb-4">
                 <button onclick="displaySavedTweets(true)" 
                     class="px-3 py-1 rounded ${showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
-                    All Tweets
+                    All Tweets (${data.data.length})
                 </button>
                 <button onclick="displaySavedTweets(false)"
                     class="px-3 py-1 rounded ${!showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
-                    Original Tweets
+                    Original Tweets (${data.data.filter(t => !t.text.startsWith('RT @')).length})
                 </button>
             </div>`;
 
