@@ -572,7 +572,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(updateCurrentTime, 1000);
     checkAuthStatus();
     refreshHistory();
-    displaySavedTweets(); // Call the new function here
+    displaySavedTweets(true); // Initialize with all tweets
 
     // Restore draft tweet and image if they exist
     const draftTweet = localStorage.getItem('draftTweet');
