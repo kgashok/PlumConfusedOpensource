@@ -801,17 +801,19 @@ app.post('/retweet/:tweetId', async (req, res) => {
         
         const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
         
-        // Store in tweets table
+        // Store in tweets table with a composite ID to avoid primary key conflicts
+        const compositeId = `${tweetId}-${accessTokens.id}`;
         await pool.query(
-            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted, original_tweet_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
             [
-                tweetId,
+                compositeId,
                 tweetText,
                 new Date().toISOString(),
                 `https://twitter.com/i/web/status/${tweetId}`,
                 accessTokens.id,
                 accessTokens.screen_name,
-                false
+                false,
+                tweetId
             ]
         );
 
