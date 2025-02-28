@@ -5,6 +5,15 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
+### March 2025
+- Implemented tweet filtering functionality for "All Tweets" and "Original Tweets"
+- Added filter buttons with active state indicators in the UI
+- Enhanced database queries to support composite primary keys for retweets
+- Improved filtering logic to exclude retweets based on text pattern
+- Added counter to show the number of tweets in each filter category
+- Fixed UI issues with duplicate variable declarations
+- Added more robust error handling for empty tweet collections
+
 ### Feb 2025
 - Enhanced repost error handling to display beneath tweets
 - Added success message with clickable tweet URL for reposts
@@ -119,6 +128,16 @@ Updates the tweet history UI.
 - Supports profile page linking
 - Displays repost status and links
 
+### `displaySavedTweets(showAll)`
+Displays saved tweets with filtering capabilities.
+- Parameters: showAll boolean (true for all tweets, false for original tweets only)
+- Fetches tweets from backend storage
+- Filters out retweets based on "RT @" text pattern when showing original tweets
+- Provides filter buttons with active state indicators
+- Shows tweet counts for each filter category
+- Handles empty state and error scenarios
+- Maintains consistent UI with search results
+
 ### `deleteTweet(tweetId)`
 Handles tweet deletion.
 - Parameters: Tweet ID
@@ -147,7 +166,7 @@ Handles reposting of tweets with enhanced error handling.
 - Implements loading state during repost
 - Displays success message with clickable link
 - Cleans up previous error messages
-- Updates database with repost status
+- Updates database with repost status using composite ID
 - Refreshes tweet history after success
 
 ## Search Functions
@@ -180,7 +199,8 @@ Updates the search results UI.
    - Frontend: `repostTweet()` → Backend: POST `/retweet/:tweetId`
    - Validates authentication
    - Shows error beneath tweet
-   - Updates database
+   - Updates database with composite ID (tweetId-userId)
+   - Stores original tweet ID reference
    - Returns success with URL
    - Handles rate limits
    - Manages error states
@@ -198,13 +218,26 @@ Updates the search results UI.
    - Updates database with soft delete
    - Frontend shows deletion animation
 
-### Search Flow
-1. User clicks "Fetch latest" with busy cursor
-2. Frontend: `fetchSearchedTweets()` → Backend: GET `/search/tweets`
-3. Server queries Twitter API with rate limiting
-4. Results cached in database with screen_name
-5. Fallback to stored tweets during rate limits
-6. Frontend displays results with error handling
+### Search and Filter Flow
+1. Fetching Latest Tweets:
+   - User clicks "Fetch latest" with busy cursor
+   - Frontend: `fetchSearchedTweets()` → Backend: GET `/search/tweets`
+   - Server queries Twitter API with rate limiting
+   - Results cached in database with screen_name
+   - Fallback to stored tweets during rate limits
+
+2. Filtering Tweets:
+   - Frontend: `displaySavedTweets(showAll)` → Backend: GET `/search/tweets?stored=true`
+   - Server returns all stored tweets
+   - Frontend filters tweets based on showAll parameter
+   - UI shows active filter state and count
+   - Original tweets identified by checking for "RT @" prefix
+
+### Database Enhancements
+- Added composite primary key support for multiple retweets
+- Added original_tweet_id column to track retweet sources
+- Improved error handling for duplicate key constraints
+- Enhanced database queries to support filtering operations
 
 ### Error Handling
 - Localized error display beneath tweets
@@ -213,3 +246,4 @@ Updates the search results UI.
 - Authentication validation
 - Success state management
 - UI feedback system
+- Empty state handling for filtered results
