@@ -1014,7 +1014,6 @@ async function displaySavedTweets(showAll = true) {
                 </button>
             </div>`;
 
-        const tweetsDiv = document.getElementById("searchedTweets");
         if (data.error) {
             tweetsDiv.innerHTML = getErrorHTML(data);
             return;
@@ -1025,7 +1024,7 @@ async function displaySavedTweets(showAll = true) {
             return;
         }
 
-        const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
+        // Filter tweets based on selection (using the previously defined tweets variable)
         const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
             Found ${tweets.length} ${!showAll ? 'original' : ''} SaveSoil tweets
         </div>`;
