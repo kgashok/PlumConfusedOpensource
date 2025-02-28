@@ -8,7 +8,7 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 ### March 2025
 - Implemented tweet filtering functionality for "All Tweets" and "Original Tweets"
 - Added filter buttons with active state indicators in the UI
-- Enhanced database queries to support composite primary keys for retweets
+- Enhanced database queries to support composite primary keys for retweets for Issue #14
 - Improved filtering logic to exclude retweets based on text pattern
 - Added counter to show the number of tweets in each filter category
 - Fixed UI issues with duplicate variable declarations
