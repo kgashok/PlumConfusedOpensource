@@ -637,6 +637,10 @@ async function logout() {
  * - UI refresh after successful repost
  * @throws {Error} If authentication fails or repost operation fails
  */
+/**
+ * Issue #15 Fixed: Added proper authentication expiration handling for retweets
+ * Now correctly displays auth error message and prompts user to sign in again
+ */
 async function repostTweet(tweetId) {
     try {
         // Check authentication status first
