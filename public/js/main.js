@@ -643,15 +643,21 @@ async function repostTweet(tweetId) {
         const authResponse = await fetch("/auth/status");
         const authData = await authResponse.json();
 
-        if (!authData.authenticated || !authData.user) {
-            window.location.href = "/auth/twitter";
-            return;
-        }
-
         const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
-        const existingMsg = tweetElement.querySelector('.repost-message');
+        const existingMsg = tweetElement?.querySelector('.repost-message');
         if (existingMsg) {
             existingMsg.remove();
+        }
+
+        // Handle authentication expiration
+        if (!authData.authenticated || !authData.user) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'repost-message text-sm mt-2 text-red-600';
+            messageDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
+            if (tweetElement) {
+                tweetElement.appendChild(messageDiv);
+            }
+            return;
         }
 
         const response = await fetch(`/retweet/${tweetId}`, {
@@ -672,7 +678,12 @@ async function repostTweet(tweetId) {
             refreshHistory();
         } else {
             messageDiv.className += ' text-red-600';
-            messageDiv.textContent = data.error || 'Failed to repost tweet';
+            // Check for authentication errors in the response
+            if (data.error && (data.error.includes("authentication") || data.error.includes("authorized") || data.error.includes("token"))) {
+                messageDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
+            } else {
+                messageDiv.textContent = data.error || 'Failed to repost tweet';
+            }
         }
 
         if (tweetElement) {
@@ -684,7 +695,16 @@ async function repostTweet(tweetId) {
         if (tweetElement) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
-            errorDiv.textContent = error.message || "Error reposting tweet";
+            
+            // Check if the error is related to authentication
+            if (error.message && (error.message.includes("authentication") || 
+                error.message.includes("authorized") || 
+                error.message.includes("token"))) {
+                errorDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
+            } else {
+                errorDiv.textContent = error.message || "Error reposting tweet";
+            }
+            
             tweetElement.appendChild(errorDiv);
         }
     }

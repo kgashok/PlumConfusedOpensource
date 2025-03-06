@@ -770,54 +770,77 @@ app.post('/retweet/:tweetId', async (req, res) => {
         const accessTokens = req.session.user;
 
         if (!accessTokens) {
-            return res.status(401).json({ success: false, error: 'Not authenticated' });
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Authentication required. Please sign in again.' 
+            });
         }
 
-        const retweetResponse = await retweetTweet(
-            accessTokens.token, 
-            accessTokens.token_secret, 
-            tweetId,
-            accessTokens.id
-        ).catch(error => {
-            throw new Error(error.message || 'Failed to retweet');
-        });
+        try {
+            const retweetResponse = await retweetTweet(
+                accessTokens.token, 
+                accessTokens.token_secret, 
+                tweetId,
+                accessTokens.id
+            );
 
-        // Only proceed if retweet was successful
-        if (!retweetResponse || retweetResponse.errors) {
-            throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
+            // Only proceed if retweet was successful
+            if (!retweetResponse || retweetResponse.errors) {
+                throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
+            }
+
+            // Store retweet in database
+            await pool.query(
+                'INSERT INTO retweets (original_tweet_id, user_id, timestamp) VALUES ($1, $2, $3)',
+                [tweetId, accessTokens.id, new Date().toISOString()]
+            );
+
+            // Get the original tweet text
+            const tweetResult = await pool.query(
+                'SELECT text FROM searched_tweets WHERE id = $1',
+                [tweetId]
+            );
+            
+            const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
+            
+            // Store in tweets table with a composite ID to avoid primary key conflicts
+            const compositeId = `${tweetId}-${accessTokens.id}`;
+            await pool.query(
+                'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted, original_tweet_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+                [
+                    compositeId,
+                    tweetText,
+                    new Date().toISOString(),
+                    `https://twitter.com/i/web/status/${tweetId}`,
+                    accessTokens.id,
+                    accessTokens.screen_name,
+                    false,
+                    tweetId
+                ]
+            );
+
+            res.json({ success: true, retweetResponse });
+        } catch (error) {
+            // Check if the error is related to authentication/token
+            const errorMessage = error.message || 'Failed to retweet';
+            
+            if (errorMessage.includes('token') || 
+                errorMessage.includes('auth') || 
+                errorMessage.includes('unauthorized') || 
+                errorMessage.includes('expired') ||
+                errorMessage.includes('Invalid')) {
+                
+                // Clear the invalid session
+                req.session.destroy();
+                
+                return res.status(401).json({ 
+                    success: false, 
+                    error: 'Authentication expired. Please sign in again.' 
+                });
+            }
+            
+            throw error;
         }
-
-        // Store retweet in database
-        await pool.query(
-            'INSERT INTO retweets (original_tweet_id, user_id, timestamp) VALUES ($1, $2, $3)',
-            [tweetId, accessTokens.id, new Date().toISOString()]
-        );
-
-        // Get the original tweet text
-        const tweetResult = await pool.query(
-            'SELECT text FROM searched_tweets WHERE id = $1',
-            [tweetId]
-        );
-        
-        const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
-        
-        // Store in tweets table with a composite ID to avoid primary key conflicts
-        const compositeId = `${tweetId}-${accessTokens.id}`;
-        await pool.query(
-            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted, original_tweet_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-            [
-                compositeId,
-                tweetText,
-                new Date().toISOString(),
-                `https://twitter.com/i/web/status/${tweetId}`,
-                accessTokens.id,
-                accessTokens.screen_name,
-                false,
-                tweetId
-            ]
-        );
-
-        res.json({ success: true, retweetResponse });
     } catch (error) {
         console.error('Error retweeting:', error);
         res.status(500).json({ success: false, error: error.message });
