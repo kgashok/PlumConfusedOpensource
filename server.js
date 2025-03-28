@@ -784,6 +784,14 @@ app.post('/retweet/:tweetId', async (req, res) => {
                 accessTokens.id
             );
 
+            // Check for specific error codes that indicate a deleted/missing tweet
+            if (retweetResponse?.errors?.some(error => error.code === 144 || error.code === 179)) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'This tweet is no longer available.'
+                });
+            }
+
             // Only proceed if retweet was successful
             if (!retweetResponse || retweetResponse.errors) {
                 throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');

@@ -682,8 +682,9 @@ async function repostTweet(tweetId) {
             refreshHistory();
         } else {
             messageDiv.className += ' text-red-600';
-            // Check for authentication errors in the response
-            if (data.error && (data.error.includes("authentication") || data.error.includes("authorized") || data.error.includes("token"))) {
+            if (response.status === 404) {
+                messageDiv.textContent = 'This tweet is no longer available.';
+            } else if (data.error && (data.error.includes("authentication") || data.error.includes("authorized") || data.error.includes("token"))) {
                 messageDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
             } else {
                 messageDiv.textContent = data.error || 'Failed to repost tweet';
