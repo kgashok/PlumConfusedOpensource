@@ -769,10 +769,11 @@ app.post('/retweet/:tweetId', async (req, res) => {
         const { tweetId } = req.params;
         const accessTokens = req.session.user;
 
-        if (!accessTokens) {
+        if (!accessTokens || !accessTokens.token || !accessTokens.token_secret) {
             return res.status(401).json({ 
                 success: false, 
-                error: 'Authentication required. Please sign in again.' 
+                error: 'Authentication expired. Please sign in again.',
+                authRequired: true
             });
         }
 
