@@ -677,7 +677,14 @@ async function repostTweet(tweetId) {
 
         if (!response.ok) {
             errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
-            errorDiv.textContent = data.error || 'Failed to repost tweet';
+            const errorMessage = data.error || 'Failed to repost tweet';
+            
+            if (errorMessage.includes('Authentication expired')) {
+                errorDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
+            } else {
+                errorDiv.textContent = errorMessage;
+            }
+            
             if (tweetElement) {
                 tweetElement.appendChild(errorDiv);
             }

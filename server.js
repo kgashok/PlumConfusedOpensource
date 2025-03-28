@@ -790,12 +790,26 @@ app.post('/retweet/:tweetId', async (req, res) => {
                 });
             }
 
-            const retweetResponse = await retweetTweet(
-                accessTokens.token, 
-                accessTokens.token_secret, 
-                tweetId,
-                accessTokens.id
-            );
+            let retweetResponse;
+            try {
+                retweetResponse = await retweetTweet(
+                    accessTokens.token, 
+                    accessTokens.token_secret, 
+                    tweetId,
+                    accessTokens.id
+                );
+            } catch (tweetError) {
+                // Check for tweet not found errors in the caught error
+                if (tweetError.message.includes('Could not find tweet') || 
+                    tweetError.message.includes('Tweet not found with id') ||
+                    tweetError.message.includes('No status found')) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'Repost failed. Tweet might have been deleted already!'
+                    });
+                }
+                throw tweetError;
+            }
 
             if (!retweetResponse || retweetResponse.errors) {
                 const error = retweetResponse?.errors?.[0];
