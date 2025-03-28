@@ -777,6 +777,19 @@ app.post('/retweet/:tweetId', async (req, res) => {
         }
 
         try {
+            // Check if tweet exists first
+            const tweetResult = await pool.query(
+                'SELECT * FROM searched_tweets WHERE id = $1',
+                [tweetId]
+            );
+
+            if (!tweetResult.rows.length) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Repost failed. Tweet might have been deleted already!'
+                });
+            }
+
             const retweetResponse = await retweetTweet(
                 accessTokens.token, 
                 accessTokens.token_secret, 
@@ -784,9 +797,15 @@ app.post('/retweet/:tweetId', async (req, res) => {
                 accessTokens.id
             );
 
-            // Only proceed if retweet was successful
             if (!retweetResponse || retweetResponse.errors) {
-                throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
+                const error = retweetResponse?.errors?.[0];
+                if (error?.code === 144 || error?.message?.includes('not found')) {
+                    return res.status(404).json({
+                        success: false,
+                        error: 'Repost failed. Tweet might have been deleted already!'
+                    });
+                }
+                throw new Error(error?.message || 'Failed to retweet');
             }
 
             // Store retweet in database

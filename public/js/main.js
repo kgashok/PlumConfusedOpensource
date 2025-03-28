@@ -655,11 +655,11 @@ async function repostTweet(tweetId) {
 
         // Handle authentication expiration
         if (!authData.authenticated || !authData.user) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'repost-message text-sm mt-2 text-red-600';
-            messageDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
+            errorDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
             if (tweetElement) {
-                tweetElement.appendChild(messageDiv);
+                tweetElement.appendChild(errorDiv);
             }
             return;
         }
@@ -673,6 +673,17 @@ async function repostTweet(tweetId) {
         });
 
         const data = await response.json();
+        const errorDiv = document.createElement('div');
+
+        if (!response.ok) {
+            errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
+            errorDiv.textContent = data.error || 'Failed to repost tweet';
+            if (tweetElement) {
+                tweetElement.appendChild(errorDiv);
+            }
+            return;
+        }
+
         const messageDiv = document.createElement('div');
         messageDiv.className = 'repost-message text-sm mt-2';
 
@@ -699,7 +710,7 @@ async function repostTweet(tweetId) {
         if (tweetElement) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
-            
+
             // Check if the error is related to authentication
             const errorMessage = error.message || "Error reposting tweet";
             if (errorMessage.includes("Authentication expired")) {
@@ -709,7 +720,7 @@ async function repostTweet(tweetId) {
             } else {
                 errorDiv.textContent = errorMessage;
             }
-            
+
             tweetElement.appendChild(errorDiv);
         }
     }
@@ -752,7 +763,7 @@ async function toggleInspiration() {
                         <li><strong>${date.displayDate}</strong> - ${date.title}</li>
                     `).join('')}
                 </ul>
-                <p class="text-sm text-gray-500 mt-4">Share your thoughts about these important observances!</p>
+                <p class="text-sm text-gray-500 mt4">Share your thoughts about these important observances!</p>
             `;
         } catch (error) {
             content.innerHTML = '<p>Error loading dates. Please try again later.</p>';
@@ -1018,7 +1029,7 @@ async function displaySavedTweets(showAll = true) {
         const data = await response.json();
 
         const tweetsDiv = document.getElementById("searchedTweets");
-        
+
         if (!data.data || data.data.length === 0) {
             tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
             return;
@@ -1026,7 +1037,7 @@ async function displaySavedTweets(showAll = true) {
 
         // Filter tweets based on selection
         const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-        
+
         const filterButtons = `
             <div class="flex gap-2 mb-4">
                 <button onclick="displaySavedTweets(true)" 
