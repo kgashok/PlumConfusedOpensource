@@ -824,6 +824,17 @@ app.post('/retweet/:tweetId', async (req, res) => {
             // Check if the error is related to authentication/token
             const errorMessage = error.message || 'Failed to retweet';
             
+            // Check for tweet not found or deleted
+            if (errorMessage.includes('Could not find tweet') || 
+                errorMessage.includes('Tweet not found') ||
+                errorMessage.includes('No status found with that ID')) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Repost failed. Tweet might have been deleted already!'
+                });
+            }
+            
+            // Check for authentication issues
             if (errorMessage.includes('token') || 
                 errorMessage.includes('auth') || 
                 errorMessage.includes('unauthorized') || 

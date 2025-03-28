@@ -701,12 +701,13 @@ async function repostTweet(tweetId) {
             errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
             
             // Check if the error is related to authentication
-            if (error.message && (error.message.includes("authentication") || 
-                error.message.includes("authorized") || 
-                error.message.includes("token"))) {
+            const errorMessage = error.message || "Error reposting tweet";
+            if (errorMessage.includes("Authentication expired")) {
                 errorDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
+            } else if (errorMessage.includes("Tweet might have been deleted")) {
+                errorDiv.textContent = "Repost failed. Tweet might have been deleted already!";
             } else {
-                errorDiv.textContent = error.message || "Error reposting tweet";
+                errorDiv.textContent = errorMessage;
             }
             
             tweetElement.appendChild(errorDiv);
