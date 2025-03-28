@@ -815,12 +815,12 @@ app.post('/retweet/:tweetId', async (req, res) => {
             );
 
             // Get the original tweet text
-            const tweetResult = await pool.query(
+            const tweetTextResult = await pool.query(
                 'SELECT text FROM searched_tweets WHERE id = $1',
                 [tweetId]
             );
             
-            const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
+            const tweetText = tweetTextResult.rows[0]?.text || 'Reposted tweet';
             
             // Store in tweets table with a composite ID to avoid primary key conflicts
             const compositeId = `${tweetId}-${accessTokens.id}`;
