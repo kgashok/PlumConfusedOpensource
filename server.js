@@ -776,21 +776,20 @@ app.post('/retweet/:tweetId', async (req, res) => {
             });
         }
 
-        try {
-            const retweetResponse = await retweetTweet(
-                accessTokens.token, 
-                accessTokens.token_secret, 
-                tweetId,
-                accessTokens.id
-            );
+        const retweetResponse = await retweetTweet(
+            accessTokens.token, 
+            accessTokens.token_secret, 
+            tweetId,
+            accessTokens.id
+        );
 
-            // Check for specific error codes that indicate a deleted/missing tweet
-            if (retweetResponse?.errors?.some(error => error.code === 144 || error.code === 179)) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'This tweet is no longer available.'
-                });
-            }
+        // Check for specific error codes that indicate a deleted/missing tweet
+        if (retweetResponse?.errors?.some(error => error.code === 144 || error.code === 179)) {
+            return res.status(404).json({
+                success: false,
+                error: 'This tweet is no longer available.'
+            });
+        }
 
             // Only proceed if retweet was successful
             if (!retweetResponse || retweetResponse.errors) {

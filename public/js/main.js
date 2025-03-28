@@ -682,7 +682,7 @@ async function repostTweet(tweetId) {
             refreshHistory();
         } else {
             messageDiv.className += ' text-red-600';
-            if (response.status === 404) {
+            if (data.error && data.error === 'This tweet is no longer available.') {
                 messageDiv.textContent = 'This tweet is no longer available.';
             } else if (data.error && (data.error.includes("authentication") || data.error.includes("authorized") || data.error.includes("token"))) {
                 messageDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
