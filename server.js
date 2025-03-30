@@ -81,9 +81,10 @@ app.get('/api/un-dates', async (req, res) => {
     }
 });
 
-app.get('/docs/about', async (req, res) => {
+app.get('/docs/:filename', async (req, res) => {
     try {
-        const markdown = await readFile('./docs/about.md', 'utf-8');
+        const filename = req.params.filename;
+        const markdown = await readFile(`./docs/${filename}.md`, 'utf-8');
         const html = marked(markdown);
         res.send(html);
     } catch (error) {
