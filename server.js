@@ -81,30 +81,10 @@ app.get('/api/un-dates', async (req, res) => {
     }
 });
 
-app.get('/docs/:section', async (req, res) => {
+app.get('/docs/about', async (req, res) => {
     try {
-        const section = req.params.section;
-        console.log("Request::", req.params); 
-        
-        let filePath;
-        
-        switch(section) {
-            case 'about':
-                filePath = './docs/about.md';
-                break;
-            case 'savesoil':
-                filePath = './docs/section_savesoil_tweets.md';
-                break;
-            case 'history':
-                filePath = './docs/tweets_history.md';
-                break;
-            default:
-                return res.status(404).send('Section not found');
-        }
-        
-        const markdown = await readFile(filePath, 'utf-8');
+        const markdown = await readFile('./docs/about.md', 'utf-8');
         const html = marked(markdown);
-        console.log("filePath read", filePath);
         res.send(html);
     } catch (error) {
         console.error('Error reading markdown:', error);
