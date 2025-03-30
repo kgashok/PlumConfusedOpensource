@@ -7,7 +7,7 @@ async function showSectionInfo(section) {
         const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
         const content = await response.text();
         
-        modalContent.innerHTML = marked(content);
+        modalContent.innerHTML = marked.parse(content);
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
