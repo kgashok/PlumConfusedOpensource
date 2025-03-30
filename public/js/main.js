@@ -830,6 +830,12 @@ async function toggleInspiration() {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
+    } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        body.style.overflow = 'auto';
+    }
+}en';
 
         try {
             content.innerHTML = '<p>Loading dates...</p>';
