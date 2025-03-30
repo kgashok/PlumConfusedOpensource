@@ -1,7 +1,7 @@
 async function showSectionInfo(section) {
     const modal = document.getElementById('infoModal');
     const body = document.body;
-    
+
     if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -12,11 +12,20 @@ async function showSectionInfo(section) {
         modalContent.tabIndex = -1;
         modalContent.focus();
 
-        // Fetch and render markdown content with collapsible sections
-        if (!modal.hasContent) {
-            try {
-                const response = await fetch(`${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
-                const content = await response.text();
+        try {
+            let endpoint;
+            switch(section) {
+                case 'savesoil':
+                    endpoint = '/docs/savesoil';
+                    break;
+                case 'history':
+                    endpoint = '/docs/history';
+                    break;
+                default:
+                    endpoint = '/docs/about';
+            }
+            const response = await fetch(endpoint);
+            const content = await response.text();
 
                 // Convert markdown sections into collapsible panels
                 const sections = content.split('\n## ').filter(Boolean);
@@ -54,17 +63,16 @@ async function showSectionInfo(section) {
                     ${convertMarkdown(mainTitle)}
                     ${collapsibleContent}
                 `;
-                modal.hasContent = true;
             } catch (error) {
                 console.error('Error loading info content:', error);
             }
+        } else {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            body.style.overflow = ''; // Restore scrolling
         }
-    } else {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        body.style.overflow = ''; // Restore scrolling
     }
-    
+
     /*const modal = document.getElementById('infoModal');
     const modalContent = document.getElementById('infoContent');
     const body = document.body;
@@ -72,12 +80,12 @@ async function showSectionInfo(section) {
     try {
         const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
         const content = await response.text();
-        
+
         modalContent.innerHTML = marked(content);
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
-        
+
         modalContent.tabIndex = -1;
         modalContent.focus();
     } catch (error) {
@@ -155,7 +163,7 @@ function updateUserInfo(data) {
                 <div class="font-medium text-blue-700">Logged in as: @${data.user.screen_name}</div>
                 <div class="text-sm text-blue-600">Twitter ID: ${data.user.id}</div>
                 ${data.user.screen_name === 'lifebalance' ? 
-                    '<div class="mt-2"><a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" target="_blank" class="text-sm text-green-500 hover:text-green-600 transition-colors">New Issue</a></div>' : 
+                    '<div class="mt-2"><a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" target="_blank" class="text-sm text-green-500 hover:text-green-600">New Issue</a></div>' : 
                     ''}
             </div>`;
 
@@ -561,11 +569,9 @@ async function toggleInfo() {
         modalContent.tabIndex = -1;
         modalContent.focus();
 
-        // Fetch and render markdown content with collapsible sections
-        if (!modal.hasContent) {
-            try {
-                const response = await fetch('/docs/about');
-                const content = await response.text();
+        try {
+            const response = await fetch('/docs/about');
+            const content = await response.text();
 
                 // Convert markdown sections into collapsible panels
                 const sections = content.split('\n## ').filter(Boolean);
@@ -603,7 +609,6 @@ async function toggleInfo() {
                     ${convertMarkdown(mainTitle)}
                     ${collapsibleContent}
                 `;
-                modal.hasContent = true;
             } catch (error) {
                 console.error('Error loading info content:', error);
             }
@@ -754,8 +759,7 @@ async function repostTweet(tweetId) {
 
         const response = await fetch(`/retweet/${tweetId}`, {
             method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
+            headers: {'Content-Type': 'application/json'
             },
             credentials: 'same-origin'
         });
@@ -787,7 +791,7 @@ async function repostTweet(tweetId) {
         if (tweetElement) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
-            
+
             // Check if the error is related to authentication
             if (error.message && (error.message.includes("authentication") || 
                 error.message.includes("authorized") || 
@@ -796,7 +800,7 @@ async function repostTweet(tweetId) {
             } else {
                 errorDiv.textContent = error.message || "Error reposting tweet";
             }
-            
+
             tweetElement.appendChild(errorDiv);
         }
     }
@@ -1105,7 +1109,7 @@ async function displaySavedTweets(showAll = true) {
         const data = await response.json();
 
         const tweetsDiv = document.getElementById("searchedTweets");
-        
+
         if (!data.data || data.data.length === 0) {
             tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
             return;
@@ -1113,7 +1117,7 @@ async function displaySavedTweets(showAll = true) {
 
         // Filter tweets based on selection
         const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-        
+
         const filterButtons = `
             <div class="flex gap-2 mb-4">
                 <button onclick="displaySavedTweets(true)" 
