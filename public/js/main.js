@@ -1,3 +1,25 @@
+
+async function showSectionInfo(section) {
+    const modal = document.getElementById('infoModal');
+    const modalContent = document.getElementById('infoContent');
+    const body = document.body;
+
+    try {
+        const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
+        const content = await response.text();
+        
+        modalContent.innerHTML = marked(content);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        body.style.overflow = 'hidden';
+        
+        modalContent.tabIndex = -1;
+        modalContent.focus();
+    } catch (error) {
+        console.error('Error loading section info:', error);
+    }
+}
+
 /**
  * Updates the current time display in the UI 
  * Runs on page load and updates every second
