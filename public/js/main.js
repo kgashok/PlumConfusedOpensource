@@ -1081,7 +1081,7 @@ async function showSectionInfo(section) {
     content.className = 'prose';
     
     try {
-        const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
+        const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}`);
         const markdown = await response.text();
         content.innerHTML = marked.parse(markdown);
     } catch (error) {
