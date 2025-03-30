@@ -287,7 +287,7 @@ async function fetchSearchedTweets() {
     }
 }
 
-async function updateSearchedTweets(data) {
+async function updateSearchedTweets(data, errorMessage = '') {
     const tweetsDiv = document.getElementById("searchedTweets");
 
     // Handle rate limit with stored tweets
@@ -326,10 +326,10 @@ async function updateSearchedTweets(data) {
         return;
     }
 
-    tweetsDiv.innerHTML = data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    tweetsDiv.innerHTML = errorMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
-async function displaySavedTweets(headerMessage = '') {
+async function displaySavedTweets(showAll = true) {
     try {
         document.body.style.cursor = 'wait';
         const response = await fetch("/search/tweets?stored=true");
@@ -338,13 +338,13 @@ async function displaySavedTweets(headerMessage = '') {
         const tweetsDiv = document.getElementById("searchedTweets");
 
         if (!data.data || data.data.length === 0) {
-            tweetsDiv.innerHTML = `${headerMessage}<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
+            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
             return;
         }
 
         // Filter out retweets by checking if text starts with "RT @"
         const originalTweets = data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-        const statusMessage = `${headerMessage}<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Showing ${originalTweets.length} stored SaveSoil tweets from database</div>`;
+        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Showing ${originalTweets.length} stored SaveSoil tweets from database</div>`;
         tweetsDiv.innerHTML = statusMessage + originalTweets.map(tweet => getSearchTweetHTML(tweet)).join("");
     } catch (error) {
         console.error("Error fetching saved tweets:", error);
@@ -553,15 +553,14 @@ document.addEventListener('click', (e) => {
 
 // Toggle section functionality
 function toggleSection(sectionId) {
-    const content = document.getElementById(sectionId);
-    const arrow = sectionId === 'tweetHistory' ? document.getElementById('historyArrow') : document.getElementById('savesoilArrow');
-
-    if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        arrow.style.transform = 'rotate(0deg)';
+    const section = document.getElementById(sectionId);
+    const arrow = document.getElementById(sectionId === 'tweetHistory' ? 'historyArrow' : 'savesoilArrow');
+    if (section.classList.contains('hidden')) {
+        section.classList.remove('hidden');
+        arrow.classList.remove('rotate-180');
     } else {
-        content.classList.add('hidden');
-        arrow.style.transform = 'rotate(180deg)';
+        section.classList.add('hidden');
+        arrow.classList.add('rotate-180');
     }
 }
 
@@ -699,7 +698,7 @@ async function repostTweet(tweetId) {
         if (tweetElement) {
             const errorDiv = document.createElement('div');
             errorDiv.className = 'repost-message text-red-600 text-sm mt-2';
-            
+
             // Check if the error is related to authentication
             if (error.message && (error.message.includes("authentication") || 
                 error.message.includes("authorized") || 
@@ -708,7 +707,7 @@ async function repostTweet(tweetId) {
             } else {
                 errorDiv.textContent = error.message || "Error reposting tweet";
             }
-            
+
             tweetElement.appendChild(errorDiv);
         }
     }
@@ -761,7 +760,7 @@ async function toggleInspiration() {
         modal.classList.remove('flex');
         body.style.overflow = '';
         // Clean up modal content
-        content.innerHTML = '';
+        content.innerHTML ='';
     }
 }
 window.toggleInspiration = toggleInspiration;
@@ -1017,15 +1016,15 @@ async function displaySavedTweets(showAll = true) {
         const data = await response.json();
 
         const tweetsDiv = document.getElementById("searchedTweets");
-        
+
         if (!data.data || data.data.length === 0) {
-            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
+            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
             return;
         }
 
         // Filter tweets based on selection
         const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-        
+
         const filterButtons = `
             <div class="flex gap-2 mb-4">
                 <button onclick="displaySavedTweets(true)" 
@@ -1064,10 +1063,10 @@ async function showSectionInfo(section) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
     modal.style.zIndex = '9999';
-    
+
     const modalContent = document.createElement('div');
     modalContent.className = 'bg-white p-6 rounded-lg shadow-xl max-w-2xl mx-4 relative';
-    
+
     const closeButton = document.createElement('button');
     closeButton.className = 'absolute top-4 right-4 text-gray-500 hover:text-gray-700';
     closeButton.innerHTML = `
@@ -1076,10 +1075,10 @@ async function showSectionInfo(section) {
         </svg>
     `;
     closeButton.onclick = () => modal.remove();
-    
+
     const content = document.createElement('div');
     content.className = 'prose';
-    
+
     try {
         const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}`);
         const markdown = await response.text();
@@ -1088,17 +1087,29 @@ async function showSectionInfo(section) {
         console.error('Error loading section info:', error);
         content.innerHTML = '<p class="text-red-500">Error loading section information.</p>';
     }
-    
+
     modalContent.appendChild(closeButton);
     modalContent.appendChild(content);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden';
-    
+
     modal.onclick = (e) => {
         if (e.target === modal) {
             modal.remove();
             document.body.style.overflow = 'auto';
         }
     };
+}
+
+async function fetchAndDisplayInfo(section) {
+    const infoContent = document.getElementById('infoContent');
+    try {
+        const response = await fetch(`/docs/${section}`);
+        const markdown = await response.text();
+        infoContent.innerHTML = marked.parse(markdown);
+    } catch (error) {
+        console.error('Error fetching and displaying info:', error);
+        infoContent.innerHTML = '<p class="text-red-500">Error loading information.</p>';
+    }
 }
