@@ -1060,3 +1060,45 @@ async function displaySavedTweets(showAll = true) {
         document.body.style.cursor = 'default';
     }
 }
+async function showSectionInfo(section) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+    modal.style.zIndex = '9999';
+    
+    const modalContent = document.createElement('div');
+    modalContent.className = 'bg-white p-6 rounded-lg shadow-xl max-w-2xl mx-4 relative';
+    
+    const closeButton = document.createElement('button');
+    closeButton.className = 'absolute top-4 right-4 text-gray-500 hover:text-gray-700';
+    closeButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    `;
+    closeButton.onclick = () => modal.remove();
+    
+    const content = document.createElement('div');
+    content.className = 'prose';
+    
+    try {
+        const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
+        const markdown = await response.text();
+        content.innerHTML = marked.parse(markdown);
+    } catch (error) {
+        console.error('Error loading section info:', error);
+        content.innerHTML = '<p class="text-red-500">Error loading section information.</p>';
+    }
+    
+    modalContent.appendChild(closeButton);
+    modalContent.appendChild(content);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+        }
+    };
+}
