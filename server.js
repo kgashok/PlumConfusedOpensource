@@ -84,6 +84,8 @@ app.get('/api/un-dates', async (req, res) => {
 app.get('/docs/:section', async (req, res) => {
     try {
         const section = req.params.section;
+        console.log("Request::", req.params); 
+        
         let filePath;
         
         switch(section) {
@@ -102,6 +104,7 @@ app.get('/docs/:section', async (req, res) => {
         
         const markdown = await readFile(filePath, 'utf-8');
         const html = marked(markdown);
+        console.log("filePath read", filePath);
         res.send(html);
     } catch (error) {
         console.error('Error reading markdown:', error);

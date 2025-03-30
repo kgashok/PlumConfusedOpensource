@@ -1,5 +1,71 @@
 async function showSectionInfo(section) {
     const modal = document.getElementById('infoModal');
+    const body = document.body;
+    
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Set focus to modal content
+        const modalContent = document.getElementById('infoContent');
+        modalContent.tabIndex = -1;
+        modalContent.focus();
+
+        // Fetch and render markdown content with collapsible sections
+        if (!modal.hasContent) {
+            try {
+                const response = await fetch(`${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
+                const content = await response.text();
+
+                // Convert markdown sections into collapsible panels
+                const sections = content.split('\n## ').filter(Boolean);
+                const mainTitle = sections.shift(); // Remove main title section
+
+                // Simple markdown to HTML converter
+                function convertMarkdown(text) {
+                    return text
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // Bold
+                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-500 hover:text-blue-600">$1</a>')  // Links 
+                        .replace(/^- (.+)$/gm, '<li>$1</li>')  // List items
+                        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')  // Wrap lists
+                        .replace(/\n\n/g, '<br><br>');  // Paragraphs
+                }
+
+                const collapsibleContent = sections.map((section, index) => {
+                    const sectionTitle = section.split('\n')[0];
+                    const sectionContent = section.split('\n').slice(1).join('\n');
+                    return `
+                        <div class="border rounded-lg mb-2">
+                            <button class="w-full px-4 py-2 text-left font-bold bg-gray-50 hover:bg-gray-100 rounded-lg focus:outline-none flex justify-between items-center" onclick="toggleCollapsible(${index})">
+                                ${sectionTitle}
+                                <svg class="w-5 h-5 transform transition-transform duration-200" id="arrow-${index}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div class="overflow-hidden transition-all duration-200 max-h-0" id="content-${index}">
+                                <div class="p-4 prose">${convertMarkdown(sectionContent)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('infoContent').innerHTML = `
+                    ${convertMarkdown(mainTitle)}
+                    ${collapsibleContent}
+                `;
+                modal.hasContent = true;
+            } catch (error) {
+                console.error('Error loading info content:', error);
+            }
+        }
+    } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        body.style.overflow = ''; // Restore scrolling
+    }
+    
+    /*const modal = document.getElementById('infoModal');
     const modalContent = document.getElementById('infoContent');
     const body = document.body;
 
@@ -7,7 +73,7 @@ async function showSectionInfo(section) {
         const response = await fetch(`/docs/${section === 'savesoil' ? 'section_savesoil_tweets' : 'tweets_history'}.md`);
         const content = await response.text();
         
-        modalContent.innerHTML = marked.parse(content);
+        modalContent.innerHTML = marked(content);
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         body.style.overflow = 'hidden';
@@ -17,6 +83,7 @@ async function showSectionInfo(section) {
     } catch (error) {
         console.error('Error loading section info:', error);
     }
+    */
 }
 
 /**
