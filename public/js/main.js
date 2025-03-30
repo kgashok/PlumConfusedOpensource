@@ -1100,6 +1100,13 @@ async function showSectionInfo(section) {
             document.body.style.overflow = 'auto';
         }
     };
+
+    // Add event listener for the close button to properly restore scrolling
+    closeButton.onclick = () => {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+    };
+    };
 }
 
 async function fetchAndDisplayInfo(section) {
