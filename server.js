@@ -769,58 +769,24 @@ app.post('/retweet/:tweetId', async (req, res) => {
         const { tweetId } = req.params;
         const accessTokens = req.session.user;
 
-        if (!accessTokens || !accessTokens.token || !accessTokens.token_secret) {
+        if (!accessTokens) {
             return res.status(401).json({ 
                 success: false, 
-                error: 'Authentication expired. Please sign in again.',
-                authRequired: true
+                error: 'Authentication required. Please sign in again.' 
             });
         }
 
         try {
-            // Check if tweet exists first
-            const tweetResult = await pool.query(
-                'SELECT * FROM searched_tweets WHERE id = $1',
-                [tweetId]
+            const retweetResponse = await retweetTweet(
+                accessTokens.token, 
+                accessTokens.token_secret, 
+                tweetId,
+                accessTokens.id
             );
 
-            if (!tweetResult.rows.length) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'Repost failed. Tweet might have been deleted already!'
-                });
-            }
-
-            let retweetResponse;
-            try {
-                retweetResponse = await retweetTweet(
-                    accessTokens.token, 
-                    accessTokens.token_secret, 
-                    tweetId,
-                    accessTokens.id
-                );
-            } catch (tweetError) {
-                // Check for tweet not found errors in the caught error
-                if (tweetError.message.includes('Could not find tweet') || 
-                    tweetError.message.includes('Tweet not found with id') ||
-                    tweetError.message.includes('No status found')) {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'Repost failed. Tweet might have been deleted already!'
-                    });
-                }
-                throw tweetError;
-            }
-
+            // Only proceed if retweet was successful
             if (!retweetResponse || retweetResponse.errors) {
-                const error = retweetResponse?.errors?.[0];
-                if (error?.code === 144 || error?.message?.includes('not found')) {
-                    return res.status(404).json({
-                        success: false,
-                        error: 'Repost failed. Tweet might have been deleted already!'
-                    });
-                }
-                throw new Error(error?.message || 'Failed to retweet');
+                throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
             }
 
             // Store retweet in database
@@ -830,12 +796,12 @@ app.post('/retweet/:tweetId', async (req, res) => {
             );
 
             // Get the original tweet text
-            const tweetTextResult = await pool.query(
+            const tweetResult = await pool.query(
                 'SELECT text FROM searched_tweets WHERE id = $1',
                 [tweetId]
             );
             
-            const tweetText = tweetTextResult.rows[0]?.text || 'Reposted tweet';
+            const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
             
             // Store in tweets table with a composite ID to avoid primary key conflicts
             const compositeId = `${tweetId}-${accessTokens.id}`;
@@ -858,17 +824,6 @@ app.post('/retweet/:tweetId', async (req, res) => {
             // Check if the error is related to authentication/token
             const errorMessage = error.message || 'Failed to retweet';
             
-            // Check for tweet not found or deleted
-            if (errorMessage.includes('Could not find tweet') || 
-                errorMessage.includes('Tweet not found') ||
-                errorMessage.includes('No status found with that ID')) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'Repost failed. Tweet might have been deleted already!'
-                });
-            }
-            
-            // Check for authentication issues
             if (errorMessage.includes('token') || 
                 errorMessage.includes('auth') || 
                 errorMessage.includes('unauthorized') || 
