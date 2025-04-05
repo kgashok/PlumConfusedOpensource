@@ -5,6 +5,13 @@ Review the contents of @docs/functions.md. Now, update the contents to reflect a
 
 ## Changelog
 
+### April 2025
+- Fixed issue with section info modal causing scrolling to freeze
+- Enhanced modal close handling to properly restore scrolling
+- Added event propagation control for section info buttons
+- Improved UI responsiveness with proper scroll state management
+- Updated section info display to prevent accidental section toggling
+
 ### March 2025
 - Implemented tweet filtering functionality for "All Tweets" and "Original Tweets"
 - Added filter buttons with active state indicators in the UI
@@ -109,25 +116,6 @@ Manages authentication status display.
 
 ## Tweet Management Functions
 
-### `refreshHistory()`
-Fetches and displays tweet history.
-- Calls `/tweet/history` endpoint
-- Updates tweet history display
-- Called after posting/deleting/retweeting
-- Implements database persistence
-- Includes error handling for failed fetches
-- Shows reposted tweets in history
-
-### `updateTweetHistory(history)`
-Updates the tweet history UI.
-- Parameters: Array of tweet objects
-- Renders empty state if no tweets
-- Displays tweets in chronological order
-- Shows clickable Twitter handles
-- Handles tweet deletion with visual feedback
-- Supports profile page linking
-- Displays repost status and links
-
 ### `displaySavedTweets(showAll)`
 Displays saved tweets with filtering capabilities.
 - Parameters: showAll boolean (true for all tweets, false for original tweets only)
@@ -138,15 +126,15 @@ Displays saved tweets with filtering capabilities.
 - Handles empty state and error scenarios
 - Maintains consistent UI with search results
 
-### `deleteTweet(tweetId)`
-Handles tweet deletion.
-- Parameters: Tweet ID
-- Calls `/tweet/:id` DELETE endpoint
-- Updates database status
-- Shows deletion animation
-- Adds deletion indicator in UI
-- Auto-refreshes history after delay
-- Includes error handling
+### `repostTweet(tweetId)`
+Handles reposting of tweets with enhanced error handling.
+- Shows error messages beneath the specific tweet
+- Implements loading state during repost
+- Displays success message with clickable link
+- Cleans up previous error messages
+- Updates database with repost status using composite ID
+- Refreshes tweet history after success
+- Handles authentication expiration gracefully
 
 ### `postTweet()`
 Handles new tweet creation.
@@ -159,31 +147,15 @@ Handles new tweet creation.
 - Manages authentication state
 - Auto-refreshes on success
 
-### `repostTweet(tweetId)`
-Handles reposting of tweets with enhanced error handling.
+### `deleteTweet(tweetId)`
+Handles tweet deletion.
 - Parameters: Tweet ID
-- Shows error messages beneath the specific tweet
-- Implements loading state during repost
-- Displays success message with clickable link
-- Cleans up previous error messages
-- Updates database with repost status using composite ID
-- Refreshes tweet history after success
-
-## Search Functions
-
-### `fetchSearchedTweets()`
-Fetches tweets with #SaveSoil hashtag.
-- Calls `/search/tweets` endpoint
-- Updates search results display
-- Includes rate limit handling
-- Stores results in database
-
-### `updateSearchedTweets(data)`
-Updates the search results UI.
-- Parameters: Search response data
-- Handles rate limiting and errors
-- Displays tweets or error messages
-- Enhanced error visualization
+- Calls `/tweet/:id` DELETE endpoint
+- Updates database status
+- Shows deletion animation
+- Adds deletion indicator in UI
+- Auto-refreshes history after delay
+- Includes error handling
 
 ## Server Routes
 
