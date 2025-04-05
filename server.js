@@ -58,7 +58,7 @@ app.get('/api/un-dates', async (req, res) => {
         const rows = csvData.split('\n').slice(1); // Skip header row
 
         rows.forEach(row => {
-            const [date, title] = row.split(',');
+            const [date, title, reference] = row.split(',');
             const [month, day] = date.split(' ');
             const dateObj = new Date(currentDate.getFullYear(), new Date(`${month} 1`).getMonth(), parseInt(day));
 
@@ -66,7 +66,8 @@ app.get('/api/un-dates', async (req, res) => {
                 dates.push({
                     date: dateObj,
                     title: title.trim(),
-                    displayDate: date
+                    displayDate: date,
+                    reference: reference ? reference.trim() : ''
                 });
             }
         });

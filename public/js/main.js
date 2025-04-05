@@ -747,7 +747,10 @@ async function toggleInspiration() {
                 <p>Here are the upcoming International Days:</p>
                 <ul>
                     ${dates.map(date => `
-                        <li><strong>${date.displayDate}</strong> - ${date.title}</li>
+                        <li>
+                            <strong>${date.displayDate}</strong> - ${date.title}
+                            ${date.reference ? `<br><a href="${date.reference}" target="_blank" class="text-sm text-blue-500 hover:text-blue-600">Reference →</a>` : ''}
+                        </li>
                     `).join('')}
                 </ul>
                 <p class="text-sm text-gray-500 mt-4">Share your thoughts about these important observances!</p>
