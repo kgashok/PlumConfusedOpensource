@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import got from 'got';
 import crypto from 'crypto';
@@ -5,6 +8,8 @@ import OAuth from 'oauth-1.0a';
 import qs from 'querystring';
 import multer from 'multer';
 import FormData from 'form-data';
+import fs from 'fs';
+
 
 const upload = multer({
     limits: {
@@ -31,6 +36,11 @@ import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 import OpenAI from 'openai';
 
+// Initialize OpenAI client
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error('The OPENAI_API_KEY environment variable is missing. Please set it in your environment.');
+}
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -38,34 +48,25 @@ const openai = new OpenAI({
 // UN Dates API endpoint
 app.get('/api/un-dates', async (req, res) => {
     try {
-        const response = await fetch('https://www.un.org/en/observances/list-days-weeks');
-        const html = await response.text();
-        const dom = new JSDOM(html);
-        const document = dom.window.document;
-
         const dates = [];
         const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0); // Reset time to midnight
 
-        // Parse dates from the page
-        const elements = document.querySelectorAll('.views-row');
-        elements.forEach(element => {
-            const dateText = element.textContent.trim();
-            const match = dateText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)/i);
+        // Read and parse InternationalDays.csv
+        const csvPath = path.join(__dirname, 'InternationalDays.csv');
+        const csvData = fs.readFileSync(csvPath, 'utf-8');
+        const rows = csvData.split('\n').slice(1); // Skip header row
 
-            if (match) {
-                const day = parseInt(match[1]);
-                const month = new Date(`${match[2]} 1`).getMonth();
-                const title = dateText.split('—')[1]?.trim() || dateText;
+        rows.forEach(row => {
+            const [date, title] = row.split(',');
+            const [month, day] = date.split(' ');
+            const dateObj = new Date(currentDate.getFullYear(), new Date(`${month} 1`).getMonth(), parseInt(day));
 
-                let dateObj = new Date(currentDate.getFullYear(), month, day);
-                if (dateObj < currentDate) {
-                    dateObj = new Date(currentDate.getFullYear() + 1, month, day);
-                }
-
+            if (dateObj >= currentDate) {
                 dates.push({
                     date: dateObj,
-                    title: title,
-                    displayDate: `${match[1]} ${match[2]}`
+                    title: title.trim(),
+                    displayDate: date
                 });
             }
         });
@@ -76,15 +77,15 @@ app.get('/api/un-dates', async (req, res) => {
         // Return the two closest dates
         res.json(dates.slice(0, 2));
     } catch (error) {
-        console.error('Error fetching UN dates:', error);
-        res.status(500).json({ error: 'Failed to fetch UN dates' });
+        console.error('Error reading InternationalDays.csv:', error);
+        res.status(500).json({ error: 'Failed to fetch dates from InternationalDays.csv' });
     }
 });
 
-app.get('/docs/:filename', async (req, res) => {
+
+app.get('/docs/about', async (req, res) => {
     try {
-        const filename = req.params.filename;
-        const markdown = await readFile(`./docs/${filename}.md`, 'utf-8');
+        const markdown = await readFile('./docs/about.md', 'utf-8');
         const html = marked(markdown);
         res.send(html);
     } catch (error) {
@@ -771,77 +772,54 @@ app.post('/retweet/:tweetId', async (req, res) => {
         const accessTokens = req.session.user;
 
         if (!accessTokens) {
-            return res.status(401).json({ 
-                success: false, 
-                error: 'Authentication required. Please sign in again.' 
-            });
+            return res.status(401).json({ success: false, error: 'Not authenticated' });
         }
 
-        try {
-            const retweetResponse = await retweetTweet(
-                accessTokens.token, 
-                accessTokens.token_secret, 
-                tweetId,
-                accessTokens.id
-            );
+        const retweetResponse = await retweetTweet(
+            accessTokens.token, 
+            accessTokens.token_secret, 
+            tweetId,
+            accessTokens.id
+        ).catch(error => {
+            throw new Error(error.message || 'Failed to retweet');
+        });
 
-            // Only proceed if retweet was successful
-            if (!retweetResponse || retweetResponse.errors) {
-                throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
-            }
-
-            // Store retweet in database
-            await pool.query(
-                'INSERT INTO retweets (original_tweet_id, user_id, timestamp) VALUES ($1, $2, $3)',
-                [tweetId, accessTokens.id, new Date().toISOString()]
-            );
-
-            // Get the original tweet text
-            const tweetResult = await pool.query(
-                'SELECT text FROM searched_tweets WHERE id = $1',
-                [tweetId]
-            );
-            
-            const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
-            
-            // Store in tweets table with a composite ID to avoid primary key conflicts
-            const compositeId = `${tweetId}-${accessTokens.id}`;
-            await pool.query(
-                'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted, original_tweet_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                [
-                    compositeId,
-                    tweetText,
-                    new Date().toISOString(),
-                    `https://twitter.com/i/web/status/${tweetId}`,
-                    accessTokens.id,
-                    accessTokens.screen_name,
-                    false,
-                    tweetId
-                ]
-            );
-
-            res.json({ success: true, retweetResponse });
-        } catch (error) {
-            // Check if the error is related to authentication/token
-            const errorMessage = error.message || 'Failed to retweet';
-            
-            if (errorMessage.includes('token') || 
-                errorMessage.includes('auth') || 
-                errorMessage.includes('unauthorized') || 
-                errorMessage.includes('expired') ||
-                errorMessage.includes('Invalid')) {
-                
-                // Clear the invalid session
-                req.session.destroy();
-                
-                return res.status(401).json({ 
-                    success: false, 
-                    error: 'Authentication expired. Please sign in again.' 
-                });
-            }
-            
-            throw error;
+        // Only proceed if retweet was successful
+        if (!retweetResponse || retweetResponse.errors) {
+            throw new Error(retweetResponse?.errors?.[0]?.message || 'Failed to retweet');
         }
+
+        // Store retweet in database
+        await pool.query(
+            'INSERT INTO retweets (original_tweet_id, user_id, timestamp) VALUES ($1, $2, $3)',
+            [tweetId, accessTokens.id, new Date().toISOString()]
+        );
+
+        // Get the original tweet text
+        const tweetResult = await pool.query(
+            'SELECT text FROM searched_tweets WHERE id = $1',
+            [tweetId]
+        );
+        
+        const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
+        
+        // Store in tweets table with a composite ID to avoid primary key conflicts
+        const compositeId = `${tweetId}-${accessTokens.id}`;
+        await pool.query(
+            'INSERT INTO tweets (id, text, timestamp, url, user_id, screen_name, deleted, original_tweet_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [
+                compositeId,
+                tweetText,
+                new Date().toISOString(),
+                `https://twitter.com/i/web/status/${tweetId}`,
+                accessTokens.id,
+                accessTokens.screen_name,
+                false,
+                tweetId
+            ]
+        );
+
+        res.json({ success: true, retweetResponse });
     } catch (error) {
         console.error('Error retweeting:', error);
         res.status(500).json({ success: false, error: error.message });
