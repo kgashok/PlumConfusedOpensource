@@ -159,6 +159,14 @@ Handles tweet deletion.
 
 ## Server Routes
 
+### Documentation Routes
+1. Section Info Display:
+   - GET `/docs/section_savesoil_tweets`: Returns SaveSoil section documentation
+   - GET `/docs/about`: Returns about page content
+   - Converts markdown to HTML using marked
+   - Handles file read errors gracefully
+   - Returns appropriate HTTP status codes
+
 ### Authentication Flow
 1. User clicks "Authenticate with Twitter"
 2. Frontend: `startAuth()` → Backend: `/auth/twitter`
