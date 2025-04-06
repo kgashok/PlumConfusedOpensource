@@ -1062,7 +1062,12 @@ async function displaySavedTweets(showAll = true) {
         document.body.style.cursor = 'default';
     }
 }
-async function showSectionInfo(section) {
+async function showSectionInfo(section, event) {
+    // Prevent the click from bubbling up to parent elements
+    if (event) {
+        event.stopPropagation();
+    }
+
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
     modal.style.zIndex = '9999';
@@ -1077,10 +1082,16 @@ async function showSectionInfo(section) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
     `;
-    closeButton.onclick = () => {
+    
+    const cleanup = () => {
         modal.remove();
         document.body.style.overflow = 'auto';
+        // Remove any lingering event listeners
+        modal.removeEventListener('click', handleModalClick);
+        closeButton.removeEventListener('click', cleanup);
     };
+    
+    closeButton.onclick = cleanup;
 
     const content = document.createElement('div');
     content.className = 'prose';
