@@ -9,7 +9,6 @@ This section displays real-time tweets containing the #SaveSoil hashtag. It help
 - Track the movement's social media impact
 
 ## Features
-- Auto-refreshes to show latest tweets
 - Displays tweet content, author, and timestamp
 - Shows engagement metrics (likes, retweets)
 - Supports tweet interaction through the Twitter platform
