@@ -95,6 +95,17 @@ app.get('/docs/about', async (req, res) => {
     }
 });
 
+app.get('/docs/section_savesoil_tweets', async (req, res) => {
+    try {
+        const markdown = await readFile('./docs/section_savesoil_tweets.md', 'utf-8');
+        const html = marked(markdown);
+        res.send(html);
+    } catch (error) {
+        console.error('Error reading markdown:', error);
+        res.status(500).send('Error loading content');
+    }
+});
+
 // Initialize express-session middleware
 app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key', // Replace with a strong secret key
