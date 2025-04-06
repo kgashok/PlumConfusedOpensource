@@ -1,7 +1,7 @@
 # Function Documentation
 
 ### [DO NOT EDIT] Prompt used 
-Review the contents of @docs/functions.md. Now, update the contents to reflect all the MAJOR changes that have happened since the last update as another "ChangeLog". Please review @docs/functions.md and makes updates to the "Tweet Management Functions" and "Server Routes" section as well. However, do not delete or change the [DO NOT EDIT] section. 
+Review the contents of @docs/functions.md . Now, update the contents to reflect all the MAJOR changes that have happened since the last update as another "ChangeLog". Please review @docs/functions.md and makes updates to the "Tweet Management Functions" and "Server Routes" section as well. However, do not delete or change the [DO NOT EDIT] section. 
 
 ## Changelog
 
