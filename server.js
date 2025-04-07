@@ -487,6 +487,38 @@ app.listen(3000, '0.0.0.0', () => {
     console.log('Visit http://localhost:3000 to start');
 });
 
+async function retweetTweet(oauth_token, oauth_token_secret, tweet_id, user_id) {
+    const token = {
+        key: oauth_token,
+        secret: oauth_token_secret
+    };
+
+    const requestData = {
+        url: `https://api.twitter.com/2/users/${user_id}/retweets`,
+        method: 'POST'
+    };
+
+    const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+    const req = await got.post(requestData.url, {
+        json: { tweet_id },
+        responseType: 'json',
+        headers: {
+            Authorization: authHeader["Authorization"],
+            'user-agent': "v2RetweetJS",
+            'content-type': "application/json",
+            'accept': "application/json"
+        },
+        throwHttpErrors: false
+    });
+
+    if (req.statusCode !== 200) {
+        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+    }
+
+    return req.body;
+}
+
 async function deleteTweet(oauth_token, oauth_token_secret, tweet_id) {
     const token = {
         key: oauth_token,
