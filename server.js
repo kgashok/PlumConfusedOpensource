@@ -585,13 +585,22 @@ app.post('/retweet/:tweetId', async (req, res) => {
             [tweetId, accessTokens.id, new Date().toISOString()]
         );
 
-        // Get the original tweet text
+        // Get the original tweet text and author
         const tweetResult = await pool.query(
-            'SELECT text FROM searched_tweets WHERE id = $1',
+            'SELECT text, screen_name as original_author FROM searched_tweets WHERE id = $1',
             [tweetId]
         );
 
         const tweetText = tweetResult.rows[0]?.text || 'Reposted tweet';
+        const originalAuthor = tweetResult.rows[0]?.original_author;
+
+        // Get all users who retweeted this tweet
+        const retweetsResult = await pool.query(
+            'SELECT DISTINCT t.screen_name FROM tweets t WHERE t.original_tweet_id = $1',
+            [tweetId]
+        );
+
+        const retweeters = retweetsResult.rows.map(row => row.screen_name);
 
         // Store in tweets table with a composite ID to avoid primary key conflicts
         const compositeId = `${tweetId}-${accessTokens.id}`;
@@ -609,7 +618,15 @@ app.post('/retweet/:tweetId', async (req, res) => {
             ]
         );
 
-        res.json({ success: true, retweetResponse });
+        res.json({ 
+            success: true, 
+            retweetResponse,
+            userInfo: {
+                currentUser: accessTokens.screen_name,
+                originalAuthor,
+                retweeters: retweeters
+            }
+        });
     } catch (error) {
         console.error('Error retweeting:', error);
         res.status(500).json({ success: false, error: error.message });

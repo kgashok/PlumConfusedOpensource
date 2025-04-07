@@ -682,7 +682,19 @@ async function repostTweet(tweetId) {
 
         if (response.ok && data.success) {
             messageDiv.className += ' text-green-600';
-            messageDiv.innerHTML = `Reposted successfully - <a href="https://twitter.com/i/web/status/${tweetId}" target="_blank" class="underline hover:text-green-700">View Tweet</a>`;
+            const userInfo = data.userInfo;
+            const repostersText = userInfo.retweeters.length > 0 
+                ? `\nReposted by: ${userInfo.retweeters.map(name => `@${name}`).join(', ')}` 
+                : '';
+            messageDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div>Reposted successfully - <a href="https://twitter.com/i/web/status/${tweetId}" target="_blank" class="underline hover:text-green-700">View Tweet</a></div>
+                    <div class="text-xs">
+                        Original author: @${userInfo.originalAuthor}<br>
+                        Your handle: @${userInfo.currentUser}
+                        ${repostersText}
+                    </div>
+                </div>`;
             refreshHistory();
         } else {
             messageDiv.className += ' text-red-600';
