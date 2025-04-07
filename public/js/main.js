@@ -652,8 +652,9 @@ async function repostTweet(tweetId) {
         const authData = await authResponse.json();
 
         const tweetElement = document.querySelector(`[data-tweet-id="${tweetId}"]`);
+        // Only remove existing message if it's an error message
         const existingMsg = tweetElement?.querySelector('.repost-message');
-        if (existingMsg) {
+        if (existingMsg && existingMsg.classList.contains('text-red-600')) {
             existingMsg.remove();
         }
 
