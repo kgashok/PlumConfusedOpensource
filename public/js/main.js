@@ -225,6 +225,11 @@ function getTweetHTML(tweet) {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </button>
+                    <button onclick="repostTweet('${tweet.id}')" class="text-green-500 hover:text-green-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </button>
                 </div>
             </div>
             <div class="text-sm mt-2">
@@ -746,7 +751,7 @@ async function toggleInspiration() {
                 <h2>Looking for Tweet Ideas?</h2>
                 <p>Here are the upcoming International Days:</p>
                 <ul>
-                    ${dates.map(date => `
+                                        ${dates.map(date => `
                         <li>
                             <strong>${date.displayDate}</strong> - ${date.title}
                             ${date.reference ? `<br><a href="${date.reference}" target="_blank" class="text-sm text-blue-500 hover:text-blue-600">Reference →</a>` : ''}
@@ -1082,7 +1087,7 @@ async function showSectionInfo(section, event) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
     `;
-    
+
     const cleanup = () => {
         modal.remove();
         document.body.style.overflow = 'auto';
@@ -1090,7 +1095,7 @@ async function showSectionInfo(section, event) {
         modal.removeEventListener('click', handleModalClick);
         closeButton.removeEventListener('click', cleanup);
     };
-    
+
     closeButton.onclick = cleanup;
 
     const content = document.createElement('div');
