@@ -687,6 +687,11 @@ async function repostTweet(tweetId) {
             const repostersText = userInfo.retweeters.length > 0 
                 ? `\nReposted by: ${userInfo.retweeters.map(name => `@${name}`).join(', ')}` 
                 : '';
+
+            // Extract the numeric tweet ID if it's a composite ID
+            if (tweetId.includes('-')) {
+                tweetId = tweetId.split('-')[0];
+            }
             messageDiv.innerHTML = `
                 <div class="space-y-2 relative pr-8">
                     <button onclick="this.parentElement.parentElement.remove()" class="absolute top-0 right-0 text-green-700 hover:text-green-800">
@@ -701,7 +706,7 @@ async function repostTweet(tweetId) {
                         ${repostersText}
                     </div>
                 </div>`;
-            refreshHistory();
+            //refreshHistory();
         } else {
             messageDiv.className += ' text-red-600';
             // Check for authentication errors in the response
