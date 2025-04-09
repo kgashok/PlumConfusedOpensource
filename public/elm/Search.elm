@@ -68,16 +68,20 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "search-container" ]
-        [ div [ class "search-box" ]
+    div [ class "mb-6" ]
+        [ div [ class "flex gap-2 mb-4" ]
             [ input 
                 [ type_ "text"
                 , placeholder "Search tweets..."
                 , value model.query
                 , onInput UpdateQuery
-                , class "search-input"
+                , class "flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition duration-150 ease-in-out"
                 ] []
-            , button [ onClick Search, class "search-button" ] [ text "Search" ]
+            , button 
+                [ onClick Search
+                , class "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                ] 
+                [ text "Search" ]
             ]
         , viewResults model
         ]
@@ -86,23 +90,30 @@ viewResults : Model -> Html Msg
 viewResults model =
     case model.error of
         Just error ->
-            div [ class "error" ] [ text error ]
+            div [ class "text-red-500 p-4 rounded-lg bg-red-50" ] [ text error ]
         
         Nothing ->
-            div [ class "results" ] 
+            div [ class "space-y-4" ] 
                 (List.map viewTweet model.tweets)
 
 viewTweet : Tweet -> Html Msg
 viewTweet tweet =
-    div [ class "tweet" ]
-        [ div [ class "tweet-header" ]
-            [ a [ href ("https://twitter.com/" ++ tweet.screenName), target "_blank" ]
+    div [ class "border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out" ]
+        [ div [ class "mb-2" ]
+            [ a [ href ("https://twitter.com/" ++ tweet.screenName)
+                , target "_blank"
+                , class "text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                ] 
                 [ text ("@" ++ tweet.screenName) ]
             ]
-        , div [ class "tweet-text" ] [ text tweet.text ]
-        , div [ class "tweet-footer" ]
-            [ a [ href tweet.url, target "_blank" ] [ text "View Tweet" ]
-            , span [ class "timestamp" ] [ text tweet.timestamp ]
+        , div [ class "text-gray-700 mb-2" ] [ text tweet.text ]
+        , div [ class "text-sm flex items-center justify-between" ]
+            [ a [ href tweet.url
+                , target "_blank"
+                , class "bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition-colors inline-flex items-center gap-1"
+                ] 
+                [ text "View Tweet" ]
+            , span [ class "text-xs text-gray-500" ] [ text tweet.timestamp ]
             ]
         ]
 
