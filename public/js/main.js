@@ -334,6 +334,16 @@ async function updateSearchedTweets(data, errorMessage = '') {
     tweetsDiv.innerHTML = errorMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
+// Initialize Elm component
+document.addEventListener('DOMContentLoaded', function() {
+    const elmContainer = document.getElementById('elm-search');
+    if (elmContainer) {
+        const app = Elm.Search.init({
+            node: elmContainer
+        });
+    }
+});
+
 async function displaySavedTweets(showAll = true) {
     try {
         document.body.style.cursor = 'wait';
@@ -347,10 +357,36 @@ async function displaySavedTweets(showAll = true) {
             return;
         }
 
-        // Filter out retweets by checking if text starts with "RT @"
-        const originalTweets = data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">Showing ${originalTweets.length} stored SaveSoil tweets from database</div>`;
-        tweetsDiv.innerHTML = statusMessage + originalTweets.map(tweet => getSearchTweetHTML(tweet)).join("");
+        // Filter tweets based on selection
+        const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
+
+        const filterButtons = `
+            <div class="flex gap-2 mb-4">
+                <button onclick="displaySavedTweets(true)" 
+                    class="px-3 py-1 rounded ${showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                    All Tweets (${data.data.length})
+                </button>
+                <button onclick="displaySavedTweets(false)"
+                    class="px-3 py-1 rounded ${!showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                    Original Tweets (${data.data.filter(t => !t.text.startsWith('RT @')).length})
+                </button>
+            </div>`;
+
+        if (data.error) {
+            tweetsDiv.innerHTML = getErrorHTML(data);
+            return;
+        }
+
+        if (!data.data || data.data.length === 0) {
+            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
+            return;
+        }
+
+        // Filter tweets based on selection (using the previously defined tweets variable)
+        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
+            Found ${tweets.length} ${!showAll ? 'original' : ''} SaveSoil tweets
+        </div>`;
+        tweetsDiv.innerHTML = filterButtons + statusMessage + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
     } catch (error) {
         console.error("Error fetching saved tweets:", error);
         document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
@@ -571,9 +607,6 @@ function toggleSection(sectionId) {
 
 // Initialize
 // Initialize Elm application
-const app = Elm.Search.init({
-    node: document.getElementById('elm-search')
-});
 
 document.addEventListener("DOMContentLoaded", () => {
     initCharCounter();
@@ -701,7 +734,7 @@ async function repostTweet(tweetId) {
                 <div class="space-y-2 relative pr-8">
                     <button onclick="this.parentElement.parentElement.remove()" class="absolute top-0 right-0 text-green-700 hover:text-green-800">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.4141.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </button>
                     <div>Reposted successfully - <a href="https://twitter.com/i/web/status/${tweetId}" target="_blank" class="underline hover:text-green-700">View Tweet</a></div>
