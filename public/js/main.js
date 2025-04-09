@@ -570,6 +570,11 @@ function toggleSection(sectionId) {
 }
 
 // Initialize
+// Initialize Elm application
+const app = Elm.Search.init({
+    node: document.getElementById('elm-search')
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     initCharCounter();
     updateCurrentTime();

@@ -749,6 +749,29 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 }
 
 // Add new endpoint to get searched tweets
+// New combined search endpoint
+app.get('/api/search', async (req, res) => {
+    try {
+        const query = req.query.q?.toLowerCase() || '';
+        const results = await pool.query(
+            `SELECT * FROM (
+                SELECT id, text, timestamp, url, user_id, screen_name 
+                FROM tweets 
+                UNION ALL 
+                SELECT id, text, created_at as timestamp, url, author_id as user_id, screen_name 
+                FROM searched_tweets
+            ) combined 
+            WHERE LOWER(text) LIKE $1 
+            ORDER BY timestamp DESC`,
+            [`%${query}%`]
+        );
+        res.json(results.rows);
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ error: 'Search failed' });
+    }
+});
+
 app.get('/search/tweets', async (req, res) => {
     try {
         // For stored tweets, don't require authentication
