@@ -88,7 +88,7 @@ view model =
                 [ text "Search" ]
             , button 
                 [ onClick Clear
-                , class "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                , class "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out ml-2"
                 ] 
                 [ text "Clear" ]
             ]
