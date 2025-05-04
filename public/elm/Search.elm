@@ -26,6 +26,7 @@ type alias Model =
 type Msg
     = UpdateQuery String
     | Search
+    | Clear
     | GotTweets (Result Http.Error (List Tweet))
 
 init : () -> (Model, Cmd Msg)
@@ -59,6 +60,9 @@ update msg model =
 
         Search ->
             ( model, searchTweets model.query )
+            
+        Clear ->
+            ( { model | query = "", tweets = [], error = Nothing }, Cmd.none )
 
         GotTweets (Ok tweets) ->
             ( { model | tweets = tweets, error = Nothing }, Cmd.none )
@@ -82,6 +86,11 @@ view model =
                 , class "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
                 ] 
                 [ text "Search" ]
+            , button 
+                [ onClick Clear
+                , class "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                ] 
+                [ text "Clear" ]
             ]
         , viewResults model
         ]
