@@ -114,7 +114,15 @@
     }
     
     .search-box {
-        @apply flex-col;
+        @apply flex flex-col gap-2;
+    }
+    
+    .search-box > div {
+        @apply flex w-full gap-2;
+    }
+    
+    .search-box button {
+        @apply flex-1;
     }
 }
 
