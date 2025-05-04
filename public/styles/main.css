@@ -70,14 +70,15 @@
     display: flex !important;
     gap: 1rem;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
 }
 
-.side-by-side > div {
-    flex: 1 1 0;
+.side-by-side > .bg-white {
+    flex: 1;
     min-width: 0;
-    width: calc(50% - 0.5rem);
-    max-width: calc(50% - 0.5rem);
+    width: 50%;
+    height: fit-content;
+    margin: 0;
 }
 
 @media (max-width: 768px) {
@@ -85,10 +86,19 @@
         flex-direction: column;
     }
     
-    .side-by-side > div {
+    .side-by-side > .bg-white {
         width: 100%;
-        max-width: 100%;
     }
+}
+
+#listsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+#listsContainer.side-by-side {
+    margin-top: 1rem;
 }
 
 .timestamp {
