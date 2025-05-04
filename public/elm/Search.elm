@@ -75,7 +75,7 @@ view model =
                 , placeholder "Search tweets..."
                 , value model.query
                 , onInput UpdateQuery
-                , class "flex-1 p-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300"
+                , class "flex-1 p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300"
                 ] []
             , button 
                 [ onClick Search
