@@ -66,6 +66,16 @@
     @apply mr-1;
 }
 
+.side-by-side {
+    display: flex !important;
+    gap: 1rem;
+}
+
+.side-by-side > div {
+    flex: 1;
+    min-width: 0;
+}
+
 .timestamp {
     @apply text-xs text-gray-500;
 }

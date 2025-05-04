@@ -136,7 +136,13 @@
                 <div id="elm-search" class="mt-6"></div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-6">
+            <div class="mb-4 flex justify-end">
+                <button onclick="toggleLayout()" id="layoutToggle" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full text-sm transition-colors">
+                    Toggle Layout
+                </button>
+            </div>
+            <div id="listsContainer" class="space-y-6 flex-col">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 flex-1">
                 <div class="flex items-center justify-between mb-6 cursor-pointer" onclick="toggleSection('searchedTweets')">
                     <div class="flex items-center gap-2">
                         <button onclick="showSectionInfo('savesoil', event);" class="text-gray-500 hover:text-gray-700">
@@ -159,7 +165,7 @@
                 <div id="searchedTweets" class="space-y-4 transition-all duration-300 hidden"></div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 flex-1">
                 <div class="flex items-center justify-between mb-6 cursor-pointer" onclick="toggleSection('tweetHistory')">
                     <div class="flex items-center gap-2">
                         <h2 class="text-xl font-bold">Tweet History</h2>
@@ -175,6 +181,7 @@
                     </button>
                 </div>
                 <div id="tweetHistory" class="space-y-4 transition-all duration-300 hidden"></div>
+            </div>
             </div>
         </div>
     </body>

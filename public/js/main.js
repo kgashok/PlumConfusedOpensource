@@ -335,6 +335,13 @@ async function updateSearchedTweets(data, errorMessage = '') {
 }
 
 // Initialize Elm component
+function toggleLayout() {
+    const container = document.getElementById('listsContainer');
+    container.classList.toggle('side-by-side');
+    const button = document.getElementById('layoutToggle');
+    button.textContent = container.classList.contains('side-by-side') ? 'Stack Layout' : 'Side by Side';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const elmContainer = document.getElementById('elm-search');
     if (elmContainer) {
