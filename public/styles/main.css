@@ -69,11 +69,26 @@
 .side-by-side {
     display: flex !important;
     gap: 1rem;
+    flex-direction: row;
+    align-items: flex-start;
 }
 
 .side-by-side > div {
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
+    width: calc(50% - 0.5rem);
+    max-width: calc(50% - 0.5rem);
+}
+
+@media (max-width: 768px) {
+    .side-by-side {
+        flex-direction: column;
+    }
+    
+    .side-by-side > div {
+        width: 100%;
+        max-width: 100%;
+    }
 }
 
 .timestamp {
