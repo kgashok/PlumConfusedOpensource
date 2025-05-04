@@ -1,3 +1,4 @@
+
 entrypoint = "server.js"
 modules = ["nodejs-22", "postgresql-16"]
 hidden = [".config", "package-lock.json"]
@@ -9,6 +10,31 @@ channel = "stable-24_05"
 run = ["sh", "-c", "node server.js"]
 deploymentTarget = "cloudrun"
 
+[languages.elm]
+pattern = "**/*.elm"
+[languages.elm.languageServer]
+start = ["elm-language-server"]
+
+# Compile Elm before starting server
+[commands]
+compile = "elm make public/elm/Search.elm --output=public/js/search.js"
+
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[workflows]
+runButton = "Run"
+
+[[workflows.workflow]]
+name = "Run"
+author = 2047244
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "elm make public/elm/Search.elm --output=public/js/search.js"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
