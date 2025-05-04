@@ -6174,6 +6174,12 @@ var $author$project$Search$update = F2(
 				return _Utils_Tuple2(
 					model,
 					$author$project$Search$searchTweets(model.query));
+			case 'Clear':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{error: $elm$core$Maybe$Nothing, query: '', tweets: _List_Nil}),
+					$elm$core$Platform$Cmd$none);
 			default:
 				if (msg.a.$ === 'Ok') {
 					var tweets = msg.a.a;
@@ -6193,6 +6199,7 @@ var $author$project$Search$update = F2(
 				}
 		}
 	});
+var $author$project$Search$Clear = {$: 'Clear'};
 var $author$project$Search$Search = {$: 'Search'};
 var $author$project$Search$UpdateQuery = function (a) {
 	return {$: 'UpdateQuery', a: a};
@@ -6381,7 +6388,7 @@ var $author$project$Search$view = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('flex gap-2 mb-4')
+						$elm$html$Html$Attributes$class('flex items-center gap-2 mb-4')
 					]),
 				_List_fromArray(
 					[
@@ -6393,19 +6400,39 @@ var $author$project$Search$view = function (model) {
 								$elm$html$Html$Attributes$placeholder('Search tweets...'),
 								$elm$html$Html$Attributes$value(model.query),
 								$elm$html$Html$Events$onInput($author$project$Search$UpdateQuery),
-								$elm$html$Html$Attributes$class('flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none transition duration-150 ease-in-out')
+								$elm$html$Html$Attributes$class('flex-1 p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300')
 							]),
 						_List_Nil),
 						A2(
-						$elm$html$Html$button,
+						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Events$onClick($author$project$Search$Search),
-								$elm$html$Html$Attributes$class('bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+								$elm$html$Html$Attributes$class('flex gap-2')
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Search')
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$Search$Search),
+										$elm$html$Html$Attributes$class('bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Search')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$Search$Clear),
+										$elm$html$Html$Attributes$class('bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Clear')
+									]))
 							]))
 					])),
 				$author$project$Search$viewResults(model)
