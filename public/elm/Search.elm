@@ -73,7 +73,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "mb-6" ]
-        [ div [ class "flex gap-2 mb-4" ]
+        [ div [ class "flex items-center gap-2 mb-4" ]
             [ input 
                 [ type_ "text"
                 , placeholder "Search tweets..."
@@ -81,16 +81,18 @@ view model =
                 , onInput UpdateQuery
                 , class "flex-1 p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300"
                 ] []
-            , button 
-                [ onClick Search
-                , class "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
-                ] 
-                [ text "Search" ]
-            , button 
-                [ onClick Clear
-                , class "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out ml-2"
-                ] 
-                [ text "Clear" ]
+            , div [ class "flex gap-2" ]
+                [ button 
+                    [ onClick Search
+                    , class "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                    ] 
+                    [ text "Search" ]
+                , button 
+                    [ onClick Clear
+                    , class "bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                    ] 
+                    [ text "Clear" ]
+                ]
             ]
         , viewResults model
         ]
