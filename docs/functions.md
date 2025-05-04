@@ -1,9 +1,18 @@
+
 # Function Documentation
 
 ### [DO NOT EDIT] Prompt used 
 Review the contents of @docs/functions.md . Now, update the contents to reflect all the MAJOR changes that have happened since the last update as another "ChangeLog". Please review @docs/functions.md and makes updates to the "Tweet Management Functions" and "Server Routes" section as well. However, do not delete or change the [DO NOT EDIT] section. 
 
 ## Changelog
+
+### May 2025
+- Added Clear button functionality for search results
+- Enhanced UI layout with side-by-side view
+- Improved search results display and filtering
+- Fixed styling issues with modals and buttons
+- Enhanced UI/UX for better user interaction
+- Added documentation for Elm compilation requirement
 
 ### April 2025
 - Fixed issue with section info modal causing scrolling to freeze
@@ -117,13 +126,15 @@ Manages authentication status display.
 ## Tweet Management Functions
 
 ### `displaySavedTweets(showAll)`
-Displays saved tweets with filtering capabilities.
+Displays saved tweets with enhanced filtering and layout.
 - Parameters: showAll boolean (true for all tweets, false for original tweets only)
 - Fetches tweets from backend storage
+- Implements side-by-side layout for better visualization
 - Filters out retweets based on "RT @" text pattern when showing original tweets
 - Provides filter buttons with active state indicators
 - Shows tweet counts for each filter category
 - Handles empty state and error scenarios
+- Now includes Clear button functionality
 - Maintains consistent UI with search results
 
 ### `repostTweet(tweetId)`
@@ -137,7 +148,7 @@ Handles reposting of tweets with enhanced error handling.
 - Handles authentication expiration gracefully
 
 ### `postTweet()`
-Handles new tweet creation.
+Handles new tweet creation with improved feedback.
 - Gets text from "tweetText" input
 - Validates input content
 - Supports image attachments
@@ -146,9 +157,10 @@ Handles new tweet creation.
 - Implements error feedback
 - Manages authentication state
 - Auto-refreshes on success
+- Enhanced error display
 
 ### `deleteTweet(tweetId)`
-Handles tweet deletion.
+Handles tweet deletion with visual feedback.
 - Parameters: Tweet ID
 - Calls `/tweet/:id` DELETE endpoint
 - Updates database status
@@ -205,6 +217,7 @@ Handles tweet deletion.
    - Server queries Twitter API with rate limiting
    - Results cached in database with screen_name
    - Fallback to stored tweets during rate limits
+   - New Clear button functionality to reset results
 
 2. Filtering Tweets:
    - Frontend: `displaySavedTweets(showAll)` → Backend: GET `/search/tweets?stored=true`
@@ -212,6 +225,7 @@ Handles tweet deletion.
    - Frontend filters tweets based on showAll parameter
    - UI shows active filter state and count
    - Original tweets identified by checking for "RT @" prefix
+   - Enhanced side-by-side layout for better visualization
 
 ### Database Enhancements
 - Added composite primary key support for multiple retweets
@@ -227,3 +241,4 @@ Handles tweet deletion.
 - Success state management
 - UI feedback system
 - Empty state handling for filtered results
+- Enhanced modal and button styling
