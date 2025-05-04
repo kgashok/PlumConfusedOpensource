@@ -219,6 +219,16 @@ Handles tweet deletion with visual feedback.
    - Fallback to stored tweets during rate limits
    - New Clear button functionality to reset results
 
+2. Elm Search Implementation:
+   - Implemented in `Search.elm` using The Elm Architecture (TEA)
+   - Model tracks query string, tweet list, and error state
+   - Uses JSON decoders for tweet data (id, text, timestamp, url, userId, screenName)
+   - Supports real-time query updates with `UpdateQuery` message
+   - HTTP requests handled through `elm/http` package
+   - Clear functionality resets search state with `Clear` message
+   - Responsive UI with Tailwind CSS classes
+   - Custom tweet card view with formatted timestamps
+
 2. Filtering Tweets:
    - Frontend: `displaySavedTweets(showAll)` → Backend: GET `/search/tweets?stored=true`
    - Server returns all stored tweets
