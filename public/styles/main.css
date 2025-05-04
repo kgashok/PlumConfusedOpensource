@@ -69,25 +69,23 @@
 .side-by-side {
     display: flex !important;
     gap: 1rem;
-    flex-direction: row;
-    align-items: stretch;
+    flex-direction: row !important;
+    align-items: flex-start;
 }
 
 .side-by-side > .bg-white {
-    flex: 1;
+    flex: 1 1 calc(50% - 0.5rem);
     min-width: 0;
-    width: 50%;
-    height: fit-content;
     margin: 0;
 }
 
 @media (max-width: 768px) {
     .side-by-side {
-        flex-direction: column;
+        flex-direction: column !important;
     }
     
     .side-by-side > .bg-white {
-        width: 100%;
+        flex: 1 1 100%;
     }
 }
 
