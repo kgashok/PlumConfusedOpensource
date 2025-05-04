@@ -83,7 +83,7 @@
     .side-by-side {
         flex-direction: column !important;
     }
-    
+
     .side-by-side > .bg-white {
         flex: 1 1 100%;
     }
@@ -112,17 +112,21 @@
     #tweetText {
         min-height: 200px;
     }
-    
+
     .search-box {
-        @apply flex flex-col gap-2;
+        @apply flex flex-col gap-2 w-full;
     }
-    
+
     .search-box > div {
         @apply flex w-full gap-2;
     }
-    
+
     .search-box button {
-        @apply flex-1;
+        @apply min-w-[100px] flex-shrink-0;
+    }
+
+    input[type="text"] {
+        @apply w-full flex-1;
     }
 }
 
@@ -143,7 +147,7 @@
         font-size: 0.9rem;
         padding: 0.5rem;
     }
-    
+
     #infoModal > div {
         margin: 1rem;
         width: calc(100% - 2rem);
