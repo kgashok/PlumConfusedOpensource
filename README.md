@@ -1,5 +1,10 @@
 # Social for SaveSoil 
 
+**Important:** Before running the application, compile the Elm code with:
+```bash
+elm make public/elm/Search.elm --output=public/js/search.js
+```
+
 A simple web application demonstrating Twitter OAuth integration with real-time tweet posting and history tracking. Built with Node.js, Express, and modern web technologies.
 
 ## Developer Links
