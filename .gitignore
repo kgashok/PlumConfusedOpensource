@@ -128,3 +128,18 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Elm specific
+elm-stuff/
+elm.js
+index.html
+repl-temp-*
+
+# Elm test artifacts
+tests/elm-stuff/
+tests/test-results.json
+tests/ast.json
+tests/dependencies.json
+
+# Covers d.dat, i.dat, o.dat and any other .dat files
+*.dat            
