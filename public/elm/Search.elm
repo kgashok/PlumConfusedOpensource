@@ -1,5 +1,5 @@
 
-module Search exposing (main)
+module Search exposing (Model, Msg, Tweet, main, view)
 
 import Browser
 import Html exposing (..)
