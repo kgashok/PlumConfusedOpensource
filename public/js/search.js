@@ -6388,7 +6388,7 @@ var $author$project$Search$view = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('flex items-center gap-2 mb-4')
+						$elm$html$Html$Attributes$class('flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4')
 					]),
 				_List_fromArray(
 					[
@@ -6400,14 +6400,14 @@ var $author$project$Search$view = function (model) {
 								$elm$html$Html$Attributes$placeholder('Search tweets...'),
 								$elm$html$Html$Attributes$value(model.query),
 								$elm$html$Html$Events$onInput($author$project$Search$UpdateQuery),
-								$elm$html$Html$Attributes$class('flex-1 p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300')
+								$elm$html$Html$Attributes$class('w-full p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300')
 							]),
 						_List_Nil),
 						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('flex gap-2')
+								$elm$html$Html$Attributes$class('flex gap-2 mt-2 sm:mt-0')
 							]),
 						_List_fromArray(
 							[
@@ -6416,7 +6416,7 @@ var $author$project$Search$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Search$Search),
-										$elm$html$Html$Attributes$class('bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+										$elm$html$Html$Attributes$class('flex-1 sm:flex-initial bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
 									]),
 								_List_fromArray(
 									[
@@ -6427,7 +6427,7 @@ var $author$project$Search$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Search$Clear),
-										$elm$html$Html$Attributes$class('bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+										$elm$html$Html$Attributes$class('flex-1 sm:flex-initial bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
 									]),
 								_List_fromArray(
 									[
