@@ -696,13 +696,24 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         // Handle rate limiting
         if (req.statusCode === 429) {
+            console.log('Rate limit hit. Response body:', req.body);
+            console.log('Rate limit headers:', req.headers);
+            
             const resetTime = req.headers['x-rate-limit-reset'];
             const waitSeconds = resetTime ? Math.ceil((new Date(resetTime * 1000) - new Date()) / 1000) : 900;
             
-            // Check if this is likely a monthly quota issue (very long wait time)
-            const isMonthlyQuota = waitSeconds > 86400; // More than 24 hours
+            // Check if this is likely a monthly quota issue
+            // X.com free tier monthly quota typically shows very long reset times or specific error messages
+            const isMonthlyQuota = waitSeconds > 86400 || // More than 24 hours
+                                 req.body?.title?.includes('Usage cap exceeded') ||
+                                 req.body?.detail?.includes('monthly') ||
+                                 req.body?.errors?.[0]?.message?.includes('monthly') ||
+                                 waitSeconds === 0; // Sometimes monthly quota shows 0 wait time
+            
+            console.log('Is monthly quota:', isMonthlyQuota, 'Wait seconds:', waitSeconds);
+            
             const errorMessage = isMonthlyQuota 
-                ? 'Monthly API quota exceeded (100 tweets/month limit)'
+                ? 'Monthly API quota exceeded. You have reached the 100 tweet limit for X.com\'s free API tier this month.'
                 : 'Rate limit exceeded';
                 
             return { 
