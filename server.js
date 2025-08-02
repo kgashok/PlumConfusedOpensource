@@ -698,10 +698,18 @@ async function searchTweets(oauth_token, oauth_token_secret) {
         if (req.statusCode === 429) {
             const resetTime = req.headers['x-rate-limit-reset'];
             const waitSeconds = resetTime ? Math.ceil((new Date(resetTime * 1000) - new Date()) / 1000) : 900;
+            
+            // Check if this is likely a monthly quota issue (very long wait time)
+            const isMonthlyQuota = waitSeconds > 86400; // More than 24 hours
+            const errorMessage = isMonthlyQuota 
+                ? 'Monthly API quota exceeded (100 tweets/month limit)'
+                : 'Rate limit exceeded';
+                
             return { 
-                error: 'Rate limit exceeded', 
+                error: errorMessage, 
                 waitSeconds,
-                statusCode: 429
+                statusCode: 429,
+                isMonthlyQuota
             };
         }
 

@@ -298,7 +298,21 @@ async function updateSearchedTweets(data, errorMessage = '') {
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
-        const rateLimitMessage = `
+        
+        // Check if this is a monthly quota exceeded (long wait time indicates monthly limit)
+        const isMonthlyQuota = data.waitSeconds > 86400; // More than 24 hours indicates monthly quota
+        
+        const rateLimitMessage = isMonthlyQuota ? `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center text-red-700 mb-2">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="font-semibold">Monthly API Quota Exceeded</p>
+                </div>
+                <p class="text-sm text-red-600 mb-2">You have reached the 100 tweet limit for X.com's free API tier this month.</p>
+                <p class="text-sm text-red-600">The quota will reset next month. Showing stored tweets from database instead.</p>
+            </div>` : `
             <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                 <div class="flex items-center text-yellow-700">
                     <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -406,7 +420,24 @@ function getErrorHTML(data) {
     let errorMessage = data.error;
     if (data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
-        errorMessage = `Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? "s" : ""}.`;
+        const isMonthlyQuota = data.waitSeconds > 86400; // More than 24 hours
+        
+        if (isMonthlyQuota) {
+            return `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <svg class="h-5 w-5 text-red-400 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <p class="text-red-700 font-semibold">Monthly API Quota Exceeded</p>
+                            <p class="text-red-600 text-sm mt-1">You have reached the 100 tweet limit for this month. The quota will reset next month.</p>
+                        </div>
+                    </div>
+                </div>`;
+        } else {
+            errorMessage = `Rate limit exceeded. Please try again in ${minutes} minute${minutes > 1 ? "s" : ""}.`;
+        }
     }
     return `
         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
