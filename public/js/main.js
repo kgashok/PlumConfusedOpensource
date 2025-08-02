@@ -299,8 +299,8 @@ async function updateSearchedTweets(data, errorMessage = '') {
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
         
-        // Check if this is a monthly quota exceeded (long wait time indicates monthly limit)
-        const isMonthlyQuota = data.waitSeconds > 86400; // More than 24 hours indicates monthly quota
+        // Check if this is a monthly quota exceeded - check both server flag and wait time
+        const isMonthlyQuota = data.isMonthlyQuota || data.waitSeconds > 86400 || data.error.includes('Monthly API quota');
         
         const rateLimitMessage = isMonthlyQuota ? `
             <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
@@ -420,7 +420,8 @@ function getErrorHTML(data) {
     let errorMessage = data.error;
     if (data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);
-        const isMonthlyQuota = data.waitSeconds > 86400; // More than 24 hours
+        // Check multiple indicators for monthly quota
+        const isMonthlyQuota = data.isMonthlyQuota || data.waitSeconds > 86400 || data.error.includes('Monthly API quota');
         
         if (isMonthlyQuota) {
             return `
