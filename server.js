@@ -678,7 +678,7 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 
         const query = '#SaveSoil -is:retweet -is:quote';
         const requestData = {
-            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=50&tweet.fields=created_at,author_id&expansions=author_id&user.fields=username`,
+            url: `${searchURL}?query=${encodeURIComponent(query)}&max_results=10&tweet.fields=created_at,author_id&expansions=author_id&user.fields=username`,
             method: 'GET'
         };
 
