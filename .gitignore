@@ -143,7 +143,4 @@ tests/dependencies.json
 
 # Elm compilation artifacts and data files
 *.dat
-d.dat
-/d.dat
-**/d.dat
-elm-stuff/**/*.dat            
+/elm-stuff/**/*.dat            
