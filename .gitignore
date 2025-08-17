@@ -143,4 +143,5 @@ tests/dependencies.json
 
 # Covers d.dat, i.dat, o.dat and any other .dat files
 *.dat
-d.dat            
+d.dat
+/d.dat            
