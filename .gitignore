@@ -141,7 +141,9 @@ tests/test-results.json
 tests/ast.json
 tests/dependencies.json
 
-# Covers d.dat, i.dat, o.dat and any other .dat files
+# Elm compilation artifacts and data files
 *.dat
 d.dat
-/d.dat            
+/d.dat
+**/d.dat
+elm-stuff/**/*.dat            
