@@ -1,5 +1,7 @@
 # Social for SaveSoil 
 
+[![saythanks](https://img.shields.io/badge/say-thanks-modal.svg)](https://saythanks.io/to/lifebalance&savesoil)
+
 **Important:** Before running the application, compile the Elm code with:
 ```bash
 elm make public/elm/Search.elm --output=public/js/search.js
