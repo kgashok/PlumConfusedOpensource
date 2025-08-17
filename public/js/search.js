@@ -5338,11 +5338,15 @@ var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Search$init = function (_v0) {
 	return _Utils_Tuple2(
-		{error: $elm$core$Maybe$Nothing, query: '', tweets: _List_Nil},
+		{error: $elm$core$Maybe$Nothing, isSearching: false, query: '', searchId: 0, tweets: _List_Nil},
 		$elm$core$Platform$Cmd$none);
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Search$PerformSearch = function (a) {
+	return {$: 'PerformSearch', a: a};
+};
+var $author$project$Search$debounceDelay = 300;
 var $author$project$Search$GotTweets = function (a) {
 	return {$: 'GotTweets', a: a};
 };
@@ -6134,6 +6138,7 @@ var $elm$http$Http$get = function (r) {
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
 var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$core$String$trim = _String_trim;
 var $author$project$Search$Tweet = F6(
 	function (id, text, timestamp, url, userId, screenName) {
 		return {id: id, screenName: screenName, text: text, timestamp: timestamp, url: url, userId: userId};
@@ -6151,7 +6156,7 @@ var $author$project$Search$tweetDecoder = A7(
 	A2($elm$json$Json$Decode$field, 'user_id', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'screen_name', $elm$json$Json$Decode$string));
 var $author$project$Search$searchTweets = function (query) {
-	return $elm$http$Http$get(
+	return ($elm$core$String$trim(query) === '') ? $elm$core$Platform$Cmd$none : $elm$http$Http$get(
 		{
 			expect: A2(
 				$elm$http$Http$expectJson,
@@ -6160,43 +6165,67 @@ var $author$project$Search$searchTweets = function (query) {
 			url: '/api/search?q=' + query
 		});
 };
+var $elm$core$Process$sleep = _Process_sleep;
 var $author$project$Search$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'UpdateQuery':
 				var newQuery = msg.a;
+				var trimmedQuery = $elm$core$String$trim(newQuery);
+				var newSearchId = model.searchId + 1;
+				return (trimmedQuery === '') ? _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{error: $elm$core$Maybe$Nothing, isSearching: false, query: newQuery, searchId: newSearchId, tweets: _List_Nil}),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{isSearching: true, query: newQuery, searchId: newSearchId}),
+					A2(
+						$elm$core$Task$perform,
+						function (_v1) {
+							return $author$project$Search$PerformSearch(newSearchId);
+						},
+						$elm$core$Process$sleep($author$project$Search$debounceDelay)));
+			case 'PerformSearch':
+				var searchId = msg.a;
+				return _Utils_eq(searchId, model.searchId) ? _Utils_Tuple2(
+					model,
+					$author$project$Search$searchTweets(model.query)) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			case 'Search':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{query: newQuery}),
-					$elm$core$Platform$Cmd$none);
-			case 'Search':
-				return _Utils_Tuple2(
-					model,
+						{isSearching: true}),
 					$author$project$Search$searchTweets(model.query));
 			case 'Clear':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{error: $elm$core$Maybe$Nothing, query: '', tweets: _List_Nil}),
+						{error: $elm$core$Maybe$Nothing, isSearching: false, query: '', searchId: model.searchId + 1, tweets: _List_Nil}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'GotTweets':
 				if (msg.a.$ === 'Ok') {
 					var tweets = msg.a.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{error: $elm$core$Maybe$Nothing, tweets: tweets}),
+							{error: $elm$core$Maybe$Nothing, isSearching: false, tweets: tweets}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								error: $elm$core$Maybe$Just('Failed to fetch tweets')
+								error: $elm$core$Maybe$Just('Failed to fetch tweets'),
+								isSearching: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
+			default:
+				return _Utils_Tuple2(
+					model,
+					$author$project$Search$searchTweets(model.query));
 		}
 	});
 var $author$project$Search$Clear = {$: 'Clear'};
@@ -6214,6 +6243,15 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -6269,6 +6307,15 @@ var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$core$Basics$not = _Basics_not;
 var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$html$Html$Attributes$href = function (url) {
 	return A2(
@@ -6366,13 +6413,47 @@ var $author$project$Search$viewResults = function (model) {
 					$elm$html$Html$text(error)
 				]));
 	} else {
-		return A2(
+		return (model.isSearching && $elm$core$List$isEmpty(model.tweets)) ? A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('text-gray-500 p-4 text-center')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('flex items-center justify-center gap-2')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500')
+								]),
+							_List_Nil),
+							$elm$html$Html$text('Searching...')
+						]))
+				])) : ((($elm$core$String$trim(model.query) !== '') && ($elm$core$List$isEmpty(model.tweets) && (!model.isSearching))) ? A2(
+			$elm$html$Html$div,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('text-gray-500 p-4 text-center')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('No tweets found for your search.')
+				])) : A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
 					$elm$html$Html$Attributes$class('space-y-4')
 				]),
-			A2($elm$core$List$map, $author$project$Search$viewTweet, model.tweets));
+			A2($elm$core$List$map, $author$project$Search$viewTweet, model.tweets)));
 	}
 };
 var $author$project$Search$view = function (model) {
@@ -6393,16 +6474,41 @@ var $author$project$Search$view = function (model) {
 				_List_fromArray(
 					[
 						A2(
-						$elm$html$Html$input,
+						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$type_('text'),
-								$elm$html$Html$Attributes$placeholder('Search tweets...'),
-								$elm$html$Html$Attributes$value(model.query),
-								$elm$html$Html$Events$onInput($author$project$Search$UpdateQuery),
-								$elm$html$Html$Attributes$class('w-full p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300')
+								$elm$html$Html$Attributes$class('relative flex-1')
 							]),
-						_List_Nil),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$input,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$type_('text'),
+										$elm$html$Html$Attributes$placeholder('Search tweets (live search enabled)...'),
+										$elm$html$Html$Attributes$value(model.query),
+										$elm$html$Html$Events$onInput($author$project$Search$UpdateQuery),
+										$elm$html$Html$Attributes$class('w-full p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300')
+									]),
+								_List_Nil),
+								model.isSearching ? A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('absolute right-3 top-1/2 transform -translate-y-1/2')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$class('animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500')
+											]),
+										_List_Nil)
+									])) : $elm$html$Html$text('')
+							])),
 						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
@@ -6416,7 +6522,8 @@ var $author$project$Search$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Search$Search),
-										$elm$html$Html$Attributes$class('flex-1 sm:flex-initial bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+										$elm$html$Html$Attributes$class('flex-1 sm:flex-initial bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out'),
+										$elm$html$Html$Attributes$disabled(model.isSearching)
 									]),
 								_List_fromArray(
 									[
