@@ -142,4 +142,5 @@ tests/ast.json
 tests/dependencies.json
 
 # Covers d.dat, i.dat, o.dat and any other .dat files
-*.dat            
+*.dat
+d.dat            
