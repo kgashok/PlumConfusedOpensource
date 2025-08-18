@@ -6,6 +6,18 @@ Review the contents of @docs/functions.md . Now, update the contents to reflect 
 
 ## Changelog
 
+### August 2025
+- Implemented live search functionality with 300ms debounce for SaveSoil tweets
+- Added Elm-based search module using The Elm Architecture (TEA)
+- Enhanced search to include screen_name matching for Twitter handles
+- Improved search endpoint to support both tweet text and author handle searches
+- Added real-time search results updating without requiring Enter or Search button clicks
+- Fixed search inconsistencies - now properly finds partial matches like "sad" and "savesoilkg"
+- Added comprehensive search across both tweets and searched_tweets database tables
+- Enhanced search performance with result limiting and proper type casting
+- Implemented unified search API endpoint `/api/search` for live search functionality
+
+
 ### May 2025
 - Added Clear button functionality for search results
 - Enhanced UI layout with side-by-side view
@@ -211,7 +223,16 @@ Handles tweet deletion with visual feedback.
    - Frontend shows deletion animation
 
 ### Search and Filter Flow
-1. Fetching Latest Tweets:
+1. **Live Search Implementation:**
+   - Real-time search as user types with 300ms debounce
+   - Frontend: Elm module → Backend: GET `/api/search?q=query`
+   - Searches both tweet text and screen_name fields
+   - Returns empty array for empty queries
+   - Limits results to 50 for performance
+   - Supports partial matching (e.g., "sad", "savesoilkg")
+   - Unified search across tweets and searched_tweets tables
+
+2. **Fetching Latest Tweets:**
    - User clicks "Fetch latest" with busy cursor
    - Frontend: `fetchSearchedTweets()` → Backend: GET `/search/tweets`
    - Server queries Twitter API with rate limiting
@@ -219,7 +240,7 @@ Handles tweet deletion with visual feedback.
    - Fallback to stored tweets during rate limits
    - New Clear button functionality to reset results
 
-2. Elm Search Implementation:
+3. Elm Search Implementation:
    - Implemented in `Search.elm` using The Elm Architecture (TEA)
    - Model tracks query string, tweet list, and error state
    - Uses JSON decoders for tweet data (id, text, timestamp, url, userId, screenName)
@@ -229,13 +250,30 @@ Handles tweet deletion with visual feedback.
    - Responsive UI with Tailwind CSS classes
    - Custom tweet card view with formatted timestamps
 
-2. Filtering Tweets:
+4. Filtering Tweets:
    - Frontend: `displaySavedTweets(showAll)` → Backend: GET `/search/tweets?stored=true`
    - Server returns all stored tweets
    - Frontend filters tweets based on showAll parameter
    - UI shows active filter state and count
    - Original tweets identified by checking for "RT @" prefix
    - Enhanced side-by-side layout for better visualization
+
+### New Search Endpoints
+
+#### `/api/search`
+Unified search endpoint for live search functionality.
+- **Method**: GET
+- **Parameters**: `q` (query string)
+- **Returns**: JSON array of matching tweets
+- **Features**:
+  - Searches both tweet text and screen_name fields
+  - Combines data from tweets and searched_tweets tables
+  - Excludes deleted tweets
+  - Limits results to 50 entries
+  - Supports partial matching with LIKE queries
+  - Returns empty array for empty queries
+  - Proper type casting for consistent data structure
+
 
 ### Database Enhancements
 - Added composite primary key support for multiple retweets
