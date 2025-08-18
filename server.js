@@ -771,17 +771,24 @@ async function searchTweets(oauth_token, oauth_token_secret) {
 // New combined search endpoint
 app.get('/api/search', async (req, res) => {
     try {
-        const query = req.query.q?.toLowerCase() || '';
+        const query = req.query.q?.toLowerCase().trim() || '';
+        
+        if (query === '') {
+            return res.json([]);
+        }
+        
         const results = await pool.query(
             `SELECT * FROM (
-                SELECT id, text, timestamp, url, user_id, screen_name 
+                SELECT id::text, text, timestamp, url, user_id::text, screen_name 
                 FROM tweets 
+                WHERE deleted = false
                 UNION ALL 
-                SELECT id, text, created_at as timestamp, url, author_id as user_id, screen_name 
+                SELECT id::text, text, created_at as timestamp, url, author_id::text as user_id, screen_name 
                 FROM searched_tweets
             ) combined 
             WHERE LOWER(text) LIKE $1 
-            ORDER BY timestamp DESC`,
+            ORDER BY timestamp DESC 
+            LIMIT 50`,
             [`%${query}%`]
         );
         res.json(results.rows);
