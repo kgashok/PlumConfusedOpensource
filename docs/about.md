@@ -11,7 +11,7 @@ Section Purpose:
 Explains the mission of the application and its connection to the SaveSoil movement.
 This section is shown to users and contributors to communicate the app's social and environmental impact.
 -->
-This application supports the SaveSoil movement by enabling social media outreach and awareness. SaveSoil is a global movement to save the world's soils from extinction by bringing soil organic conten[...]
+This application supports the SaveSoil movement by enabling social media outreach and awareness. SaveSoil is a global movement to save the world's soils from extinction by bringing soil organic content to a minimum of 3-6%.
 
 ## Key Features (Updated January 2024)
 <!--
