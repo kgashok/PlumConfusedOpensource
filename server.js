@@ -786,7 +786,7 @@ app.get('/api/search', async (req, res) => {
                 SELECT id::text, text, created_at as timestamp, url, author_id::text as user_id, screen_name 
                 FROM searched_tweets
             ) combined 
-            WHERE LOWER(text) LIKE $1 
+            WHERE LOWER(text) LIKE $1 OR LOWER(screen_name) LIKE $1
             ORDER BY timestamp DESC 
             LIMIT 50`,
             [`%${query}%`]
