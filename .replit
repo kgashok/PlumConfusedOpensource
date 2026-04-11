@@ -38,3 +38,6 @@ args = "elm make public/elm/Search.elm --output=public/js/search.js"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node server.js"
+
+[agent]
+expertMode = true

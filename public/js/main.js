@@ -295,6 +295,31 @@ async function fetchSearchedTweets() {
 async function updateSearchedTweets(data, errorMessage = '') {
     const tweetsDiv = document.getElementById("searchedTweets");
 
+    // Handle payment required (402) - fall back to stored tweets
+    if (data.error && data.statusCode === 402) {
+        const paidMessage = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div class="flex items-center text-red-700 mb-2">
+                    <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="font-semibold">Twitter API Access Restricted</p>
+                </div>
+                <p class="text-sm text-red-600 mb-2">The search endpoint requires a paid X.com API subscription (Basic tier or above).</p>
+                <p class="text-sm text-red-600">Showing stored tweets from the database instead.</p>
+            </div>`;
+
+        const response = await fetch("/search/tweets?stored=true");
+        const storedData = await response.json();
+
+        if (storedData.data && storedData.data.length > 0) {
+            tweetsDiv.innerHTML = paidMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+        } else {
+            tweetsDiv.innerHTML = paidMessage + '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
+        }
+        return;
+    }
+
     // Handle rate limit with stored tweets
     if (data.error && data.statusCode === 429) {
         const minutes = Math.ceil(data.waitSeconds / 60);

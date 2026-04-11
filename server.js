@@ -724,6 +724,15 @@ async function searchTweets(oauth_token, oauth_token_secret) {
             };
         }
 
+        if (req.statusCode === 402) {
+            console.log('Twitter API 402: Payment Required. Search API requires a paid tier.');
+            return {
+                error: 'Twitter API access requires a paid subscription. The search endpoint is not available on the free tier.',
+                statusCode: 402,
+                isPaidRequired: true
+            };
+        }
+
         if (req.statusCode !== 200) {
             return { 
                 error: `Twitter API error: ${req.statusCode}`,
