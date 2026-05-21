@@ -2,12 +2,16 @@
 
 [![saythanks](https://img.shields.io/badge/say-thanks-modal.svg)](https://saythanks.io/to/lifebalance&savesoil)
 
-**Important:** Before running the application, compile the Elm code with:
+`tl;dr` A simple web application demonstrating Twitter OAuth integration with real-time tweet posting and history tracking. Built with Node.js, Express, and modern web technologies.
+
+
+## IMPORTANT 
+
+Before running the application, compile the Elm code with:
 ```bash
 elm make public/elm/Search.elm --output=public/js/search.js
 ```
 
-`tl;dr` A simple web application demonstrating Twitter OAuth integration with real-time tweet posting and history tracking. Built with Node.js, Express, and modern web technologies.
 
 ## Introduction
 Social for SaveSoil is a Twitter/X companion app that lets authorized users post tweets, browse and retweet #SaveSoil content, and track their X API credit balance — all from one dashboard. It also includes AI-powered tools like ChatGPT prompts, OpenAI image generation, and xAI's Grok Imagine to help craft and inspire SaveSoil-themed social media content. 
