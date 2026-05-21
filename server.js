@@ -848,17 +848,17 @@ app.get('/search/tweets', async (req, res) => {
 });
 app.get('/api/credits', async (req, res) => {
     try {
-        const TEAM_ID = '1037433829038874625';
-        const XAI_API_KEY = process.env.XAI_API_KEY;
+        const TEAM_ID = 'ab20e2ae-21fd-45e6-90b4-11c32aa8ee78';
+        const XAI_MANAGEMENT_KEY = process.env.XAI_MANAGEMENT_KEY;
 
-        if (!XAI_API_KEY) {
-            return res.status(500).json({ success: false, error: 'XAI_API_KEY not configured' });
+        if (!XAI_MANAGEMENT_KEY) {
+            return res.status(500).json({ success: false, error: 'XAI_MANAGEMENT_KEY not configured' });
         }
 
-        const response = await got(`https://api.x.ai/v1/billing/teams/${TEAM_ID}/prepaid/credits`, {
+        const response = await got(`https://management-api.x.ai/v1/billing/teams/${TEAM_ID}/prepaid/balance`, {
             responseType: 'json',
             headers: {
-                'Authorization': `Bearer ${XAI_API_KEY}`,
+                'Authorization': `Bearer ${XAI_MANAGEMENT_KEY}`,
                 'Content-Type': 'application/json'
             },
             throwHttpErrors: false
@@ -870,7 +870,8 @@ app.get('/api/credits', async (req, res) => {
         }
 
         const data = response.body;
-        const rawVal = data?.coreInvoice?.prepaidCredits?.val;
+        // total.val is negative cents representing the balance purchased
+        const rawVal = data?.total?.val;
         const balanceCents = rawVal !== undefined ? Math.abs(parseInt(rawVal)) : null;
         const balanceUSD = balanceCents !== null ? (balanceCents / 100).toFixed(2) : null;
 
