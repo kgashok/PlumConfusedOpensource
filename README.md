@@ -182,4 +182,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 For support, please open an issue in the repository or contact the maintainers directly.
 
 ---
-If you like this, say thanks to: https://saythanks.io/to/lifebalance 
+If you like this, say thanks to: https://saythanks.io/to/lifebalance&saveSoilApp 
