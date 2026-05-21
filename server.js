@@ -855,7 +855,7 @@ app.get('/api/credits', async (req, res) => {
             return res.status(500).json({ success: false, error: 'XAI_MANAGEMENT_KEY not configured' });
         }
 
-        const response = await got(`https://management-api.x.ai/v1/billing/teams/${TEAM_ID}/prepaid/balance`, {
+        const response = await got(`https://management-api.x.ai/v1/billing/teams/${TEAM_ID}/postpaid/invoice/preview`, {
             responseType: 'json',
             headers: {
                 'Authorization': `Bearer ${XAI_MANAGEMENT_KEY}`,
@@ -870,10 +870,12 @@ app.get('/api/credits', async (req, res) => {
         }
 
         const data = response.body;
-        // total.val is negative cents representing the balance purchased
-        const rawVal = data?.total?.val;
-        const balanceCents = rawVal !== undefined ? Math.abs(parseInt(rawVal)) : null;
-        const balanceUSD = balanceCents !== null ? (balanceCents / 100).toFixed(2) : null;
+        // prepaidCredits = total purchased (negative cents), prepaidCreditsUsed = spent (negative cents)
+        // remaining = abs(prepaidCredits) - abs(prepaidCreditsUsed)
+        const purchased = Math.abs(parseInt(data?.coreInvoice?.prepaidCredits?.val || '0'));
+        const used = Math.abs(parseInt(data?.coreInvoice?.prepaidCreditsUsed?.val || '0'));
+        const remainingCents = purchased - used;
+        const balanceUSD = (remainingCents / 100).toFixed(2);
 
         res.json({ success: true, balanceUSD, raw: data });
     } catch (e) {
