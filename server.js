@@ -893,19 +893,26 @@ app.post('/api/generate-image', async (req, res) => {
         }
 
         const response = await openai.images.generate({
-            model: "dall-e-2",
+            model: "gpt-image-1",
             prompt: prompt,
             n: 1,
             size: "1024x1024",
+            quality: "auto",
         });
+
+        // gpt-image-1 returns base64, convert to data URL
+        const imageData = response.data[0];
+        const imageUrl = imageData.url
+            ? imageData.url
+            : `data:image/png;base64,${imageData.b64_json}`;
 
         res.json({
             success: true,
-            imageUrl: response.data[0].url
+            imageUrl
         });
     } catch (error) {
-        console.error('OpenAI API error:', error);
-        if (error.error?.type === 'insufficient_quota') {
+        console.error('OpenAI API error:', error.message);
+        if (error.error?.type === 'insufficient_quota' || error.status === 429) {
             res.status(429).json({
                 success: false,
                 error: 'API quota exceeded. Please try again later.'
@@ -913,7 +920,7 @@ app.post('/api/generate-image', async (req, res) => {
         } else {
             res.status(500).json({
                 success: false,
-                error: 'Error generating image'
+                error: error.message || 'Error generating image'
             });
         }
     }
