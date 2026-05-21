@@ -926,6 +926,58 @@ app.post('/api/generate-image', async (req, res) => {
     }
 });
 
+app.post('/api/imagine', async (req, res) => {
+    try {
+        const { prompt, aspect_ratio } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ success: false, error: 'Prompt is required' });
+        }
+
+        const XAI_API_KEY = process.env.XAI_API_KEY;
+        if (!XAI_API_KEY) {
+            return res.status(500).json({ success: false, error: 'XAI_API_KEY not configured' });
+        }
+
+        const body = {
+            model: 'grok-imagine-image-quality',
+            prompt,
+            n: 1,
+        };
+        if (aspect_ratio) body.aspect_ratio = aspect_ratio;
+
+        const response = await got('https://api.x.ai/v1/images/generations', {
+            method: 'POST',
+            responseType: 'json',
+            headers: {
+                'Authorization': `Bearer ${XAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            json: body,
+            throwHttpErrors: false
+        });
+
+        if (response.statusCode !== 200) {
+            console.error('xAI Imagine API error:', response.statusCode, response.body);
+            const msg = response.body?.error?.message || `API error: ${response.statusCode}`;
+            return res.status(response.statusCode).json({ success: false, error: msg });
+        }
+
+        const imageData = response.body.data?.[0];
+        if (!imageData) {
+            return res.status(500).json({ success: false, error: 'No image returned from API' });
+        }
+
+        const imageUrl = imageData.url
+            ? imageData.url
+            : `data:image/png;base64,${imageData.b64_json}`;
+
+        res.json({ success: true, imageUrl });
+    } catch (e) {
+        console.error('xAI Imagine error:', e.message);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 app.post('/api/chatgpt', async (req, res) => {
   try {
     const { prompt } = req.body;
