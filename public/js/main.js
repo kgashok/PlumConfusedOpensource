@@ -80,6 +80,7 @@ function updateUserInfo(data) {
             refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.remove('hidden');
             fetchCreditBalance();
+            document.getElementById('xCreditsLink')?.classList.remove('hidden');
         } else {
             refreshButton.disabled = true;
             refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
