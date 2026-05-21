@@ -79,6 +79,7 @@ function updateUserInfo(data) {
             refreshButton.disabled = false;
             refreshButton.classList.remove('opacity-50', 'cursor-not-allowed');
             createImageLink?.classList.remove('hidden');
+            fetchCreditBalance();
         } else {
             refreshButton.disabled = true;
             refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
@@ -88,6 +89,25 @@ function updateUserInfo(data) {
         userInfoDiv.classList.add("hidden");
         refreshButton.disabled = true;
         refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+async function fetchCreditBalance() {
+    const creditBalanceEl = document.getElementById('creditBalance');
+    if (!creditBalanceEl) return;
+
+    try {
+        const response = await fetch('/api/credits');
+        const data = await response.json();
+
+        if (data.success && data.balanceUSD !== null) {
+            creditBalanceEl.textContent = `Credits: $${data.balanceUSD}`;
+            creditBalanceEl.classList.remove('hidden');
+        } else {
+            creditBalanceEl.classList.add('hidden');
+        }
+    } catch (e) {
+        creditBalanceEl.classList.add('hidden');
     }
 }
 

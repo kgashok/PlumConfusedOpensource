@@ -846,6 +846,41 @@ app.get('/search/tweets', async (req, res) => {
         });
     }
 });
+app.get('/api/credits', async (req, res) => {
+    try {
+        const TEAM_ID = '1037433829038874625';
+        const XAI_API_KEY = process.env.XAI_API_KEY;
+
+        if (!XAI_API_KEY) {
+            return res.status(500).json({ success: false, error: 'XAI_API_KEY not configured' });
+        }
+
+        const response = await got(`https://api.x.ai/v1/billing/teams/${TEAM_ID}/prepaid/credits`, {
+            responseType: 'json',
+            headers: {
+                'Authorization': `Bearer ${XAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            throwHttpErrors: false
+        });
+
+        if (response.statusCode !== 200) {
+            console.error('xAI billing API error:', response.statusCode, response.body);
+            return res.status(response.statusCode).json({ success: false, error: `API error: ${response.statusCode}`, details: response.body });
+        }
+
+        const data = response.body;
+        const rawVal = data?.coreInvoice?.prepaidCredits?.val;
+        const balanceCents = rawVal !== undefined ? Math.abs(parseInt(rawVal)) : null;
+        const balanceUSD = balanceCents !== null ? (balanceCents / 100).toFixed(2) : null;
+
+        res.json({ success: true, balanceUSD, raw: data });
+    } catch (e) {
+        console.error('Error fetching credit balance:', e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 app.post('/api/generate-image', async (req, res) => {
     try {
         const { prompt } = req.body;
