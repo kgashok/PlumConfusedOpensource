@@ -25,6 +25,12 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+    if (req.path.endsWith('.html') || req.path === '/') {
+        res.set('Cache-Control', 'no-store');
+    }
+    next();
+});
 app.use(express.static('public'));
 app.use('/prompts', express.static('prompts'));
 
