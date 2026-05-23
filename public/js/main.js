@@ -938,7 +938,10 @@ async function askChatGPT() {
     const content = modal.querySelector('.prose');
     content.innerHTML = `
         <div id="promptSection">
-            <h2>ChatGPT Prompt</h2>
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="m-0">ChatGPT Prompt</h2>
+                <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" class="text-xs text-green-600 hover:text-green-700 flex items-center gap-1">Check balance →</a>
+            </div>
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
                 <textarea id="gptPrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4">${prompt}</textarea>
             </div>
@@ -1064,7 +1067,10 @@ async function showImagePrompt() {
 
     const modalContent = modal.querySelector('.prose');
     modalContent.innerHTML = `
-        <h2>Generate Image</h2>
+        <div class="flex items-center justify-between mb-1">
+            <h2 class="m-0">Generate Image</h2>
+            <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" class="text-xs text-yellow-600 hover:text-yellow-700 flex items-center gap-1">Check balance →</a>
+        </div>
         <div class="bg-yellow-50 p-4 rounded-lg mb-4">
             <textarea id="imagePrompt" class="w-full bg-transparent border-none focus:outline-none text-gray-800 resize-none" rows="4" placeholder="Describe the image you want to generate..."></textarea>
         </div>
