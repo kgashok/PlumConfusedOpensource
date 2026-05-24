@@ -132,7 +132,7 @@ dist
 # Elm specific
 elm-stuff/
 elm.js
-index.html
+/index.html
 repl-temp-*
 
 # Elm test artifacts
