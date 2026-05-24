@@ -495,3 +495,26 @@
     font-size: 0.75rem;
     color: #6b7280;
 }
+
+/* ── Icon sizing by context ──────────────────────────────────── */
+
+.icon-btn svg         { width: 1.25rem; height: 1.25rem; }
+.upload-btn svg       { width: 1.5rem;  height: 1.5rem;  }
+.remove-image-btn svg { width: 1.25rem; height: 1.25rem; }
+.btn-refresh svg      { width: 1rem;    height: 1rem;    }
+.modal-close svg      { width: 1.5rem;  height: 1.5rem;  }
+
+/* Copy-response button (inside inspiration modal) */
+.copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    color: #16a34a;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 0;
+}
+.copy-btn:hover { color: #15803d; }
+.copy-btn svg { width: 1.25rem; height: 1.25rem; }
