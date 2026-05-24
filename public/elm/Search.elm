@@ -40,7 +40,12 @@ type Msg
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { query = "", tweets = [], error = Nothing, searchId = 0, isSearching = False }
+    ( { query = ""
+      , tweets = []
+      , error = Nothing
+      , searchId = 0
+      , isSearching = False
+      }
     , Cmd.none
     )
 
@@ -64,7 +69,8 @@ searchTweets query =
     else
         Http.get
             { url = "/api/search?q=" ++ query
-            , expect = Http.expectJson GotTweets (Decode.list tweetDecoder)
+            , expect =
+                Http.expectJson GotTweets (Decode.list tweetDecoder)
             }
 
 
@@ -85,13 +91,25 @@ update msg model =
                     String.trim newQuery
             in
             if trimmedQuery == "" then
-                ( { model | query = newQuery, tweets = [], error = Nothing, searchId = newSearchId, isSearching = False }
+                ( { model
+                    | query = newQuery
+                    , tweets = []
+                    , error = Nothing
+                    , searchId = newSearchId
+                    , isSearching = False
+                  }
                 , Cmd.none
                 )
 
             else
-                ( { model | query = newQuery, searchId = newSearchId, isSearching = True }
-                , Task.perform (\_ -> PerformSearch newSearchId) (Process.sleep debounceDelay)
+                ( { model
+                    | query = newQuery
+                    , searchId = newSearchId
+                    , isSearching = True
+                  }
+                , Task.perform
+                    (\_ -> PerformSearch newSearchId)
+                    (Process.sleep debounceDelay)
                 )
 
         PerformSearch searchId ->
@@ -105,13 +123,32 @@ update msg model =
             ( { model | isSearching = True }, searchTweets model.query )
 
         Clear ->
-            ( { model | query = "", tweets = [], error = Nothing, searchId = model.searchId + 1, isSearching = False }, Cmd.none )
+            ( { model
+                | query = ""
+                , tweets = []
+                , error = Nothing
+                , searchId = model.searchId + 1
+                , isSearching = False
+              }
+            , Cmd.none
+            )
 
         GotTweets (Ok tweets) ->
-            ( { model | tweets = tweets, error = Nothing, isSearching = False }, Cmd.none )
+            ( { model
+                | tweets = tweets
+                , error = Nothing
+                , isSearching = False
+              }
+            , Cmd.none
+            )
 
         GotTweets (Err _) ->
-            ( { model | error = Just "Failed to fetch tweets", isSearching = False }, Cmd.none )
+            ( { model
+                | error = Just "Failed to fetch tweets"
+                , isSearching = False
+              }
+            , Cmd.none
+            )
 
         DelayedSearch ->
             ( model, searchTweets model.query )
@@ -119,35 +156,35 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "mb-6" ]
-        [ div [ class "flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4" ]
-            [ div [ class "relative flex-1" ]
+    div [ class "search-container" ]
+        [ div [ class "search-bar" ]
+            [ div [ class "search-input-wrapper" ]
                 [ input
                     [ type_ "text"
                     , placeholder "Search tweets (live search enabled)..."
                     , value model.query
                     , onInput UpdateQuery
-                    , class "w-full p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300"
+                    , class "search-input"
                     ]
                     []
                 , if model.isSearching then
-                    div [ class "absolute right-3 top-1/2 transform -translate-y-1/2" ]
-                        [ div [ class "animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500" ] []
+                    div [ class "search-spinner-wrap" ]
+                        [ div [ class "spinner" ] []
                         ]
 
                   else
                     text ""
                 ]
-            , div [ class "flex gap-2 mt-2 sm:mt-0" ]
+            , div [ class "search-actions" ]
                 [ button
                     [ onClick Search
-                    , class "flex-1 sm:flex-initial bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                    , class "btn-search"
                     , disabled model.isSearching
                     ]
                     [ text "Search" ]
                 , button
                     [ onClick Clear
-                    , class "flex-1 sm:flex-initial bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out"
+                    , class "btn-clear"
                     ]
                     [ text "Clear" ]
                 ]
@@ -160,46 +197,51 @@ viewResults : Model -> Html Msg
 viewResults model =
     case model.error of
         Just error ->
-            div [ class "text-red-500 p-4 rounded-lg bg-red-50" ] [ text error ]
+            div [ class "search-error" ] [ text error ]
 
         Nothing ->
             if model.isSearching && List.isEmpty model.tweets then
-                div [ class "text-gray-500 p-4 text-center" ]
-                    [ div [ class "flex items-center justify-center gap-2" ]
-                        [ div [ class "animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500" ] []
+                div [ class "search-empty" ]
+                    [ div [ class "search-loading" ]
+                        [ div [ class "spinner" ] []
                         , text "Searching..."
                         ]
                     ]
 
-            else if String.trim model.query /= "" && List.isEmpty model.tweets && not model.isSearching then
-                div [ class "text-gray-500 p-4 text-center" ]
+            else if
+                String.trim model.query
+                    /= ""
+                    && List.isEmpty model.tweets
+                    && not model.isSearching
+            then
+                div [ class "search-empty" ]
                     [ text "No tweets found for your search." ]
 
             else
-                div [ class "space-y-4" ]
+                div [ class "tweet-list" ]
                     (List.map viewTweet model.tweets)
 
 
 viewTweet : Tweet -> Html Msg
 viewTweet tweet =
-    div [ class "border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out" ]
-        [ div [ class "mb-2" ]
+    div [ class "tweet-card" ]
+        [ div [ class "tweet-header" ]
             [ a
                 [ href ("https://twitter.com/" ++ tweet.screenName)
                 , target "_blank"
-                , class "text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                , class "author-link"
                 ]
                 [ text ("@" ++ tweet.screenName) ]
             ]
-        , div [ class "text-gray-700 mb-2" ] [ text tweet.text ]
-        , div [ class "text-sm flex items-center justify-between" ]
+        , div [ class "tweet-body" ] [ text tweet.text ]
+        , div [ class "tweet-footer" ]
             [ a
                 [ href tweet.url
                 , target "_blank"
-                , class "bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition-colors inline-flex items-center gap-1"
+                , class "view-tweet-btn"
                 ]
                 [ text "View Tweet" ]
-            , span [ class "text-xs text-gray-500" ] [ text tweet.timestamp ]
+            , span [ class "tweet-timestamp" ] [ text tweet.timestamp ]
             ]
         ]
 

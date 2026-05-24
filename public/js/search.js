@@ -6330,7 +6330,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out')
+				$elm$html$Html$Attributes$class('tweet-card')
 			]),
 		_List_fromArray(
 			[
@@ -6338,7 +6338,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('mb-2')
+						$elm$html$Html$Attributes$class('tweet-header')
 					]),
 				_List_fromArray(
 					[
@@ -6348,7 +6348,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 							[
 								$elm$html$Html$Attributes$href('https://twitter.com/' + tweet.screenName),
 								$elm$html$Html$Attributes$target('_blank'),
-								$elm$html$Html$Attributes$class('text-sm text-blue-600 hover:text-blue-700 transition-colors')
+								$elm$html$Html$Attributes$class('author-link')
 							]),
 						_List_fromArray(
 							[
@@ -6359,7 +6359,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('text-gray-700 mb-2')
+						$elm$html$Html$Attributes$class('tweet-body')
 					]),
 				_List_fromArray(
 					[
@@ -6369,7 +6369,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('text-sm flex items-center justify-between')
+						$elm$html$Html$Attributes$class('tweet-footer')
 					]),
 				_List_fromArray(
 					[
@@ -6379,7 +6379,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 							[
 								$elm$html$Html$Attributes$href(tweet.url),
 								$elm$html$Html$Attributes$target('_blank'),
-								$elm$html$Html$Attributes$class('bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition-colors inline-flex items-center gap-1')
+								$elm$html$Html$Attributes$class('view-tweet-btn')
 							]),
 						_List_fromArray(
 							[
@@ -6389,7 +6389,7 @@ var $author$project$Search$viewTweet = function (tweet) {
 						$elm$html$Html$span,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('text-xs text-gray-500')
+								$elm$html$Html$Attributes$class('tweet-timestamp')
 							]),
 						_List_fromArray(
 							[
@@ -6406,7 +6406,7 @@ var $author$project$Search$viewResults = function (model) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('text-red-500 p-4 rounded-lg bg-red-50')
+					$elm$html$Html$Attributes$class('search-error')
 				]),
 			_List_fromArray(
 				[
@@ -6417,7 +6417,7 @@ var $author$project$Search$viewResults = function (model) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('text-gray-500 p-4 text-center')
+					$elm$html$Html$Attributes$class('search-empty')
 				]),
 			_List_fromArray(
 				[
@@ -6425,7 +6425,7 @@ var $author$project$Search$viewResults = function (model) {
 					$elm$html$Html$div,
 					_List_fromArray(
 						[
-							$elm$html$Html$Attributes$class('flex items-center justify-center gap-2')
+							$elm$html$Html$Attributes$class('search-loading')
 						]),
 					_List_fromArray(
 						[
@@ -6433,7 +6433,7 @@ var $author$project$Search$viewResults = function (model) {
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
-									$elm$html$Html$Attributes$class('animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500')
+									$elm$html$Html$Attributes$class('spinner')
 								]),
 							_List_Nil),
 							$elm$html$Html$text('Searching...')
@@ -6442,7 +6442,7 @@ var $author$project$Search$viewResults = function (model) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('text-gray-500 p-4 text-center')
+					$elm$html$Html$Attributes$class('search-empty')
 				]),
 			_List_fromArray(
 				[
@@ -6451,7 +6451,7 @@ var $author$project$Search$viewResults = function (model) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('space-y-4')
+					$elm$html$Html$Attributes$class('tweet-list')
 				]),
 			A2($elm$core$List$map, $author$project$Search$viewTweet, model.tweets)));
 	}
@@ -6461,7 +6461,7 @@ var $author$project$Search$view = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('mb-6')
+				$elm$html$Html$Attributes$class('search-container')
 			]),
 		_List_fromArray(
 			[
@@ -6469,7 +6469,7 @@ var $author$project$Search$view = function (model) {
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-4')
+						$elm$html$Html$Attributes$class('search-bar')
 					]),
 				_List_fromArray(
 					[
@@ -6477,7 +6477,7 @@ var $author$project$Search$view = function (model) {
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('relative flex-1')
+								$elm$html$Html$Attributes$class('search-input-wrapper')
 							]),
 						_List_fromArray(
 							[
@@ -6489,14 +6489,14 @@ var $author$project$Search$view = function (model) {
 										$elm$html$Html$Attributes$placeholder('Search tweets (live search enabled)...'),
 										$elm$html$Html$Attributes$value(model.query),
 										$elm$html$Html$Events$onInput($author$project$Search$UpdateQuery),
-										$elm$html$Html$Attributes$class('w-full p-3 border-2 border-blue-400 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 outline-none transition duration-150 ease-in-out shadow-sm hover:border-blue-300')
+										$elm$html$Html$Attributes$class('search-input')
 									]),
 								_List_Nil),
 								model.isSearching ? A2(
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class('absolute right-3 top-1/2 transform -translate-y-1/2')
+										$elm$html$Html$Attributes$class('search-spinner-wrap')
 									]),
 								_List_fromArray(
 									[
@@ -6504,7 +6504,7 @@ var $author$project$Search$view = function (model) {
 										$elm$html$Html$div,
 										_List_fromArray(
 											[
-												$elm$html$Html$Attributes$class('animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500')
+												$elm$html$Html$Attributes$class('spinner')
 											]),
 										_List_Nil)
 									])) : $elm$html$Html$text('')
@@ -6513,7 +6513,7 @@ var $author$project$Search$view = function (model) {
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('flex gap-2 mt-2 sm:mt-0')
+								$elm$html$Html$Attributes$class('search-actions')
 							]),
 						_List_fromArray(
 							[
@@ -6522,7 +6522,7 @@ var $author$project$Search$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Search$Search),
-										$elm$html$Html$Attributes$class('flex-1 sm:flex-initial bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out'),
+										$elm$html$Html$Attributes$class('btn-search'),
 										$elm$html$Html$Attributes$disabled(model.isSearching)
 									]),
 								_List_fromArray(
@@ -6534,7 +6534,7 @@ var $author$project$Search$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Search$Clear),
-										$elm$html$Html$Attributes$class('flex-1 sm:flex-initial bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-150 ease-in-out')
+										$elm$html$Html$Attributes$class('btn-clear')
 									]),
 								_List_fromArray(
 									[
