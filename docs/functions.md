@@ -6,6 +6,14 @@ Review the contents of @docs/functions.md . Now, update the contents to reflect 
 
 ## Changelog
 
+### June 2026
+- Added AI-assisted content generation endpoints for image generation, prompt drafting, and xAI image creation.
+- Added an xAI credit balance endpoint so the app can surface remaining plan credits in the UI.
+- Extended tweet posting to support image uploads, draft persistence, and local preview state.
+- Improved retweet handling with authentication expiration checks, composite tweet IDs, and retweeter attribution.
+- Added session and history utility routes for logout, session inspection, and tweet history retrieval.
+- Expanded search fallback behavior to use stored tweets when live Twitter searches are rate limited or unavailable.
+
 ### August 2025
 - Implemented live search functionality with 300ms debounce for SaveSoil tweets
 - Added Elm-based search module using The Elm Architecture (TEA)
@@ -140,46 +148,41 @@ Manages authentication status display.
 ### `displaySavedTweets(showAll)`
 Displays saved tweets with enhanced filtering and layout.
 - Parameters: showAll boolean (true for all tweets, false for original tweets only)
-- Fetches tweets from backend storage
-- Implements side-by-side layout for better visualization
-- Filters out retweets based on "RT @" text pattern when showing original tweets
-- Provides filter buttons with active state indicators
-- Shows tweet counts for each filter category
-- Handles empty state and error scenarios
-- Now includes Clear button functionality
-- Maintains consistent UI with search results
+- Fetches tweets from backend storage via `/search/tweets?stored=true`
+- Implements filter buttons with active-state styling and per-category counts
+- Filters out retweets based on the "RT @" text pattern when showing original tweets
+- Handles empty state, API error, and rate-limit fallback scenarios
+- Supports the newer stored-tweet view that remains available when live Twitter searches are unavailable
+- Maintains consistent UI with the search results experience
 
 ### `repostTweet(tweetId)`
 Handles reposting of tweets with enhanced error handling.
-- Shows error messages beneath the specific tweet
-- Implements loading state during repost
-- Displays success message with clickable link
-- Cleans up previous error messages
-- Updates database with repost status using composite ID
-- Refreshes tweet history after success
-- Handles authentication expiration gracefully
+- Checks authentication status before attempting a repost
+- Shows inline success or error messages beneath the relevant tweet card
+- Displays a sign-in prompt when the session has expired
+- Sends the repost request to `/retweet/:tweetId`
+- Stores repost activity in the database using composite IDs to avoid conflicts
+- Includes original author and retweeter attribution in the success feedback
+- Refreshes the visible tweet state after a successful repost
 
 ### `postTweet()`
 Handles new tweet creation with improved feedback.
-- Gets text from "tweetText" input
-- Validates input content
-- Supports image attachments
-- Handles draft persistence
-- Shows character count
-- Implements error feedback
-- Manages authentication state
-- Auto-refreshes on success
-- Enhanced error display
+- Reads text from the "tweetText" input and validates it before submit
+- Supports image attachments via `FormData` and multipart upload
+- Persists drafts and uploaded image preview state in local storage for recovery
+- Shows character-count feedback and clears the composer on success
+- Sends the request to `POST /tweet`
+- Handles authentication redirects, server errors, and post-success refreshes
+- Keeps the tweet history UI synchronized with the latest post
 
 ### `deleteTweet(tweetId)`
 Handles tweet deletion with visual feedback.
 - Parameters: Tweet ID
-- Calls `/tweet/:id` DELETE endpoint
-- Updates database status
-- Shows deletion animation
-- Adds deletion indicator in UI
-- Auto-refreshes history after delay
-- Includes error handling
+- Calls `DELETE /tweet/:id`
+- Updates the database to mark the tweet as deleted rather than removing it immediately
+- Shows deletion feedback within the tweet card and highlights the item visually
+- Auto-refreshes history after a short delay
+- Includes error handling for failed delete requests
 
 ## Server Routes
 
@@ -197,30 +200,28 @@ Handles tweet deletion with visual feedback.
 3. Twitter OAuth flow through `/callback`
 4. Session creation with user info storage
 5. Status check: `checkAuthStatus()` → `/auth/status`
+6. Logout: `POST /auth/logout` destroys the session and clears auth state
+7. Session inspection: `GET /debug/session` exposes the current session state for debugging
 
 ### Tweet Operations Flow
 1. Reposting Tweet:
    - Frontend: `repostTweet()` → Backend: POST `/retweet/:tweetId`
-   - Validates authentication
-   - Shows error beneath tweet
-   - Updates database with composite ID (tweetId-userId)
-   - Stores original tweet ID reference
-   - Returns success with URL
-   - Handles rate limits
-   - Manages error states
+   - Validates authentication and handles expired sessions gracefully
+   - Stores a database record for the repost and links it back to the original tweet
+   - Uses composite IDs such as `tweetId-userId` to avoid duplicate primary key issues
+   - Returns author and retweeter details in the response payload
+   - Manages rate-limit and API error states
 
 2. Posting Tweet:
    - Frontend: `postTweet()` → Backend: POST `/tweet`
-   - Supports multipart/form-data for images
-   - Server stores tweet and media in database
-   - Returns tweet URL and metadata
-   - Frontend shows success/error feedback
+   - Supports multipart/form-data for images and preserves draft content in the browser
+   - The server stores the tweet metadata in the database and returns tweet URL information
+   - Frontend shows success/error feedback and refreshes history on completion
 
 3. Deleting Tweet:
    - Frontend: `deleteTweet()` → Backend: DELETE `/tweet/:id`
-   - Server validates ownership
-   - Updates database with soft delete
-   - Frontend shows deletion animation
+   - Server validates the session and performs a soft delete in the database
+   - Frontend shows deletion feedback and refreshes the history view
 
 ### Search and Filter Flow
 1. **Live Search Implementation:**
@@ -235,27 +236,27 @@ Handles tweet deletion with visual feedback.
 2. **Fetching Latest Tweets:**
    - User clicks "Fetch latest" with busy cursor
    - Frontend: `fetchSearchedTweets()` → Backend: GET `/search/tweets`
-   - Server queries Twitter API with rate limiting
-   - Results cached in database with screen_name
-   - Fallback to stored tweets during rate limits
-   - New Clear button functionality to reset results
+   - Server queries Twitter API with rate limiting and quota handling
+   - Results are cached in the database with screen_name and URL metadata
+   - Fallback to stored tweets during rate limits, monthly quota exhaustion, or paid-tier restrictions
+   - Clear button functionality resets search state in the Elm view
 
 3. Elm Search Implementation:
    - Implemented in `Search.elm` using The Elm Architecture (TEA)
    - Model tracks query string, tweet list, and error state
    - Uses JSON decoders for tweet data (id, text, timestamp, url, userId, screenName)
    - Supports real-time query updates with `UpdateQuery` message
-   - HTTP requests handled through `elm/http` package
-   - Clear functionality resets search state with `Clear` message
+   - HTTP requests handled through `elm/http`
+   - Clear functionality resets search state with `Clear`
    - Responsive UI with Tailwind CSS classes
    - Custom tweet card view with formatted timestamps
 
 4. Filtering Tweets:
    - Frontend: `displaySavedTweets(showAll)` → Backend: GET `/search/tweets?stored=true`
-   - Server returns all stored tweets
-   - Frontend filters tweets based on showAll parameter
+   - Server returns stored tweets from the database
+   - Frontend filters tweets based on the showAll parameter
    - UI shows active filter state and count
-   - Original tweets identified by checking for "RT @" prefix
+   - Original tweets identified by checking for the "RT @" prefix
    - Enhanced side-by-side layout for better visualization
 
 ### New Search Endpoints
@@ -274,6 +275,12 @@ Unified search endpoint for live search functionality.
   - Returns empty array for empty queries
   - Proper type casting for consistent data structure
 
+### Additional AI and Utility Routes
+- `GET /tweet/history`: returns the stored tweet history from the database
+- `GET /api/credits`: returns the current xAI credit balance from the billing API
+- `POST /api/generate-image`: creates an image using the OpenAI image generation endpoint
+- `POST /api/imagine`: creates an image using the xAI image generation endpoint
+- `POST /api/chatgpt`: returns a ChatGPT completion for the submitted prompt
 
 ### Database Enhancements
 - Added composite primary key support for multiple retweets
