@@ -27,19 +27,6 @@ externalPort = 3000
 runButton = "Project"
 
 [[workflows.workflow]]
-name = "Run"
-author = "agent"
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "sh build.sh && node server.js"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow]]
 name = "Project"
 mode = "parallel"
 author = "agent"
@@ -47,6 +34,14 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Run"
+
+[[workflows.workflow]]
+name = "Run"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "sh build.sh && node server.js"
 
 [agent]
 expertMode = true
