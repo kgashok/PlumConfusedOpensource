@@ -326,10 +326,24 @@ app.get('/auth/twitter', async (req, res) => {
     try {
         const oAuthRequestToken = await requestToken();
 
-        req.session.oauthRequestToken = oAuthRequestToken; // Store in session
+        req.session.oauthRequestToken = oAuthRequestToken;
 
-        authorizeURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
-        res.redirect(authorizeURL.href);
+        // Build a fresh URL per request — authorizeURL is module-level and
+        // must not be mutated in place (concurrent requests would clobber it).
+        const redirectURL = new URL('https://api.twitter.com/oauth/authorize');
+        redirectURL.searchParams.set('oauth_token', oAuthRequestToken.oauth_token);
+
+        // Explicitly save the session before redirecting.  express-session
+        // normally saves on res.end(), but the browser can return from Twitter
+        // before that write completes, leaving oauthRequestToken missing in
+        // /callback and causing "Cannot read properties of undefined".
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.redirect('/?error=' + encodeURIComponent('Session save failed'));
+            }
+            res.redirect(redirectURL.href);
+        });
     } catch (e) {
         console.error('Error during Twitter auth:', e);
         res.redirect('/?error=' + encodeURIComponent(e.message));
@@ -348,7 +362,12 @@ app.get('/auth/status', (req, res) => {
 // Update the callback endpoint to store user info  
 app.get('/callback', async (req, res) => {  
     try {  
-        const { oauth_token, oauth_verifier } = req.query;  
+        const { oauth_token, oauth_verifier } = req.query;
+
+        if (!req.session.oauthRequestToken) {
+            throw new Error('OAuth session missing — please try signing in again');
+        }
+
         const oauth_token_secret = req.session.oauthRequestToken.oauth_token_secret;
 
         if (!oauth_token_secret) {  
