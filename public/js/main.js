@@ -1,3 +1,13 @@
+function escapeHTML(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * Updates the current time display in the UI 
  * Runs on page load and updates every second
@@ -60,19 +70,19 @@ function updateUserInfo(data) {
     const refreshButton = document.getElementById("refreshButton");
     const createImageLink = document.getElementById("createImageLink");
 
-    if (data.authenticated && data.user) {
+    if (data.authenticated && data.screen_name) {
+        const safeScreenName = escapeHTML(data.screen_name);
         userInfoDiv.classList.remove("hidden");
         userInfoDiv.innerHTML = `
             <div class="bg-blue-50 p-4 rounded-lg">
-                <div class="font-medium text-blue-700">Logged in as: @${data.user.screen_name}</div>
-                <div class="text-sm text-blue-600">Twitter ID: ${data.user.id}</div>
-                ${data.user.screen_name === 'lifebalance' ? 
+                <div class="font-medium text-blue-700">Logged in as: @${safeScreenName}</div>
+                ${data.screen_name === 'lifebalance' ? 
                     '<div class="mt-2"><a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" target="_blank" class="text-sm text-green-500 hover:text-green-600 transition-colors">New Issue</a></div>' : 
                     ''}
             </div>`;
 
         // Enable refresh button and create image link for specific users
-        const isAuthorizedUser = data.user.screen_name === 'lifebalance' || data.user.screen_name === 'savesoilkg';
+        const isAuthorizedUser = data.screen_name === 'lifebalance' || data.screen_name === 'savesoilkg';
 
         // Enable refresh button for both users
         if (isAuthorizedUser) {
@@ -228,26 +238,31 @@ async function deleteTweet(tweetId) {
 function getTweetHTML(tweet) {
     const currentUser = document.querySelector('#userInfo')?.textContent?.match(/@(\w+)/)?.[1];
     const isCurrentUser = currentUser === tweet.screen_name;
+    const safeId = escapeHTML(tweet.id);
+    const safeScreenName = escapeHTML(tweet.screen_name);
+    const safeText = escapeHTML(tweet.text);
+    const safeUrl = escapeHTML(tweet.url);
+    const safeTimestamp = escapeHTML(formatDate(tweet.timestamp));
 
     return `
-        <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
+        <div data-tweet-id="${safeId}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
             <div class="flex justify-between items-start mb-2">
                 <div>
                     <div class="text-sm mb-1 font-medium">
-                        <a href="https://x.com/${tweet.screen_name}" target="_blank" class="${isCurrentUser ? 'text-green-600 hover:text-green-700' : 'text-blue-600 hover:text-blue-700'} transition-colors">
-                            @${tweet.screen_name} ${isCurrentUser ? '(you)' : ''}
+                        <a href="https://x.com/${safeScreenName}" target="_blank" class="${isCurrentUser ? 'text-green-600 hover:text-green-700' : 'text-blue-600 hover:text-blue-700'} transition-colors">
+                            @${safeScreenName} ${isCurrentUser ? '(you)' : ''}
                         </a>
                     </div>
-                    <div class="text-gray-700">${tweet.text}</div>
+                    <div class="text-gray-700">${safeText}</div>
                 </div>
                 <div class="flex flex-col items-end gap-2">
-                    <div class="text-xs text-gray-500">${formatDate(tweet.timestamp)}</div>
-                    <button onclick="deleteTweet('${tweet.id}')" class="text-red-500 hover:text-red-600 transition-colors">
+                    <div class="text-xs text-gray-500">${safeTimestamp}</div>
+                    <button onclick="deleteTweet('${safeId}')" class="text-red-500 hover:text-red-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </button>
-                    <button onclick="repostTweet('${tweet.id}')" class="text-green-500 hover:text-green-600 transition-colors">
+                    <button onclick="repostTweet('${safeId}')" class="text-green-500 hover:text-green-600 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
@@ -255,9 +270,9 @@ function getTweetHTML(tweet) {
                 </div>
             </div>
             <div class="text-sm mt-2">
-                <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
+                <a href="${safeUrl}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${safeUrl}</a>
             </div>
-            <div class="text-xs text-gray-500 mt-2">Tweet ID: ${tweet.id}</div>
+            <div class="text-xs text-gray-500 mt-2">Tweet ID: ${safeId}</div>
         </div>`;
 }
 
@@ -1215,18 +1230,24 @@ function showSearchError() {
 
 function getSearchTweetHTML(tweet) {
     const tweetDate = new Date(tweet.created_at);
+    const safeId = escapeHTML(tweet.id);
+    const safeHandle = escapeHTML(tweet.screen_name || tweet.author_id);
+    const safeText = escapeHTML(tweet.text);
+    const safeUrl = escapeHTML(tweet.url);
+    const safeTimestamp = escapeHTML(formatDate(tweetDate));
+
     return `
-        <div data-tweet-id="${tweet.id}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
+        <div data-tweet-id="${safeId}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
             <div class="flex justify-between items-start mb-2">
                 <div>
                     <div class="text-sm text-blue-600 hover:text-blue-700 mb-2">
-                        <a href="https://twitter.com/${tweet.screen_name || tweet.author_id}" target="_blank" class="transition-colors">@${tweet.screen_name || tweet.author_id}</a>
+                        <a href="https://twitter.com/${safeHandle}" target="_blank" class="transition-colors">@${safeHandle}</a>
                     </div>
-                    <div class="text-gray-700">${tweet.text}</div>
+                    <div class="text-gray-700">${safeText}</div>
                 </div>
                 <div class="flex flex-col items-end gap-2">
-                    <div class="text-xs text-gray-500">${formatDate(tweetDate)}</div>
-                    <button onclick="repostTweet('${tweet.id}')" class="text-green-500 hover:text-green-600 transition-colors flex items-center gap-1">
+                    <div class="text-xs text-gray-500">${safeTimestamp}</div>
+                    <button onclick="repostTweet('${safeId}')" class="text-green-500 hover:text-green-600 transition-colors flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
@@ -1235,7 +1256,7 @@ function getSearchTweetHTML(tweet) {
                 </div>
             </div>
             <div class="text-sm mt-2">
-                <a href="${tweet.url}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${tweet.url}</a>
+                <a href="${safeUrl}" target="_blank" class="text-blue-500 hover:text-blue-600 break-all transition duration-150 ease-in-out">${safeUrl}</a>
             </div>
         </div>`;
 }

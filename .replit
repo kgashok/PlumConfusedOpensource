@@ -23,13 +23,30 @@ compile = "sh build.sh"
 localPort = 3000
 externalPort = 80
 
+[workflows]
+runButton = "Project"
+
 [[workflows.workflow]]
 runButton = "Run"
-author = 2047244
+author = "agent"
+name = "Project"
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Run"
+
+[[workflows.workflow]]
+name = "Run"
+author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server.js"
+args = "sh build.sh && node server.js"
 
 [agent]
 expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 60000

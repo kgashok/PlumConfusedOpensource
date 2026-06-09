@@ -350,13 +350,13 @@ app.get('/auth/twitter', async (req, res) => {
     }
 });
 
-// Update the auth status endpoint to include user info  
-app.get('/auth/status', (req, res) => {  
-    res.json({  
-        authenticated: !!req.session.user,  // Check session for user
-        user: req.session.user,  // Send user data from session
-        timestamp: new Date().toISOString()  
-    });  
+// Auth status endpoint — only exposes authentication state, not session internals
+app.get('/auth/status', (req, res) => {
+    res.json({
+        authenticated: !!req.session.user,
+        screen_name: req.session.user ? req.session.user.screen_name : null,
+        timestamp: new Date().toISOString()
+    });
 });  
 
 // Update the callback endpoint to store user info  
@@ -477,20 +477,10 @@ app.post('/tweet', upload.single('image'), async (req, res) => {
     }  
 });  
 
-// Add a debug endpoint to check what's stored in sessions  
-app.get('/debug/session', (req, res) => {  
-    res.json({  
-        hasAccessTokens: !!req.session.user,  // Check session for user
-        sessionData: req.session.user ? {  
-            ...req.session.user,  
-            token: '***hidden***',  
-            token_secret: '***hidden***'  
-        } : null  
-    });  
-});  
-
-
 app.get('/tweet/history', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ success: false, error: 'Not authenticated' });
+    }
     try {
         const result = await pool.query(
             'SELECT * FROM tweets ORDER BY timestamp DESC'
