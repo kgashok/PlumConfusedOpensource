@@ -21,23 +21,32 @@ compile = "elm make public/elm/Search.elm --output=public/js/search.js"
 
 [[ports]]
 localPort = 3000
-externalPort = 80
+externalPort = 3000
 
 [workflows]
-runButton = "Run"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run"
-author = 2047244
+author = "agent"
 mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "elm make public/elm/Search.elm --output=public/js/search.js"
+args = "sh build.sh && node server.js"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
 
 [[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node server.js"
+task = "workflow.run"
+args = "Run"
 
 [agent]
 expertMode = true
