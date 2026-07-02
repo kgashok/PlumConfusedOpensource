@@ -528,7 +528,17 @@ async function retweetTweet(oauth_token, oauth_token_secret, tweet_id, user_id) 
     });
 
     if (req.statusCode !== 200) {
-        throw new Error(`Twitter API error: ${JSON.stringify(req.body)}`);
+        const body = req.body;
+        // Twitter v1-style errors: { errors: [{ code, message }] }
+        if (body?.errors?.length) {
+            const { code, message } = body.errors[0];
+            if (code === 327) throw new Error('You have already reposted this tweet.');
+            throw new Error(message || 'Failed to repost tweet');
+        }
+        // Twitter v2-style errors: { title, detail }
+        if (body?.detail) throw new Error(body.detail);
+        if (body?.title)  throw new Error(body.title);
+        throw new Error('Failed to repost tweet');
     }
 
     return req.body;

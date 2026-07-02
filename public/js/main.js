@@ -798,7 +798,7 @@ async function repostTweet(tweetId) {
         }
 
         // Handle authentication expiration
-        if (!authData.authenticated || !authData.user) {
+        if (!authData.authenticated || !authData.screen_name) {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'repost-message text-sm mt-2 text-red-600';
             messageDiv.innerHTML = `Authentication expired. <a href="/auth/twitter" class="underline font-medium">Sign in</a> to repost.`;
