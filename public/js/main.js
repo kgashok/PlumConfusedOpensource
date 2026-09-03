@@ -55,6 +55,17 @@ async function checkAuthStatus() {
     try {
         const response = await fetch("/auth/status");
         const data = await response.json();
+
+        // Start Twitter authentication automatically for unauthenticated
+        // visitors. OAuth callbacks include a result parameter, so preserve
+        // those URLs to show the success or error message instead of looping.
+        const authResult = new URLSearchParams(window.location.search);
+        const isAuthCallback = authResult.has("success") || authResult.has("error");
+        if (!data.authenticated && !isAuthCallback) {
+            window.location.replace("/auth/twitter");
+            return;
+        }
+
         showAuthStatus(
             data.authenticated,
             data.authenticated ? "Authenticated with Twitter" : "Not authenticated with Twitter"
@@ -184,7 +195,18 @@ function showAuthStatus(isAuthenticated, message) {
 async function refreshHistory() {
     try {
         const response = await fetch("/tweet/history");
+        // History is protected and may be unavailable while the automatic
+        // Twitter authentication redirect is starting.
+        if (response.status === 401) {
+            return;
+        }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const history = await response.json();
+        if (!Array.isArray(history)) {
+            throw new Error("Unexpected tweet history response");
+        }
         updateTweetHistory(history);
     } catch (error) {
         console.error("Error fetching tweet history:", error);
@@ -1261,56 +1283,6 @@ function getSearchTweetHTML(tweet) {
         </div>`;
 }
 
-async function displaySavedTweets(showAll = true) {
-    try {
-        document.body.style.cursor = 'wait';
-        const response = await fetch("/search/tweets?stored=true");
-        const data = await response.json();
-
-        const tweetsDiv = document.getElementById("searchedTweets");
-
-        if (!data.data || data.data.length === 0) {
-            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found in database.</p></div>`;
-            return;
-        }
-
-        // Filter tweets based on selection
-        const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
-
-        const filterButtons = `
-            <div class="flex gap-2 mb-4">
-                <button onclick="displaySavedTweets(true)" 
-                    class="px-3 py-1 rounded ${showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
-                    All Tweets (${data.data.length})
-                </button>
-                <button onclick="displaySavedTweets(false)"
-                    class="px-3 py-1 rounded ${!showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
-                    Original Tweets (${data.data.filter(t => !t.text.startsWith('RT @')).length})
-                </button>
-            </div>`;
-
-        if (data.error) {
-            tweetsDiv.innerHTML = getErrorHTML(data);
-            return;
-        }
-
-        if (!data.data || data.data.length === 0) {
-            tweetsDiv.innerHTML = `<div class="text-gray-500 text-center py-8"><p>No SaveSoil tweets found.</p></div>`;
-            return;
-        }
-
-        // Filter tweets based on selection (using the previously defined tweets variable)
-        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
-            Found ${tweets.length} ${!showAll ? 'original' : ''} SaveSoil tweets
-        </div>`;
-        tweetsDiv.innerHTML = filterButtons + statusMessage + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
-    } catch (error) {
-        console.error("Error fetching saved tweets:", error);
-        document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
-    } finally {
-        document.body.style.cursor = 'default';
-    }
-}
 async function showSectionInfo(section, event) {
     // Prevent the click from bubbling up to parent elements
     if (event) {
