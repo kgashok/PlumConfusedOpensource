@@ -123,7 +123,7 @@ app.use(session({
 
 const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
-const callback_url = process.env.CALLBACK_URL || 'http://localhost:3000/callback';
+const callback_url = process.env.CALLBACK_URL || 'http://localhost:5000/callback';
 
 // Add this near the top of your server.js with other initializations  
 const sessions = new Map();
@@ -497,9 +497,11 @@ app.get('/tweet/history', async (req, res) => {
 
 
 
-app.listen(3000, '0.0.0.0', () => {
-    console.log('Server running on port 3000');
-    console.log('Visit http://localhost:3000 to start');
+const port = Number(process.env.PORT) || 5000;
+
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on port ${port}`);
+    console.log(`Visit http://localhost:${port} to start`);
 });
 
 async function retweetTweet(oauth_token, oauth_token_secret, tweet_id, user_id) {
