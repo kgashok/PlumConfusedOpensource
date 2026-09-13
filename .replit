@@ -1,6 +1,6 @@
 
 entrypoint = "server.js"
-modules = ["nodejs-22", "postgresql-16"]
+modules = ["nodejs-22", "postgresql-16", "python-base-3.13"]
 hidden = [".config", "package-lock.json"]
 
 [nix]
@@ -24,17 +24,7 @@ localPort = 3000
 externalPort = 80
 
 [workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
 runButton = "Run"
-author = "agent"
-name = "Project"
-mode = "parallel"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Run"
 
 [[workflows.workflow]]
 name = "Run"
