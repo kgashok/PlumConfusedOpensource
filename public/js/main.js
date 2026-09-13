@@ -59,9 +59,12 @@ async function checkAuthStatus() {
         // Start Twitter authentication automatically for unauthenticated
         // visitors. OAuth callbacks include a result parameter, so preserve
         // those URLs to show the success or error message instead of looping.
+        // Twitter refuses to render inside Replit's Preview iframe, so keep
+        // the app visible there and let the auth button open a new tab.
         const authResult = new URLSearchParams(window.location.search);
         const isAuthCallback = authResult.has("success") || authResult.has("error");
-        if (!data.authenticated && !isAuthCallback) {
+        const isEmbedded = window.self !== window.top;
+        if (!data.authenticated && !isAuthCallback && !isEmbedded) {
             window.location.replace("/auth/twitter");
             return;
         }
@@ -926,7 +929,14 @@ async function repostTweet(tweetId) {
     }
 }
 
-window.startAuth = () => window.location.href = "/auth/twitter";
+window.startAuth = () => {
+    const authUrl = new URL("/auth/twitter", window.location.origin).href;
+    if (window.self !== window.top) {
+        window.open(authUrl, "_blank", "noopener");
+        return;
+    }
+    window.location.href = authUrl;
+};
 window.postTweet = postTweet;
 window.refreshHistory = refreshHistory;
 window.fetchSearchedTweets = fetchSearchedTweets;
