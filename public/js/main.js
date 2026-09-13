@@ -351,6 +351,32 @@ async function fetchSearchedTweets() {
     }
 }
 
+function getTweetFilterButtons(tweets, showAll = true) {
+    const originalTweetCount = tweets.filter(tweet => !tweet.text.startsWith('RT @')).length;
+
+    return `
+        <div class="flex gap-2 mb-4">
+            <button onclick="displaySavedTweets(true)"
+                class="px-3 py-1 rounded ${showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                All Tweets (${tweets.length})
+            </button>
+            <button onclick="displaySavedTweets(false)"
+                class="px-3 py-1 rounded ${!showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
+                Original Tweets (${originalTweetCount})
+            </button>
+        </div>`;
+}
+
+function getTweetListStatus(tweets, showAll = true) {
+    const visibleCount = showAll
+        ? tweets.length
+        : tweets.filter(tweet => !tweet.text.startsWith('RT @')).length;
+
+    return `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
+        Found ${visibleCount} ${!showAll ? 'original' : ''} SaveSoil tweets
+    </div>`;
+}
+
 async function updateSearchedTweets(data, errorMessage = '') {
     const tweetsDiv = document.getElementById("searchedTweets");
 
@@ -372,7 +398,11 @@ async function updateSearchedTweets(data, errorMessage = '') {
         const storedData = await response.json();
 
         if (storedData.data && storedData.data.length > 0) {
-            tweetsDiv.innerHTML = paidMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+            const tweets = storedData.data;
+            tweetsDiv.innerHTML = paidMessage
+                + getTweetFilterButtons(tweets)
+                + getTweetListStatus(tweets)
+                + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
         } else {
             tweetsDiv.innerHTML = paidMessage + '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
         }
@@ -411,7 +441,11 @@ async function updateSearchedTweets(data, errorMessage = '') {
         const storedData = await response.json();
 
         if (storedData.data && storedData.data.length > 0) {
-            tweetsDiv.innerHTML = rateLimitMessage + storedData.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+            const tweets = storedData.data;
+            tweetsDiv.innerHTML = rateLimitMessage
+                + getTweetFilterButtons(tweets)
+                + getTweetListStatus(tweets)
+                + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
         } else {
             tweetsDiv.innerHTML = rateLimitMessage + '<div class="text-gray-500 text-center py-8"><p>No stored tweets found.</p></div>';
         }
@@ -429,7 +463,11 @@ async function updateSearchedTweets(data, errorMessage = '') {
         return;
     }
 
-    tweetsDiv.innerHTML = errorMessage + data.data.map(tweet => getSearchTweetHTML(tweet)).join("");
+    const tweets = data.data;
+    tweetsDiv.innerHTML = errorMessage
+        + getTweetFilterButtons(tweets)
+        + getTweetListStatus(tweets)
+        + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
 }
 
 // Initialize Elm component
@@ -465,18 +503,6 @@ async function displaySavedTweets(showAll = true) {
         // Filter tweets based on selection
         const tweets = showAll ? data.data : data.data.filter(tweet => !tweet.text.startsWith('RT @'));
 
-        const filterButtons = `
-            <div class="flex gap-2 mb-4">
-                <button onclick="displaySavedTweets(true)" 
-                    class="px-3 py-1 rounded ${showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
-                    All Tweets (${data.data.length})
-                </button>
-                <button onclick="displaySavedTweets(false)"
-                    class="px-3 py-1 rounded ${!showAll ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}">
-                    Original Tweets (${data.data.filter(t => !t.text.startsWith('RT @')).length})
-                </button>
-            </div>`;
-
         if (data.error) {
             tweetsDiv.innerHTML = getErrorHTML(data);
             return;
@@ -487,11 +513,9 @@ async function displaySavedTweets(showAll = true) {
             return;
         }
 
-        // Filter tweets based on selection (using the previously defined tweets variable)
-        const statusMessage = `<div class="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
-            Found ${tweets.length} ${!showAll ? 'original' : ''} SaveSoil tweets
-        </div>`;
-        tweetsDiv.innerHTML = filterButtons + statusMessage + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
+        tweetsDiv.innerHTML = getTweetFilterButtons(tweets, showAll)
+            + getTweetListStatus(tweets, showAll)
+            + tweets.map(tweet => getSearchTweetHTML(tweet)).join("");
     } catch (error) {
         console.error("Error fetching saved tweets:", error);
         document.getElementById("searchedTweets").innerHTML = getErrorHTML({ error: "Failed to fetch tweets" });
