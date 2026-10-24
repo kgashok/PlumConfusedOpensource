@@ -26,6 +26,31 @@ test('image success with base64 and url', async () => {
     assert.equal(res.body.imageUrl, 'http://u');
 });
 
+test('image requests omit response_format for default and configured models', async () => {
+    for (const model of [undefined, 'dall-e-3', 'dall-e-2', 'gpt-image-1']) {
+        for (const item of [{ url: 'https://example.com/image.png' }, { b64_json: 'AAA' }]) {
+            let used;
+            const client = { images: { generate: async (params) => {
+                used = params;
+                if ('response_format' in params) {
+                    throw Object.assign(new Error("Unknown parameter: 'response_format'."), { status: 400 });
+                }
+                return { data: [item] };
+            } } };
+            const res = mockRes();
+            await createImageHandler(() => client, { OPENAI_IMAGE_MODEL: model }, quiet)(
+                { body: { prompt: 'A tree' } }, res
+            );
+            assert.deepEqual(used, {
+                model: model || 'dall-e-3', prompt: 'A tree', n: 1, size: '1024x1024'
+            });
+            assert.equal(res.code, 200);
+            assert.equal(res.body.success, true);
+            assert.equal(res.body.imageUrl, item.url || 'data:image/png;base64,AAA');
+        }
+    }
+});
+
 test('invalid model env falls back to defaults', () => {
     const m = getModels({ OPENAI_CHAT_MODEL: 'bad model!', OPENAI_IMAGE_MODEL: '' }, quiet);
     assert.equal(m.chat, 'gpt-4o-mini');

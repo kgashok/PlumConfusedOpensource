@@ -1,0 +1,1 @@
+- [Image request compatibility](image-request-compatibility.md) — configured image models may reject response_format; use default output formats and accept URL/base64.
