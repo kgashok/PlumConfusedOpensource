@@ -268,6 +268,8 @@ function getTweetHTML(tweet) {
     const safeText = escapeHTML(tweet.text);
     const safeUrl = escapeHTML(tweet.url);
     const safeTimestamp = escapeHTML(formatDate(tweet.timestamp));
+    // This per-user flag comes from the history response's repost records.
+    const isReposted = tweet.is_reposted === true;
 
     return `
         <div data-tweet-id="${safeId}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
@@ -287,7 +289,7 @@ function getTweetHTML(tweet) {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </button>
-                    <button onclick="repostTweet('${safeId}')" class="text-green-500 hover:text-green-600 transition-colors">
+                    <button onclick="repostTweet('${safeId}')" class="repost-button ${isReposted ? 'text-green-500 opacity-50 cursor-not-allowed' : 'text-green-500 hover:text-green-600 transition-colors'}" ${isReposted ? 'disabled aria-disabled="true" title="Already reposted"' : ''}>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
@@ -871,6 +873,19 @@ async function repostTweet(tweetId) {
 
         if (response.ok && data.success) {
             messageDiv.className += ' text-green-600';
+            // Prevent another click during this page view; later renders use
+            // the saved repost record returned with each tweet.
+            const originalTweetId = String(tweetId).split('-')[0];
+            for (const card of document.querySelectorAll('[data-tweet-id]')) {
+                if (card.dataset.tweetId.split('-')[0] !== originalTweetId) continue;
+                const repostButton = card.querySelector('.repost-button');
+                if (!repostButton) continue;
+                repostButton.disabled = true;
+                repostButton.setAttribute('aria-disabled', 'true');
+                repostButton.title = 'Already reposted';
+                repostButton.classList.remove('hover:text-green-600', 'transition-colors');
+                repostButton.classList.add('opacity-50', 'cursor-not-allowed');
+            }
             const userInfo = data.userInfo;
             const repostersText = userInfo.retweeters.length > 0 
                 ? `\nReposted by: ${userInfo.retweeters.map(name => `@${name}`).join(', ')}` 
@@ -1291,6 +1306,8 @@ function getSearchTweetHTML(tweet) {
     const safeText = escapeHTML(tweet.text);
     const safeUrl = escapeHTML(tweet.url);
     const safeTimestamp = escapeHTML(formatDate(tweetDate));
+    // Search responses use the same current-user flag as the history cards.
+    const isReposted = tweet.is_reposted === true;
 
     return `
         <div data-tweet-id="${safeId}" class="border rounded-lg p-4 hover:bg-gray-50 transition duration-150 ease-in-out ${tweet.deleted ? 'bg-red-50' : ''}">
@@ -1303,7 +1320,7 @@ function getSearchTweetHTML(tweet) {
                 </div>
                 <div class="flex flex-col items-end gap-2">
                     <div class="text-xs text-gray-500">${safeTimestamp}</div>
-                    <button onclick="repostTweet('${safeId}')" class="text-green-500 hover:text-green-600 transition-colors flex items-center gap-1">
+                    <button onclick="repostTweet('${safeId}')" class="repost-button ${isReposted ? 'text-green-500 opacity-50 cursor-not-allowed' : 'text-green-500 hover:text-green-600 transition-colors'} flex items-center gap-1" ${isReposted ? 'disabled aria-disabled="true" title="Already reposted"' : ''}>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>

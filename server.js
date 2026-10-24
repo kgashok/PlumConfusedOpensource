@@ -492,7 +492,7 @@ app.get('/tweet/history', async (req, res) => {
         const result = await pool.query(
             'SELECT * FROM tweets ORDER BY timestamp DESC'
         );
-        res.json(result.rows);
+        res.json(await addRepostStatus(result.rows, req.session.user.id));
     } catch (e) {
         console.error('Database error:', e);
         res.status(500).json({
@@ -501,6 +501,31 @@ app.get('/tweet/history', async (req, res) => {
         });
     }
 });  
+
+async function addRepostStatus(tweets, userId) {
+    if (!Array.isArray(tweets) || tweets.length === 0) {
+        return tweets;
+    }
+
+    // History rows for reposts use composite IDs, so check their original ID
+    // while still returning the status on the row that the UI renders.
+    const originalTweetIds = tweets.map(tweet => String(tweet.original_tweet_id || tweet.id));
+    // Look up all visible IDs together rather than querying once per tweet.
+    const repostedTweetIds = userId
+        ? await pool.query(
+            'SELECT original_tweet_id FROM retweets WHERE user_id = $1 AND original_tweet_id = ANY($2::varchar[])',
+            [userId, originalTweetIds]
+        )
+        : { rows: [] };
+    const repostedIds = new Set(repostedTweetIds.rows.map(row => String(row.original_tweet_id)));
+
+    // A public stored-tweet response has no signed-in user, and therefore
+    // must not expose another user's repost state; return false for its cards.
+    return tweets.map((tweet, index) => ({
+        ...tweet,
+        is_reposted: Boolean(userId && repostedIds.has(originalTweetIds[index]))
+    }));
+}
 
 
 
@@ -848,7 +873,9 @@ app.get('/search/tweets', async (req, res) => {
             const result = await pool.query(
                 'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
             );
-            return res.json({ data: result.rows });
+            return res.json({
+                data: await addRepostStatus(result.rows, req.session.user?.id)
+            });
         }
 
         // Require authentication for live Twitter API calls
@@ -863,7 +890,9 @@ app.get('/search/tweets', async (req, res) => {
             const result = await pool.query(
                 'SELECT * FROM searched_tweets ORDER BY created_at DESC LIMIT 50'
             );
-            return res.json({ data: result.rows });
+            return res.json({
+                data: await addRepostStatus(result.rows, accessTokens.id)
+            });
         }
 
         const tweets = await searchTweets(
@@ -871,6 +900,9 @@ app.get('/search/tweets', async (req, res) => {
             accessTokens.token_secret
         );
 
+        if (Array.isArray(tweets.data)) {
+            tweets.data = await addRepostStatus(tweets.data, accessTokens.id);
+        }
         res.json(tweets);
     } catch (e) {
         console.error('Error searching tweets:', e);
