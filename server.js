@@ -951,6 +951,7 @@ app.get('/api/credits', async (req, res) => {
     }
 });
 
+// Handler logic (model config, error mapping, logging) lives in lib/openaiService.js
 app.post('/api/generate-image', createImageHandler(() => openai));
 
 app.post('/api/imagine', async (req, res) => {
