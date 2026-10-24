@@ -960,15 +960,26 @@ app.post('/api/generate-image', async (req, res) => {
             });
         }
 
-        const response = await openai.images.generate({
-            model: "gpt-image-1",
-            prompt: prompt,
-            n: 1,
-            size: "1024x1024",
-            quality: "auto",
-        });
+        // 'gpt-image-1' is only available to verified organizations, otherwise the API
+        // answers "model does not exist". Try the configured model first and fall back
+        // to dall-e-3 (which returns a URL) when the model is unavailable.
+        const primaryModel = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
+        const generate = (model) => openai.images.generate(
+            model === "dall-e-3"
+                ? { model, prompt, n: 1, size: "1024x1024" }
+                : { model, prompt, n: 1, size: "1024x1024", quality: "auto" }
+        );
+        let response;
+        try {
+            response = await generate(primaryModel);
+        } catch (err) {
+            const modelUnavailable = err.status === 400 || err.status === 403 || err.status === 404;
+            if (!modelUnavailable || primaryModel === "dall-e-3") throw err;
+            console.warn(`Image model ${primaryModel} unavailable (${err.message}); falling back to dall-e-3`);
+            response = await generate("dall-e-3");
+        }
 
-        // gpt-image-1 returns base64, convert to data URL
+        // gpt-image-1 returns base64 (dall-e-3 returns a URL); convert to data URL
         const imageData = response.data[0];
         const imageUrl = imageData.url
             ? imageData.url
@@ -1056,8 +1067,10 @@ app.post('/api/chatgpt', async (req, res) => {
       });
     }
 
+    // gpt-3.5-turbo is legacy and often unavailable to newer API keys, which made
+    // every request fail. Use a current model; overridable via OPENAI_CHAT_MODEL.
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini",
       messages: [{"role": "user", "content": prompt}],
     });
 
@@ -1073,9 +1086,13 @@ app.post('/api/chatgpt', async (req, res) => {
         error: 'API quota exceeded. Please check the API key configuration.'
       });
     } else {
-      res.status(500).json({ 
+      // Pass the upstream reason (e.g. model not found, bad key) to the UI instead
+      // of a generic message, and keep the upstream status where available.
+      res.status(error.status || 500).json({ 
         success: false, 
-        error: 'Error fetching ChatGPT response' 
+        error: error.message
+          ? `Error fetching ChatGPT response: ${error.message}`
+          : 'Error fetching ChatGPT response' 
       });
     }
   }

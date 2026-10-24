@@ -1061,10 +1061,12 @@ async function askChatGPT() {
 }
 
 async function sendToChatGPT() {
+    // Resolve gptResponse outside the try block so the catch handler can use it
+    // (previously it was block-scoped, so network errors threw a ReferenceError).
+    const gptResponse = document.getElementById('gptResponse');
     try {
         const promptSection = document.getElementById('promptSection');
         const responseSection = document.getElementById('responseSection');
-        const gptResponse = document.getElementById('gptResponse');
         const customPrompt = document.getElementById('gptPrompt').value;
 
         if (!customPrompt.trim()) {
