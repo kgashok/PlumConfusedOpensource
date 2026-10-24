@@ -1,3 +1,8 @@
+<!--
+This file provides an overview of the "Social for SaveSoil" application, describing its purpose, main features, engagement tools, and technical stack.
+In the app, this file is typically used as a documentation or informational page, accessible from a "About" or "Info" section to help users, contributors, and developers understand the application's goals and capabilities.
+It serves as a reference for onboarding new users, as well as a guide for potential contributors who want to quickly grasp what the project is about.
+-->
 # About Social for SaveSoil
 
 Social for SaveSoil is a companion app for the SaveSoil movement. It helps you create and share posts about soil conservation and browse posts using the #SaveSoil hashtag.
