@@ -203,6 +203,8 @@ If you like this, say thanks to: https://saythanks.io/to/lifebalance&saveSoilApp
 | `OPENAI_CHAT_MODEL` | no | `gpt-4o-mini` | Used by "Ask ChatGPT" (`/api/chatgpt`). Examples: `gpt-4o`, `gpt-4o-mini` |
 | `OPENAI_IMAGE_MODEL` | no | `dall-e-3` | Used by "Create Image" (`/api/generate-image`). Examples: `dall-e-3`, `gpt-image-1` (requires a verified OpenAI organization) |
 
+> **Note on `gpt-image-1`:** it was reported as retired on 23 Oct 2026 (not verified from this environment; check OpenAI's [model docs](https://developers.openai.com/api/docs/models)). Organization verification will not bring a retired model back. Set `OPENAI_IMAGE_MODEL` to a currently listed image model (the docs name `gpt-image-2.5-sunburst` / `gpt-image-2.5-flare` as replacements), restart the server, and test. GPT Image models may also require your API organization to be verified (OpenAI platform → Settings → Organization → General). API billing is separate from a ChatGPT subscription.
+
 Malformed model names are ignored with a warning and the default is used.
 
 ### Troubleshooting
