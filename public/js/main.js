@@ -875,8 +875,11 @@ async function repostTweet(tweetId) {
             messageDiv.className += ' text-green-600';
             // Prevent another click during this page view; later renders use
             // the saved repost record returned with each tweet.
-            const repostButton = tweetElement?.querySelector('.repost-button');
-            if (repostButton) {
+            const originalTweetId = String(tweetId).split('-')[0];
+            for (const card of document.querySelectorAll('[data-tweet-id]')) {
+                if (card.dataset.tweetId.split('-')[0] !== originalTweetId) continue;
+                const repostButton = card.querySelector('.repost-button');
+                if (!repostButton) continue;
                 repostButton.disabled = true;
                 repostButton.setAttribute('aria-disabled', 'true');
                 repostButton.title = 'Already reposted';
