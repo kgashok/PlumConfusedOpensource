@@ -42,6 +42,7 @@ import { readFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import fetch from 'node-fetch';
 import OpenAI from 'openai';
+import { createChatHandler, createImageHandler } from './lib/openaiService.js';
 
 // Initialize OpenAI client
 if (!process.env.OPENAI_API_KEY) {
@@ -950,60 +951,7 @@ app.get('/api/credits', async (req, res) => {
     }
 });
 
-app.post('/api/generate-image', async (req, res) => {
-    try {
-        const { prompt } = req.body;
-        if (!prompt) {
-            return res.status(400).json({
-                success: false,
-                error: 'Prompt is required'
-            });
-        }
-
-        // 'gpt-image-1' is only available to verified organizations, otherwise the API
-        // answers "model does not exist". Try the configured model first and fall back
-        // to dall-e-3 (which returns a URL) when the model is unavailable.
-        const primaryModel = process.env.OPENAI_IMAGE_MODEL || "gpt-image-1";
-        const generate = (model) => openai.images.generate(
-            model === "dall-e-3"
-                ? { model, prompt, n: 1, size: "1024x1024" }
-                : { model, prompt, n: 1, size: "1024x1024", quality: "auto" }
-        );
-        let response;
-        try {
-            response = await generate(primaryModel);
-        } catch (err) {
-            const modelUnavailable = err.status === 400 || err.status === 403 || err.status === 404;
-            if (!modelUnavailable || primaryModel === "dall-e-3") throw err;
-            console.warn(`Image model ${primaryModel} unavailable (${err.message}); falling back to dall-e-3`);
-            response = await generate("dall-e-3");
-        }
-
-        // gpt-image-1 returns base64 (dall-e-3 returns a URL); convert to data URL
-        const imageData = response.data[0];
-        const imageUrl = imageData.url
-            ? imageData.url
-            : `data:image/png;base64,${imageData.b64_json}`;
-
-        res.json({
-            success: true,
-            imageUrl
-        });
-    } catch (error) {
-        console.error('OpenAI API error:', error.message);
-        if (error.error?.type === 'insufficient_quota' || error.status === 429) {
-            res.status(429).json({
-                success: false,
-                error: 'API quota exceeded. Please try again later.'
-            });
-        } else {
-            res.status(500).json({
-                success: false,
-                error: error.message || 'Error generating image'
-            });
-        }
-    }
-});
+app.post('/api/generate-image', createImageHandler(() => openai));
 
 app.post('/api/imagine', async (req, res) => {
     try {
@@ -1057,43 +1005,4 @@ app.post('/api/imagine', async (req, res) => {
     }
 });
 
-app.post('/api/chatgpt', async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) {
-      return res.status(400).json({
-        success: false,
-        error: 'Prompt is required'
-      });
-    }
-
-    // gpt-3.5-turbo is legacy and often unavailable to newer API keys, which made
-    // every request fail. Use a current model; overridable via OPENAI_CHAT_MODEL.
-    const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini",
-      messages: [{"role": "user", "content": prompt}],
-    });
-
-    res.json({ 
-      success: true, 
-      response: completion.choices[0].message.content 
-    });
-  } catch (error) {
-    console.error('OpenAI API error:', error);
-    if (error.error?.type === 'insufficient_quota') {
-      res.status(429).json({
-        success: false,
-        error: 'API quota exceeded. Please check the API key configuration.'
-      });
-    } else {
-      // Pass the upstream reason (e.g. model not found, bad key) to the UI instead
-      // of a generic message, and keep the upstream status where available.
-      res.status(error.status || 500).json({ 
-        success: false, 
-        error: error.message
-          ? `Error fetching ChatGPT response: ${error.message}`
-          : 'Error fetching ChatGPT response' 
-      });
-    }
-  }
-});
+app.post('/api/chatgpt', createChatHandler(() => openai));

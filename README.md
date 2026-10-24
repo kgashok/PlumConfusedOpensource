@@ -194,3 +194,22 @@ For support, please open an issue in the repository or contact the maintainers d
 
 ---
 If you like this, say thanks to: https://saythanks.io/to/lifebalance&saveSoilApp 
+
+## OpenAI configuration
+
+| Variable | Required | Default | Notes |
+| --- | --- | --- | --- |
+| `OPENAI_API_KEY` | yes | – | Server refuses to start without it |
+| `OPENAI_CHAT_MODEL` | no | `gpt-4o-mini` | Used by "Ask ChatGPT" (`/api/chatgpt`). Examples: `gpt-4o`, `gpt-4o-mini` |
+| `OPENAI_IMAGE_MODEL` | no | `dall-e-3` | Used by "Create Image" (`/api/generate-image`). Examples: `dall-e-3`, `gpt-image-1` (requires a verified OpenAI organization) |
+
+Malformed model names are ignored with a warning and the default is used.
+
+### Troubleshooting
+
+- **"The ... model "X" is not available for this API key"** – the account can't use that model (e.g. `The model 'gpt-image-1' does not exist`). Set `OPENAI_CHAT_MODEL` / `OPENAI_IMAGE_MODEL` to a model your account has access to.
+- **"OpenAI rejected the API key"** (401) – check `OPENAI_API_KEY`.
+- **Quota exceeded / rate limit** (429) – check billing and usage at platform.openai.com, or retry later.
+- **"Could not reach OpenAI"** – network/DNS problem from the server.
+
+Server logs include `feature`, `endpoint`, `model`, `upstreamStatus` and `errorType` for each failure.
