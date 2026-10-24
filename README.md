@@ -62,7 +62,11 @@ TWITTER_API_KEY=your_api_key_here
 TWITTER_API_SECRET=your_api_secret_here
 CALLBACK_URL=http://localhost:3000/callback
 PORT=3000
+SESSION_SECRET=a_long_random_string
+SESSION_MAX_AGE_DAYS=30   # optional, session lifetime in days (default 30)
 ```
+
+Sessions are stored in Postgres (`user_sessions` table, created automatically via `DATABASE_URL`), so users stay signed in across reloads and server restarts until the session expires or they log out.
 
 4. Start the server:
 ```bash
