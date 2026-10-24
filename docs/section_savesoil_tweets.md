@@ -1,16 +1,17 @@
+# #SaveSoil Tweets
 
-# SaveSoil Tweets Section
+Browse #SaveSoil posts in this section. Select **Fetch latest** to request recent posts from X.
 
-This section displays real-time tweets containing the #SaveSoil hashtag. It helps you:
+## Fetching posts
 
-- Monitor the global conversation about soil conservation
-- Stay updated with latest SaveSoil movement activities
-- Engage with fellow soil advocates
-- Track the movement's social media impact
+Fetching requires an authorized account. X may limit or restrict search access; if a request cannot return new posts, the app may show posts previously saved in its database instead. This feed is not a real-time stream.
 
-## Features
-- Displays tweet content, author, and timestamp
-- Shows engagement metrics (likes, retweets)
-- Supports tweet interaction through the Twitter platform
+## Browse and search
 
-Click "Fetch latest" to manually refresh the tweet feed.
+- Choose **All Tweets** or **Original Tweets** to filter the displayed posts.
+- Use the search field above the tweet lists to find saved posts by text or account name as you type.
+- Each post card shows the author, post text, timestamp, and a link to the post on X.
+
+## Repost
+
+Use the repost button on a post card to repost it from your signed-in account. The app shows success or error feedback; after a successful repost, that post's repost button is disabled for your account.
