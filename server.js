@@ -19,6 +19,7 @@ const upload = multer({
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session'; // Import express-session
+import { PgSessionStore, getCookieOptions } from './sessionConfig.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,15 +113,6 @@ app.get('/docs/section_savesoil_tweets', async (req, res) => {
     }
 });
 
-// Initialize express-session middleware
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key', // Replace with a strong secret key
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === 'production' } // Set secure flag in production
-}));
-
-
 const consumer_key = process.env.CONSUMER_KEY;
 const consumer_secret = process.env.CONSUMER_SECRET;
 const callback_url = process.env.CALLBACK_URL || 'http://localhost:5000/callback';
@@ -136,6 +128,20 @@ const pool = new Pool({
         rejectUnauthorized: false
     }
 });  
+
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1); // needed for secure cookies behind a proxy
+}
+
+// Persistent, long-lived sessions stored in Postgres (survive restarts)
+app.use(session({
+    store: new PgSessionStore(pool),
+    secret: process.env.SESSION_SECRET || 'your-secret-key', // Replace with a strong secret key
+    resave: false,
+    saveUninitialized: false,
+    rolling: true, // extend the session on activity
+    cookie: getCookieOptions()
+}));
 
 // Verify environment variables
 console.log('Environment check:');
@@ -408,6 +414,7 @@ app.post('/auth/logout', (req, res) => {
         if (err) {
             return res.status(500).json({ error: 'Error during logout' });
         }
+        res.clearCookie('connect.sid', getCookieOptions());
         res.json({ success: true });
     });
 });
