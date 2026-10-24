@@ -1056,8 +1056,10 @@ app.post('/api/chatgpt', async (req, res) => {
       });
     }
 
+    // gpt-3.5-turbo is legacy and often unavailable to newer API keys, which made
+    // every request fail. Use a current model; overridable via OPENAI_CHAT_MODEL.
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini",
       messages: [{"role": "user", "content": prompt}],
     });
 
@@ -1073,9 +1075,13 @@ app.post('/api/chatgpt', async (req, res) => {
         error: 'API quota exceeded. Please check the API key configuration.'
       });
     } else {
-      res.status(500).json({ 
+      // Pass the upstream reason (e.g. model not found, bad key) to the UI instead
+      // of a generic message, and keep the upstream status where available.
+      res.status(error.status || 500).json({ 
         success: false, 
-        error: 'Error fetching ChatGPT response' 
+        error: error.message
+          ? `Error fetching ChatGPT response: ${error.message}`
+          : 'Error fetching ChatGPT response' 
       });
     }
   }
