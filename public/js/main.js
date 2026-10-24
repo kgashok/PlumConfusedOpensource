@@ -63,15 +63,20 @@ async function checkAuthStatus() {
         // the app visible there and let the auth button open a new tab.
         const authResult = new URLSearchParams(window.location.search);
         const isAuthCallback = authResult.has("success") || authResult.has("error");
+        const isLoggedOut = authResult.has("loggedOut");
         const isEmbedded = window.self !== window.top;
-        if (!data.authenticated && !isAuthCallback && !isEmbedded) {
+        if (!data.authenticated && !isAuthCallback && !isLoggedOut && !isEmbedded) {
             window.location.replace("/auth/twitter");
             return;
         }
 
         showAuthStatus(
-            data.authenticated,
-            data.authenticated ? "Authenticated with Twitter" : "Not authenticated with Twitter"
+            data.authenticated || isLoggedOut,
+            data.authenticated
+                ? "Authenticated with Twitter"
+                : isLoggedOut
+                    ? "Logged out successfully"
+                    : "Not authenticated with Twitter"
         );
         updateUserInfo(data);
     } catch (error) {
@@ -81,18 +86,21 @@ async function checkAuthStatus() {
 
 function updateUserInfo(data) {
     const userInfoDiv = document.getElementById("userInfo");
+    const authButton = document.getElementById("authButton");
     const refreshButton = document.getElementById("refreshButton");
     const createImageLink = document.getElementById("createImageLink");
 
     if (data.authenticated && data.screen_name) {
         const safeScreenName = escapeHTML(data.screen_name);
         userInfoDiv.classList.remove("hidden");
+        authButton?.classList.add("hidden");
         userInfoDiv.innerHTML = `
             <div class="bg-blue-50 p-4 rounded-lg">
                 <div class="font-medium text-blue-700">Logged in as: @${safeScreenName}</div>
                 ${data.screen_name === 'lifebalance' ? 
                     '<div class="mt-2"><a href="https://github.com/kgashok/PlumConfusedOpensource/issues/new" target="_blank" class="text-sm text-green-500 hover:text-green-600 transition-colors">New Issue</a></div>' : 
                     ''}
+                <button onclick="logout()" class="btn-primary mt-3">Log Out</button>
             </div>`;
 
         // Enable refresh button and create image link for specific users
@@ -113,6 +121,7 @@ function updateUserInfo(data) {
         }
     } else {
         userInfoDiv.classList.add("hidden");
+        authButton?.classList.remove("hidden");
         refreshButton.disabled = true;
         refreshButton.classList.add('opacity-50', 'cursor-not-allowed');
     }
@@ -806,11 +815,13 @@ async function logout() {
         const response = await fetch('/auth/logout', {
             method: 'POST',
         });
-        if (response.ok) {
-            window.location.href = '/';
+        if (!response.ok) {
+            throw new Error('Logout request failed');
         }
+        window.location.replace('/?loggedOut=true');
     } catch (error) {
         console.error('Logout error:', error);
+        showAuthStatus(false, 'Logout failed. Please check your connection and try again.');
     }
 }
 
