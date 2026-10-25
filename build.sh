@@ -14,7 +14,8 @@
 # - Keeping these steps in one script makes local and CI builds consistent.
 #
 # Usage:
-#   ./build.sh
+#   ./build.sh          # build only if needed
+#   ./build.sh --force  # always rebuild
 #
 # Requirements:
 # - elm (Elm compiler)
@@ -26,10 +27,29 @@
 #
 set -e
 
+SRC="public/elm/Search.elm"
+OUT="public/js/search.js"
+STAMP="public/js/.search.elm.sha"
+
+# Portable hash command (Linux: sha256sum, macOS: shasum)
+if command -v sha256sum >/dev/null 2>&1; then
+  hash_cmd="sha256sum"
+else
+  hash_cmd="shasum -a 256"
+fi
+
+current_hash=$($hash_cmd "$SRC" | cut -d' ' -f1)
+
+if [ "$1" != "--force" ] && [ -f "$OUT" ] && [ -f "$STAMP" ] \
+   && [ "$(cat "$STAMP")" = "$current_hash" ]; then
+  echo "Search.elm unchanged; skipping build."
+  exit 0
+fi
+
 # Step 1: Compile Elm to optimized JS.
 # `--optimize` asks Elm to emit code suited for production builds.
 # Output is written to the JS bundle consumed by the site.
-elm make public/elm/Search.elm --optimize --output=public/js/search.js
+elm make "$SRC" --optimize --output="$OUT"
 
 # Step 2: First-pass compression with UglifyJS.
 # Why these options:
@@ -40,7 +60,7 @@ elm make public/elm/Search.elm --optimize --output=public/js/search.js
 # - unsafe_comps / unsafe: enables more aggressive (but generally safe here)
 #   optimizations for tighter output.
 # Writes to a temp file so we can do a second pass cleanly.
-uglifyjs public/js/search.js \
+uglifyjs "$OUT" \
     --compress "pure_funcs=[F2,F3,F4,F5,F6,F7,F8,F9,A2,A3,A4,A5,A6,A7,A8,A9],pure_getters,keep_fargs=false,unsafe_comps,unsafe" \
     --output /tmp/search-compressed.js
 
@@ -48,4 +68,7 @@ uglifyjs public/js/search.js \
 # This shortens variable/function names and writes the final production bundle.
 uglifyjs /tmp/search-compressed.js \
     --mangle \
-    --output public/js/search.js
+    --output "$OUT"
+
+# Record hash only after successful build.
+echo "$current_hash" > "$STAMP"
