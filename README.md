@@ -9,7 +9,7 @@
 
 Before running the application, compile the Elm code with:
 ```bash
-elm make public/elm/Search.elm --output=public/js/search.js
+./build.sh
 ```
 
 
