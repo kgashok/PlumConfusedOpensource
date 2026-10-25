@@ -157,13 +157,6 @@
                         </svg>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span id="creditBalance"
-                              class="credit-badge hidden"></span>
-                        <a id="xCreditsLink"
-                           href="https://console.x.com/accounts/1037433829038874625/billing/credits"
-                           target="_blank"
-                           class="x-credits-link hidden"
-                           title="View X developer credits">X Credits</a>
                         <button id="refreshButton"
                                 onclick="fetchSearchedTweets(); event.stopPropagation();"
                                 class="btn-refresh"
@@ -173,6 +166,13 @@
                             </svg>
                             Fetch latest
                         </button>
+                        <span id="creditBalance"
+                              class="credit-badge hidden"></span>
+                        <a id="xCreditsLink"
+                           href="https://console.x.com/accounts/1037433829038874625/billing/credits"
+                           target="_blank"
+                           class="x-credits-link hidden"
+                           title="View X developer credits">X Credits</a>
                     </div>
                 </div>
                 <div id="searchedTweets" class="section-body hidden"></div>
