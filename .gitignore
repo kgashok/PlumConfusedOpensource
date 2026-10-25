@@ -144,3 +144,6 @@ tests/dependencies.json
 # Elm compilation artifacts and data files
 *.dat
 /elm-stuff/**/*.dat            
+
+# Build stamp for Search.elm incremental build
+public/js/.search.elm.sha
